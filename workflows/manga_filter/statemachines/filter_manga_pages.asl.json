@@ -1,0 +1,104 @@
+{
+  "Comment": "Filter Drawtoon single manga pages with Claude Haiku and copy accepted pages to datasets/pages/filtered.",
+  "StartAt": "PrepareConfig",
+  "States": {
+    "PrepareConfig": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${PrepareMangaFilterConfigArn}",
+        "Payload.$": "$"
+      },
+      "ResultPath": "$.prepared",
+      "OutputPath": "$.prepared.Payload",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.TooManyRequestsException",
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "FilterMangaPages"
+    },
+    "FilterMangaPages": {
+      "Type": "Map",
+      "Label": "FilterMangaPages",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "Parameters": {
+          "Bucket.$": "$.source.bucket",
+          "Key.$": "$.source.manifest_key"
+        },
+        "ReaderConfig": {
+          "InputType": "JSONL"
+        }
+      },
+      "ItemSelector": {
+        "row_index.$": "$$.Map.Item.Index",
+        "object.$": "$$.Map.Item.Value",
+        "config_ref": {
+          "bucket.$": "$.worker_config.bucket",
+          "key.$": "$.worker_config.key"
+        }
+      },
+      "ItemBatcher": {
+        "MaxItemsPerBatchPath": "$.batch.max_items_per_batch",
+        "MaxInputBytesPerBatchPath": "$.batch.max_input_bytes_per_batch"
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "FilterMangaPageBatch",
+        "States": {
+          "FilterMangaPageBatch": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${FilterMangaPageBatchArn}",
+              "Payload.$": "$"
+            },
+            "TimeoutSeconds": 900,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "OutputPath": "$.Payload",
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrencyPath": "$.batch.max_concurrency",
+      "ToleratedFailureCountPath": "$.failure.tolerated_failure_count",
+      "ResultWriter": {
+        "Resource": "arn:aws:states:::s3:putObject",
+        "Parameters": {
+          "Bucket.$": "$.audit.bucket",
+          "Prefix.$": "$.audit.prefix"
+        },
+        "WriterConfig": {
+          "OutputType": "JSONL",
+          "Transformation": "COMPACT"
+        }
+      },
+      "ResultPath": "$.map_result",
+      "End": true
+    }
+  }
+}

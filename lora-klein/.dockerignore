@@ -1,0 +1,15 @@
+.git
+.github
+.vscode
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.DS_Store
+notebooks
+testing
+output
+ui/.next
+ui/node_modules
+ui/prisma
+tests

@@ -1,0 +1,141 @@
+{
+  "Comment": "Caption Drawtoon filtered manga pages with Claude Haiku. Chapters run in parallel; pages inside each chapter run sequentially with memory.",
+  "StartAt": "PrepareConfig",
+  "States": {
+    "PrepareConfig": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${PrepareMangaCaptionConfigArn}",
+        "Payload.$": "$"
+      },
+      "ResultPath": "$.prepared",
+      "OutputPath": "$.prepared.Payload",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.TooManyRequestsException",
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "CaptionChapters"
+    },
+    "CaptionChapters": {
+      "Type": "Map",
+      "Label": "CaptionChapters",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "Parameters": {
+          "Bucket.$": "$.source.bucket",
+          "Key.$": "$.source.chapter_manifest_key"
+        },
+        "ReaderConfig": {
+          "InputType": "JSONL"
+        }
+      },
+      "ItemSelector": {
+        "row_index.$": "$$.Map.Item.Index",
+        "chapter.$": "$$.Map.Item.Value.chapter",
+        "pages_key.$": "$$.Map.Item.Value.pages_key",
+        "page_count.$": "$$.Map.Item.Value.page_count",
+        "config_ref": {
+          "bucket.$": "$.worker_config.bucket",
+          "key.$": "$.worker_config.key"
+        }
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "InitializeChapter",
+        "States": {
+          "InitializeChapter": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${InitializeMangaCaptionChapterArn}",
+              "Payload.$": "$"
+            },
+            "TimeoutSeconds": 300,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "OutputPath": "$.Payload",
+            "Next": "ChapterDone"
+          },
+          "CaptionNextPage": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${CaptionMangaPageArn}",
+              "Payload.$": "$"
+            },
+            "TimeoutSeconds": 900,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "OutputPath": "$.Payload",
+            "Next": "ChapterDone"
+          },
+          "ChapterDone": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Variable": "$.done",
+                "BooleanEquals": true,
+                "Next": "FinishChapter"
+              }
+            ],
+            "Default": "CaptionNextPage"
+          },
+          "FinishChapter": {
+            "Type": "Pass",
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrencyPath": "$.batch.max_concurrency",
+      "ToleratedFailureCountPath": "$.failure.tolerated_failure_count",
+      "ResultWriter": {
+        "Resource": "arn:aws:states:::s3:putObject",
+        "Parameters": {
+          "Bucket.$": "$.audit.bucket",
+          "Prefix.$": "$.audit.prefix"
+        },
+        "WriterConfig": {
+          "OutputType": "JSONL",
+          "Transformation": "COMPACT"
+        }
+      },
+      "ResultPath": "$.map_result",
+      "End": true
+    }
+  }
+}

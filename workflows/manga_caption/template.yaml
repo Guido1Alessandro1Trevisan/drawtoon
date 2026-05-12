@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon sequential manga page captioning workflow using Claude Haiku and chapter memory.
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.11
+  DefaultCaptionModel:
+    Type: String
+    Default: global.anthropic.claude-haiku-4-5-20251001-v1:0
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Timeout: 900
+    MemorySize: 2048
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+        DEFAULT_CAPTION_MODEL: !Ref DefaultCaptionModel
+
+Resources:
+  PrepareMangaCaptionConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.prepare_manga_caption_config
+      MemorySize: 1536
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - aws-marketplace:ViewSubscriptions
+                - aws-marketplace:Subscribe
+                - aws-marketplace:Unsubscribe
+              Resource: "*"
+
+  InitializeMangaCaptionChapterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.initialize_manga_caption_chapter
+      MemorySize: 1024
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+  CaptionMangaPageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.caption_manga_page
+      MemorySize: 3072
+      Timeout: 900
+      EphemeralStorage:
+        Size: 2048
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+
+  MangaCaptionStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/caption_manga_pages.asl.json
+      DefinitionSubstitutions:
+        PrepareMangaCaptionConfigArn: !GetAtt PrepareMangaCaptionConfigFunction.Arn
+        InitializeMangaCaptionChapterArn: !GetAtt InitializeMangaCaptionChapterFunction.Arn
+        CaptionMangaPageArn: !GetAtt CaptionMangaPageFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PrepareMangaCaptionConfigFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref InitializeMangaCaptionChapterFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CaptionMangaPageFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}
+
+Outputs:
+  MangaCaptionStateMachineArn:
+    Value: !Ref MangaCaptionStateMachine

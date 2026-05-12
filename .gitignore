@@ -1,0 +1,4 @@
+.env
+.aws-sam/
+__pycache__/
+*.py[cod]
