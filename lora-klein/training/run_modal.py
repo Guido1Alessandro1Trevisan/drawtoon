@@ -4,6 +4,7 @@ Clean workflow with external config - no fallbacks
 """
 
 import json
+import io
 import os
 import random
 import re
@@ -18,6 +19,7 @@ from types import MethodType
 from pathlib import Path
 from typing import Any, Literal
 
+import boto3
 import modal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_validator, model_validator
@@ -1615,7 +1617,7 @@ def _drawtoon_cache_key(drawtoon: dict[str, Any]) -> str:
         "caption_run": drawtoon["caption_run"],
         "include_chapter_regex": drawtoon["include_chapter_regex"],
         "max_pages": int(drawtoon["max_pages"]),
-        "schema": "drawtoon_lamic_cache_v1",
+        "schema": "drawtoon_lamic_cache_v4_next_panel_previous_refs_pad_controls",
     }
     digest = hashlib.sha1(json.dumps(fingerprint_payload, sort_keys=True).encode("utf-8")).hexdigest()[:16]
     run_label = sanitize_filename(str(drawtoon["caption_run"]), fallback="caption_run")
@@ -1729,6 +1731,78 @@ def _caption_page_key(caption_payload: dict[str, Any], drawtoon: dict[str, Any])
     return f"{drawtoon['pages_prefix'].rstrip('/')}/{chapter}/{page_id}.jpg"
 
 
+def _panel_character_contexts(
+    panels: list[Any],
+    *,
+    page_width: int,
+    page_height: int,
+) -> list[dict[str, Any]]:
+    contexts: list[dict[str, Any]] = []
+    for panel in panels:
+        if not isinstance(panel, dict):
+            continue
+        panel_index = int(panel.get("panel_index") or 0)
+        panel_box = _coerce_pixel_box(panel.get("bbox"), width=page_width, height=page_height)
+        if panel_box is None:
+            panel_box = _coerce_pixel_box(panel.get("bbox_norm"), width=page_width, height=page_height)
+        if panel_box is None:
+            continue
+        characters: list[dict[str, Any]] = []
+        for character in panel.get("characters") or []:
+            if not isinstance(character, dict):
+                continue
+            char_box = _coerce_pixel_box(character.get("bbox"), width=page_width, height=page_height)
+            if char_box is None:
+                char_box = _coerce_pixel_box(character.get("bbox_norm"), width=page_width, height=page_height)
+            if char_box is None:
+                continue
+            characters.append({**character, "_pixel_box": char_box, "_panel_index": panel_index})
+        contexts.append({**panel, "_pixel_box": panel_box, "_characters": characters, "_panel_index": panel_index})
+    return contexts
+
+
+def _select_character_reference(
+    *,
+    target_character: dict[str, Any],
+    target_panel_index: int,
+    panel_contexts: list[dict[str, Any]],
+) -> tuple[dict[str, Any], str] | tuple[None, str]:
+    target_source_id = str(target_character.get("source_character_id") or "").strip()
+    target_local_id = str(target_character.get("id") or "").strip()
+    single_panel_page = len(panel_contexts) <= 1
+    if single_panel_page:
+        return target_character, "single_panel_self_fallback"
+
+    same_character_candidates: list[dict[str, Any]] = []
+    previous_panel_candidates: list[dict[str, Any]] = []
+    for panel in panel_contexts:
+        candidate_panel_index = int(panel.get("_panel_index") or 0)
+        if candidate_panel_index == target_panel_index:
+            continue
+        if candidate_panel_index > target_panel_index:
+            continue
+        for character in panel.get("_characters") or []:
+            candidate_source_id = str(character.get("source_character_id") or "").strip()
+            if target_source_id and candidate_source_id == target_source_id:
+                same_character_candidates.append(character)
+            previous_panel_candidates.append(character)
+
+    def candidate_rank(character: dict[str, Any]) -> tuple[int, int, int]:
+        candidate_panel_index = int(character.get("_panel_index") or 0)
+        distance = abs(candidate_panel_index - target_panel_index)
+        same_local_id = str(character.get("id") or "").strip() == target_local_id
+        character_index_delta = abs(int(character.get("character_index") or 0) - int(target_character.get("character_index") or 0))
+        return (distance, 0 if same_local_id else 1, character_index_delta)
+
+    if same_character_candidates:
+        return sorted(same_character_candidates, key=candidate_rank)[0], "same_character_previous_panel"
+    if previous_panel_candidates:
+        return sorted(previous_panel_candidates, key=candidate_rank)[0], "previous_panel_character_fallback"
+
+    return None, "missing_previous_panel_character_ref"
+
+
+
 def _iter_lamic_rows_for_caption(
     *,
     s3_client,
@@ -1753,8 +1827,17 @@ def _iter_lamic_rows_for_caption(
     page_bytes = s3_client.get_object(Bucket=bucket, Key=page_key)["Body"].read()
     page_image = Image.open(io.BytesIO(page_bytes)).convert("RGB")
     page_width, page_height = page_image.size
+    panel_contexts = _panel_character_contexts(panels, page_width=page_width, page_height=page_height)
     rows: list[dict[str, Any]] = []
-    stats = {"pages": 1, "panels": 0, "characters": 0, "text_bubbles": 0, "skipped_panels": 0}
+    stats = {
+        "pages": 1,
+        "panels": 0,
+        "characters": 0,
+        "text_bubbles": 0,
+        "skipped_panels": 0,
+        "skipped_missing_non_target_character_ref": 0,
+        "single_panel_self_ref_fallbacks": 0,
+    }
 
     for panel in panels:
         if not isinstance(panel, dict):
@@ -1795,14 +1878,27 @@ def _iter_lamic_rows_for_caption(
             )
             if target_box_norm is None:
                 continue
-            cx0, cy0, cx1, cy1 = char_box
+            ref_character, ref_policy = _select_character_reference(
+                target_character=character,
+                target_panel_index=panel_index,
+                panel_contexts=panel_contexts,
+            )
+            if ref_character is None:
+                stats["skipped_missing_non_target_character_ref"] += 1
+                continue
+            rx0, ry0, rx1, ry1 = ref_character["_pixel_box"]
             ref_path = cache_root / "refs" / sanitize_filename(chapter) / f"{sample_stem}__char_{len(control_paths):02d}.jpg"
             _save_jpeg(
-                page_image.crop(
-                    (int(math.floor(cx0)), int(math.floor(cy0)), int(math.ceil(cx1)), int(math.ceil(cy1)))
+                _pad_image_to_multiple(
+                    page_image.crop(
+                        (int(math.floor(rx0)), int(math.floor(ry0)), int(math.ceil(rx1)), int(math.ceil(ry1)))
+                    ),
+                    multiple=16,
                 ),
                 ref_path,
             )
+            if ref_policy == "single_panel_self_fallback":
+                stats["single_panel_self_ref_fallbacks"] += 1
             sad = str(character.get("SAD") or "preserve appearance; visible pose and expression.").strip()
             if not sad.endswith("."):
                 sad += "."
@@ -1815,6 +1911,9 @@ def _iter_lamic_rows_for_caption(
                     "SAD": sad,
                     "bbox": target_box_norm,
                     "target_box_norm": target_box_norm,
+                    "reference_policy": ref_policy,
+                    "reference_panel_index": int(ref_character.get("_panel_index") or panel_index),
+                    "target_panel_index": int(panel_index),
                 }
             )
             stats["characters"] += 1
@@ -1878,6 +1977,7 @@ def _iter_lamic_rows_for_caption(
                 "controls": {
                     "character_ref_paths": control_paths,
                     "has_previous_control": False,
+                    "character_ref_policy": "previous_panel_refs_prefer_same_track_fallback_single_panel",
                 },
                 "lamic": {
                     "schema_version": 1,
@@ -2836,6 +2936,7 @@ def train_flux_lora_ddp8(
     env.setdefault("NCCL_DEBUG", "WARN")
     env.setdefault("TORCH_DISTRIBUTED_DEBUG", "OFF")
     env["NCCL_P2P_DISABLE"] = "1"
+    env["NCCL_NVLS_ENABLE"] = "0"
     env["AITK_DDP_STATIC_GRAPH"] = "1"
     env["AITK_DDP_FIND_UNUSED_PARAMETERS"] = "0"
     env["S3_VALIDATION_UPLOAD_ROOT"] = s3_uri(model_prefix, "validate")

@@ -206,6 +206,48 @@ def test_gia_bbox_regions_refs_and_cei_permissions_are_wired():
     assert mask[ureg, reg1] and mask[reg1, ureg]
 
 
+def test_gia_attention_mask_allows_text_only_groups_without_ref_tokens():
+    inputs = _gia_inputs(image_path=None)
+    prompt, _, _ = gia_module.build_gia_prompt(inputs)
+    offsets, attention_mask = _char_offsets(prompt, len(prompt))
+    spans = gia_module.build_gia_prompt_spans_from_offsets(
+        inputs,
+        offsets=offsets,
+        attention_mask=attention_mask,
+        prompt_start=0,
+        max_sequence_length=len(prompt),
+    )
+    num_txt_tokens = len(prompt)
+    target_token_count = 4
+    img_ids = torch.tensor(
+        [
+            [0, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, 1, 0, 0],
+            [0, 1, 1, 0],
+        ],
+        dtype=torch.long,
+    )
+
+    ref_groups = gia_module.reference_token_indices(
+        img_ids,
+        inputs,
+        num_txt_tokens=num_txt_tokens,
+        target_token_count=target_token_count,
+    )
+    mask = gia_module.build_gia_attention_mask(
+        inputs,
+        spans,
+        img_ids=img_ids,
+        num_txt_tokens=num_txt_tokens,
+        target_token_count=target_token_count,
+    )
+
+    assert all(group.numel() == 0 for group in ref_groups)
+    assert mask.shape == (num_txt_tokens + target_token_count, num_txt_tokens + target_token_count)
+    assert mask[spans.cei_token_indices[0], num_txt_tokens]
+
+
 def test_gia_bboxes_are_normalized_xyxy_corners_and_use_token_overlap():
     inputs = _gia_inputs()
     inputs["ref_img_1"]["bbox"] = [0.49, 0.0, 0.51, 0.5]

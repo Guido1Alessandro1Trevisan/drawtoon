@@ -24,6 +24,7 @@ DEFAULT_CAPTION_MODEL = os.environ.get(
     "DEFAULT_CAPTION_MODEL",
     "global.anthropic.claude-haiku-4-5-20251001-v1:0",
 )
+DEFAULT_CAPTION_MODEL_POOL = os.environ.get("DEFAULT_CAPTION_MODEL_POOL", "").strip()
 DEFAULT_SOURCE_PREFIX = "datasets/pages/filtered"
 DEFAULT_ANNOTATION_PREFIX = "datasets/annotations/magi_v3"
 DEFAULT_OUTPUT_PREFIX = "captions"
@@ -189,7 +190,7 @@ PAGE_CAPTION_SCHEMA = {
 }
 
 _S3_CLIENT = None
-_BEDROCK_RUNTIME_CLIENTS: dict[int, Any] = {}
+_BEDROCK_RUNTIME_CLIENTS: dict[tuple[str, int], Any] = {}
 _MANGA_METADATA_CACHE: dict[str, dict[str, Any]] = {}
 _LEADING_CAPTION_STYLE_RE = re.compile(
     r"^(?:black\s+and\s+white|colored)\s+manga"
@@ -228,21 +229,35 @@ def _s3_client():
     return _S3_CLIENT
 
 
-def _bedrock_runtime_client(timeout_seconds: float = 900.0):
+def split_bedrock_model_ref(model_ref: str) -> tuple[str, str]:
+    raw = str(model_ref or "").strip()
+    if "|" in raw:
+        region, model = raw.split("|", 1)
+        region = region.strip() or DEFAULT_REGION
+        model = model.strip()
+        if not model:
+            raise ValueError(f"Invalid Bedrock model ref: {model_ref!r}")
+        return region, model
+    return DEFAULT_REGION, raw
+
+
+def _bedrock_runtime_client(timeout_seconds: float = 900.0, *, region: str = DEFAULT_REGION):
     read_timeout = max(1, min(900, int(math.ceil(float(timeout_seconds or 900.0)))))
-    client = _BEDROCK_RUNTIME_CLIENTS.get(read_timeout)
+    resolved_region = str(region or DEFAULT_REGION).strip() or DEFAULT_REGION
+    cache_key = (resolved_region, read_timeout)
+    client = _BEDROCK_RUNTIME_CLIENTS.get(cache_key)
     if client is None:
         client = boto3.client(
             "bedrock-runtime",
-            region_name=DEFAULT_REGION,
+            region_name=resolved_region,
             config=Config(
-                region_name=DEFAULT_REGION,
+                region_name=resolved_region,
                 retries={"mode": "standard", "total_max_attempts": 1},
                 connect_timeout=10,
                 read_timeout=read_timeout,
             ),
         )
-        _BEDROCK_RUNTIME_CLIENTS[read_timeout] = client
+        _BEDROCK_RUNTIME_CLIENTS[cache_key] = client
     return client
 
 
@@ -559,10 +574,11 @@ def _bedrock_model_access_probe(
 ) -> dict[str, Any]:
     started_at = time.time()
     delay = 2.0
+    region, model_id = split_bedrock_model_ref(model)
     for attempt in range(max(0, int(retries)) + 1):
         try:
-            response = _bedrock_runtime_client(timeout_seconds).converse(
-                modelId=model,
+            response = _bedrock_runtime_client(timeout_seconds, region=region).converse(
+                modelId=model_id,
                 messages=[{"role": "user", "content": [{"text": "Reply with ok."}]}],
                 inferenceConfig={"maxTokens": 4, "temperature": 0},
                 requestMetadata={
@@ -575,6 +591,8 @@ def _bedrock_model_access_probe(
             return {
                 "status": "ok",
                 "model": model,
+                "region": region,
+                "model_id": model_id,
                 "attempts": attempt + 1,
                 "elapsed_seconds": round(time.time() - started_at, 3),
                 "usage": _bedrock_usage(response),
@@ -616,8 +634,9 @@ def bedrock_converse_tool(
     timeout_seconds: float,
     client_request_id: str,
 ) -> tuple[dict[str, Any], dict[str, int]]:
-    response = _bedrock_runtime_client(timeout_seconds).converse(
-        modelId=model,
+    region, model_id = split_bedrock_model_ref(model)
+    response = _bedrock_runtime_client(timeout_seconds, region=region).converse(
+        modelId=model_id,
         system=[{"text": system_prompt}],
         messages=[
             {
@@ -1126,6 +1145,27 @@ def build_chapter_pages(
     return chapters, stats
 
 
+def normalize_model_pool(value: object, *, fallback: str) -> list[str]:
+    if isinstance(value, str):
+        raw_items = [part.strip() for part in value.split(",")]
+    elif isinstance(value, list):
+        raw_items = [str(part).strip() for part in value]
+    else:
+        raw_items = []
+    pool: list[str] = []
+    for item in raw_items:
+        if item and item not in pool:
+            pool.append(item)
+    if not pool and DEFAULT_CAPTION_MODEL_POOL:
+        pool = [part.strip() for part in DEFAULT_CAPTION_MODEL_POOL.split(",") if part.strip()]
+    return pool or [fallback]
+
+
+def model_for_row(config: dict[str, Any], row_index: int) -> str:
+    pool = normalize_model_pool(config.get("model_pool"), fallback=str(config.get("model") or DEFAULT_CAPTION_MODEL))
+    return pool[row_index % len(pool)]
+
+
 def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     bucket = str(event.get("bucket") or event.get("dataset_bucket") or DATASET_BUCKET).strip()
     if bucket != DATASET_BUCKET:
@@ -1143,6 +1183,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
     job_prefix = f"{caption_root_prefix}/_jobs/{sanitize_s3_key_component(run_id)}"
 
     model = str(event.get("model") or DEFAULT_CAPTION_MODEL).strip()
+    model_pool = normalize_model_pool(event.get("model_pool") or event.get("models"), fallback=model)
     prompt_filename = str(event.get("prompt_filename") or DEFAULT_PROMPT_FILENAME).strip()
     prompt = load_prompt_text(prompt_filename)
     manga_metadata_json = str(
@@ -1153,9 +1194,12 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
     ).strip()
     manga_metadata_index = load_manga_metadata_index(manga_metadata_json, strict=bool(manga_metadata_json))
     preflight = (
-        _bedrock_model_access_probe(model=model)
+        {
+            "status": "ok",
+            "models": [_bedrock_model_access_probe(model=model_ref) for model_ref in model_pool],
+        }
         if _bedrock_preflight_enabled(event)
-        else {"status": "disabled", "model": model}
+        else {"status": "disabled", "model": model, "model_pool": model_pool}
     )
 
     side_order = str(event.get("side_order") or "rtl").strip().lower()
@@ -1172,6 +1216,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
         side_order=side_order,
     )
     chapter_manifest_rows: list[dict[str, Any]] = []
+    page_manifest_rows: list[dict[str, Any]] = []
     for chapter in sorted(chapters):
         pages = chapters[chapter]
         pages_key = f"{job_prefix}/chapters/{sanitize_s3_key_component(chapter)}/pages.json"
@@ -1185,9 +1230,22 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
                 "last_page_id": pages[-1]["page_id"] if pages else "",
             }
         )
+        for page_index, page in enumerate(pages):
+            page_manifest_rows.append(
+                {
+                    "chapter": chapter,
+                    "pages_key": pages_key,
+                    "page_count": len(pages),
+                    "page_index": page_index,
+                    "page_id": str(page.get("page_id") or ""),
+                    "output_key": str(page.get("output_key") or ""),
+                }
+            )
 
     chapter_manifest_key = f"{job_prefix}/chapter_manifest.jsonl"
     put_s3_jsonl(bucket, chapter_manifest_key, chapter_manifest_rows)
+    page_manifest_key = f"{job_prefix}/page_manifest.jsonl"
+    put_s3_jsonl(bucket, page_manifest_key, page_manifest_rows)
     worker_config_key = f"{job_prefix}/worker_config.json"
     worker_config = {
         "bucket": bucket,
@@ -1198,6 +1256,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
         "caption_root_prefix": caption_root_prefix,
         "job_prefix": job_prefix,
         "model": model,
+        "model_pool": model_pool,
         "prompt_filename": prompt_filename,
         "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
         "manga_metadata_json": manga_metadata_json,
@@ -1220,7 +1279,9 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
             "source_prefix": source_prefix,
             "annotation_prefix": annotation_prefix,
             "chapter_manifest_key": chapter_manifest_key,
+            "page_manifest_key": page_manifest_key,
             "chapter_count": len(chapter_manifest_rows),
+            "page_manifest_count": len(page_manifest_rows),
             **manifest_stats,
         },
         "output": {
@@ -1243,6 +1304,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
             "bedrock_preflight": preflight,
             "caption_run": caption_run,
             "chapter_count": len(chapter_manifest_rows),
+            "model_pool": model_pool,
             **manifest_stats,
         },
     }
@@ -1816,6 +1878,8 @@ def caption_manga_page(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     pages_key = str(event.get("pages_key") or "").strip()
     pages = _load_pages(bucket, pages_key)
     next_page_index = int(event.get("next_page_index") or 0)
+    row_index = int(event.get("row_index") or next_page_index)
+    config = {**config, "model": model_for_row(config, row_index)}
     counts = event.get("counts") if isinstance(event.get("counts"), dict) else {}
     counts = {
         "ok": int(counts.get("ok") or 0),
@@ -1877,7 +1941,7 @@ def caption_manga_page(event: dict[str, Any], _context: Any) -> dict[str, Any]:
         manga_credit = lookup_manga_credit(page, annotation, config)
         caption_prefix = build_caption_prefix(rendering_label, manga_credit)
         model_payload, usage = run_page_caption_model(
-            row_index=next_page_index,
+            row_index=row_index,
             page=page,
             image_block=image_block,
             image_meta=image_meta,

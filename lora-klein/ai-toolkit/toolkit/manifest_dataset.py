@@ -635,10 +635,11 @@ class ManifestDataset(BucketsMixin, Dataset):
                     f"{control_width}x{control_height}"
                 )
             if control_width % target_multiple != 0 or control_height % target_multiple != 0:
-                raise ValueError(
-                    f"Control image is not divisible by {target_multiple}: "
-                    f"{control_ref['canonical']} = {control_width}x{control_height}"
-                )
+                padded_width = int(math.ceil(control_width / target_multiple) * target_multiple)
+                padded_height = int(math.ceil(control_height / target_multiple) * target_multiple)
+                padded = Image.new("RGB", (padded_width, padded_height), (255, 255, 255))
+                padded.paste(control_img, (0, 0))
+                control_img = padded
             tensors.append(self.control_transform(control_img))
 
         if not tensors:

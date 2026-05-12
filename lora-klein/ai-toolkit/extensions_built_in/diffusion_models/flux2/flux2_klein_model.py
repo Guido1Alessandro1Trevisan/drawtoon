@@ -1,5 +1,5 @@
 from .flux2_model import Flux2Model
-from transformers import Qwen3ForCausalLM, Qwen2Tokenizer
+from transformers import Qwen3ForCausalLM, Qwen2TokenizerFast
 from optimum.quanto import freeze
 from toolkit.util.quantize import quantize, get_qtype
 from toolkit.config_modules import ModelConfig
@@ -63,7 +63,7 @@ class Flux2KleinModel(Flux2Model):
                 offload_percent=self.model_config.layer_offloading_text_encoder_percent,
             )
 
-        tokenizer = Qwen2Tokenizer.from_pretrained(self.flux2_klein_te_path)
+        tokenizer = Qwen2TokenizerFast.from_pretrained(self.flux2_klein_te_path)
         return text_encoder, tokenizer
 
 

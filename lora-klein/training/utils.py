@@ -8,11 +8,14 @@ before launching Modal, without importing Modal or changing the trainer.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import hashlib
+import importlib.util
 import json
 import math
 import os
 import sys
+import types
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +27,11 @@ from PIL import Image
 S3_BUCKET = os.environ.get("DRAWTOON_S3_BUCKET") or os.environ.get("S3_BUCKET") or "drawtoon"
 S3_MODELS_PREFIX = "models"
 DEFAULT_OUTPUT_ROOT = "/tmp/lineart2_training_output"
+DEFAULT_DATASET_CACHE_ROOT = "/mnt/local/training/datasets_cache"
+DEFAULT_DRAWTOON_PAGES_PREFIX = "datasets/pages/filtered"
+DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX = "datasets/annotations/magi_v3"
+DEFAULT_DRAWTOON_CAPTIONS_PREFIX = "captions"
+DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_lamic_v1"
 
 
 def parse_s3_uri(uri: str) -> tuple[str, str]:
@@ -296,6 +304,168 @@ def prepare_ec2_ai_toolkit_config(argv: list[str] | None = None) -> None:
     print(json.dumps(summary, indent=2, sort_keys=True))
 
 
+def _install_noop_modal() -> None:
+    """Let EC2 reuse run_modal.py helpers without creating Modal apps."""
+    fake = types.ModuleType("modal")
+
+    class _NoopVolume:
+        @classmethod
+        def from_name(cls, *args, **kwargs):
+            return cls()
+
+        def commit(self):
+            return None
+
+        def reload(self):
+            return None
+
+    class _NoopImage:
+        @classmethod
+        def from_dockerfile(cls, *args, **kwargs):
+            return cls()
+
+        @classmethod
+        def debian_slim(cls, *args, **kwargs):
+            return cls()
+
+        def add_local_dir(self, *args, **kwargs):
+            return self
+
+        def pip_install(self, *args, **kwargs):
+            return self
+
+        def apt_install(self, *args, **kwargs):
+            return self
+
+        def run_commands(self, *args, **kwargs):
+            return self
+
+        def env(self, *args, **kwargs):
+            return self
+
+    class _NoopSecret:
+        @classmethod
+        def from_name(cls, *args, **kwargs):
+            return cls()
+
+    class _NoopCloudBucketMount:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class _NoopApp:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def function(self, *args, **kwargs):
+            def decorator(func):
+                return func
+
+            return decorator
+
+        def cls(self, *args, **kwargs):
+            def decorator(cls):
+                return cls
+
+            return decorator
+
+        def local_entrypoint(self, *args, **kwargs):
+            def decorator(func):
+                return func
+
+            return decorator
+
+    def _identity_decorator(*args, **kwargs):
+        def decorator(func):
+            return func
+
+        return decorator
+
+    fake.Volume = _NoopVolume
+    fake.Image = _NoopImage
+    fake.Secret = _NoopSecret
+    fake.CloudBucketMount = _NoopCloudBucketMount
+    fake.App = _NoopApp
+    fake.enter = _identity_decorator
+    fake.method = _identity_decorator
+    sys.modules["modal"] = fake
+
+
+def _load_training_module_for_ec2(cache_root: str):
+    _install_noop_modal()
+    module_name = "_drawtoon_run_modal_ec2"
+    module_path = Path(__file__).with_name("run_modal.py")
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    module.DATASET_CACHE_ROOT = cache_root
+    return module
+
+
+def build_drawtoon_lamic_cache(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Build the temporary Drawtoon LAMIC cache directly on EC2.")
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--bucket", default=S3_BUCKET)
+    parser.add_argument("--caption-run", default=DEFAULT_DRAWTOON_CAPTION_RUN)
+    parser.add_argument("--pages-prefix", default=DEFAULT_DRAWTOON_PAGES_PREFIX)
+    parser.add_argument("--annotations-prefix", default=DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX)
+    parser.add_argument("--captions-prefix", default=DEFAULT_DRAWTOON_CAPTIONS_PREFIX)
+    parser.add_argument("--include-chapter-regex", default="_mangazero$")
+    parser.add_argument("--max-pages", type=int, default=0)
+    parser.add_argument("--shard-count", type=int, default=0)
+    parser.add_argument("--workers", type=int, default=96)
+    parser.add_argument("--cache-root", default=DEFAULT_DATASET_CACHE_ROOT)
+    parser.add_argument("--overwrite", action="store_true")
+    args = parser.parse_args(argv)
+
+    module = _load_training_module_for_ec2(str(Path(args.cache_root)))
+    overrides = {
+        "bucket": args.bucket,
+        "caption_run": args.caption_run,
+        "pages_prefix": args.pages_prefix,
+        "annotations_prefix": args.annotations_prefix,
+        "captions_prefix": args.captions_prefix,
+        "include_chapter_regex": args.include_chapter_regex,
+        "max_pages": args.max_pages,
+    }
+    plan = module.plan_drawtoon_lamic_cache(
+        args.config,
+        overrides,
+        shard_count=args.shard_count,
+        overwrite=args.overwrite,
+    )
+    if not plan.get("enabled") or plan.get("ready"):
+        print(json.dumps(plan, indent=2, sort_keys=True))
+        return
+
+    print(
+        "Building Drawtoon LAMIC EC2 cache: "
+        f"{plan['caption_key_count']} page captions across {plan['shard_count']} shards "
+        f"with {max(1, args.workers)} workers",
+        flush=True,
+    )
+    workers = max(1, min(int(args.workers), len(plan["shards"])))
+    shard_results: list[dict[str, Any]] = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(module.build_drawtoon_lamic_cache_shard, shard) for shard in plan["shards"]]
+        for index, future in enumerate(concurrent.futures.as_completed(futures), start=1):
+            result = future.result()
+            shard_results.append(result)
+            stats = result.get("stats") or {}
+            print(
+                f"cache shard {index}/{len(futures)} done: "
+                f"rows={stats.get('panels', 0)} errors={stats.get('errors', 0)} "
+                f"skipped={stats.get('skipped_panels', 0)}",
+                flush=True,
+            )
+
+    final = module.finalize_drawtoon_lamic_cache(args.config, plan)
+    final["shard_results_observed"] = len(shard_results)
+    print(json.dumps(final, indent=2, sort_keys=True))
+
+
 def _define_checkpoint_sync_modal_app():
     import modal
 
@@ -373,13 +543,16 @@ def _define_checkpoint_sync_modal_app():
 
 try:
     app, sync_existing_checkpoints = _define_checkpoint_sync_modal_app()
-except ModuleNotFoundError:
+except Exception:
     app = None
     sync_existing_checkpoints = None
 
 
 def main() -> None:
     command = sys.argv[1] if len(sys.argv) > 1 else ""
+    if command in {"build-drawtoon-lamic-cache", "build-ec2-cache"}:
+        build_drawtoon_lamic_cache(sys.argv[2:])
+        return
     if command in {"prepare-ec2-ai-toolkit-config", "prepare-ec2-config"}:
         prepare_ec2_ai_toolkit_config(sys.argv[2:])
         return

@@ -109,6 +109,11 @@ def main() -> None:
     caption_cmd.add_argument("--output-prefix", default=DEFAULT_OUTPUT_PREFIX)
     caption_cmd.add_argument("--caption-run", default="")
     caption_cmd.add_argument("--model", default=DEFAULT_CAPTION_MODEL)
+    caption_cmd.add_argument(
+        "--model-pool",
+        default="",
+        help="Comma-separated Bedrock model/profile IDs to rotate across page workers.",
+    )
     caption_cmd.add_argument("--prompt-filename", default="caption_manga_page_memory.md")
     caption_cmd.add_argument(
         "--manga-metadata-json",
@@ -151,6 +156,7 @@ def main() -> None:
         "output_prefix": str(args.output_prefix).strip().strip("/"),
         "caption_run": str(args.caption_run or "").strip(),
         "model": str(args.model).strip(),
+        "model_pool": [part.strip() for part in str(args.model_pool or "").split(",") if part.strip()],
         "prompt_filename": str(args.prompt_filename).strip(),
         "manga_metadata_json": str(args.manga_metadata_json or "").strip(),
         "timeout_seconds": float(args.timeout_seconds),

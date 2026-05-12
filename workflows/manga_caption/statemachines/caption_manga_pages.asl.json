@@ -1,5 +1,5 @@
 {
-  "Comment": "Caption Drawtoon filtered manga pages with Claude Haiku. Chapters run in parallel; pages inside each chapter run sequentially with memory.",
+  "Comment": "Caption Drawtoon filtered manga pages with page-level fanout. This temporary fast path drops sequential chapter memory so concurrency applies to pages.",
   "StartAt": "PrepareConfig",
   "States": {
     "PrepareConfig": {
@@ -24,16 +24,16 @@
           "BackoffRate": 2
         }
       ],
-      "Next": "CaptionChapters"
+      "Next": "CaptionPages"
     },
-    "CaptionChapters": {
+    "CaptionPages": {
       "Type": "Map",
-      "Label": "CaptionChapters",
+      "Label": "CaptionPages",
       "ItemReader": {
         "Resource": "arn:aws:states:::s3:getObject",
         "Parameters": {
           "Bucket.$": "$.source.bucket",
-          "Key.$": "$.source.chapter_manifest_key"
+          "Key.$": "$.source.page_manifest_key"
         },
         "ReaderConfig": {
           "InputType": "JSONL"
@@ -44,6 +44,14 @@
         "chapter.$": "$$.Map.Item.Value.chapter",
         "pages_key.$": "$$.Map.Item.Value.pages_key",
         "page_count.$": "$$.Map.Item.Value.page_count",
+        "next_page_index.$": "$$.Map.Item.Value.page_index",
+        "memory": {},
+        "counts": {
+          "ok": 0,
+          "skipped_existing": 0,
+          "error": 0
+        },
+        "done": false,
         "config_ref": {
           "bucket.$": "$.worker_config.bucket",
           "key.$": "$.worker_config.key"
@@ -54,33 +62,9 @@
           "Mode": "DISTRIBUTED",
           "ExecutionType": "STANDARD"
         },
-        "StartAt": "InitializeChapter",
+        "StartAt": "CaptionPage",
         "States": {
-          "InitializeChapter": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::lambda:invoke",
-            "Parameters": {
-              "FunctionName": "${InitializeMangaCaptionChapterArn}",
-              "Payload.$": "$"
-            },
-            "TimeoutSeconds": 300,
-            "Retry": [
-              {
-                "ErrorEquals": [
-                  "Lambda.TooManyRequestsException",
-                  "Lambda.ServiceException",
-                  "Lambda.AWSLambdaException",
-                  "Lambda.SdkClientException"
-                ],
-                "IntervalSeconds": 2,
-                "MaxAttempts": 6,
-                "BackoffRate": 2
-              }
-            ],
-            "OutputPath": "$.Payload",
-            "Next": "ChapterDone"
-          },
-          "CaptionNextPage": {
+          "CaptionPage": {
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
             "Parameters": {
@@ -102,21 +86,6 @@
               }
             ],
             "OutputPath": "$.Payload",
-            "Next": "ChapterDone"
-          },
-          "ChapterDone": {
-            "Type": "Choice",
-            "Choices": [
-              {
-                "Variable": "$.done",
-                "BooleanEquals": true,
-                "Next": "FinishChapter"
-              }
-            ],
-            "Default": "CaptionNextPage"
-          },
-          "FinishChapter": {
-            "Type": "Pass",
             "End": true
           }
         }

@@ -317,11 +317,17 @@ def build_gia_attention_mask(
     total_tokens = int(num_txt_tokens + img_ids.shape[0])
     mask = torch.zeros((total_tokens, total_tokens), dtype=torch.bool)
 
+    def cat_nonempty(groups: list[Tensor]) -> Tensor:
+        nonempty = [group for group in groups if group.numel() > 0]
+        if not nonempty:
+            return torch.empty(0, dtype=torch.long)
+        return torch.cat(nonempty, dim=0)
+
     sad_groups = prompt_spans.sad_token_indices
     cei = prompt_spans.cei_token_indices
     empty_prompt = prompt_spans.empty_prompt_token_indices
-    all_regions = torch.cat([group for group in region_groups if group.numel() > 0], dim=0) if region_groups else torch.empty(0, dtype=torch.long)
-    all_refs = torch.cat([group for group in ref_groups if group.numel() > 0], dim=0) if ref_groups else torch.empty(0, dtype=torch.long)
+    all_regions = cat_nonempty(region_groups)
+    all_refs = cat_nonempty(ref_groups)
 
     def allow(query: Tensor, key: Tensor):
         if query.numel() == 0 or key.numel() == 0:
