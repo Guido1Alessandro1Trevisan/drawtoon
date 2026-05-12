@@ -57,14 +57,14 @@ config:
       - transformer.single_blocks.
     sample:
       sampler: flowmatch
-      sample_every: 500
+      sample_every: 300
       width: 768
       height: 768
       prompts: []
       neg: ''
       seed: 42
       walk_seed: true
-      guidance_scale: 4
+      guidance_scale: 4.0
       sample_steps: 50
 meta:
   name: mangazero_flux2_klein9b_lamic_panel_prediction_same_page_not_target_native_pad16_haiku45_lr28e7_ga8
@@ -72,7 +72,7 @@ meta:
   description: LAMIC panel prediction from native pad-16 MangaZero panels, same-page
     non-target character references, Claude Haiku 4.5 grounded scene captions, 2.8e-6
     learning rate, corrected gradient accumulation 8, 5% warmup via scheduler override,
-    validation every 500 steps with dynamic validation, checkpoints every 2000 steps,
+    validation every 300 steps with dynamic validation, checkpoints every 2000 steps,
     and on-the-fly VAE/reference encoding.
 drawtoon:
   bucket: drawtoon

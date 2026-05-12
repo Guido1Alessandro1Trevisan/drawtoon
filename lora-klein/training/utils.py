@@ -278,7 +278,10 @@ def prepare_ec2_ai_toolkit_config(argv: list[str] | None = None) -> None:
     sample_config["dynamic_validation_manifest_paths"] = [str(local_manifest)]
     sample_config["dynamic_validation_bucket_tolerance"] = int(dataset.get("bucket_tolerance") or 16)
     sample_config["dynamic_validation_character_panel_count"] = len(validation_samples)
-    sample_config["dynamic_validation_character_panel_fixed_count"] = max(0, len(validation_samples) - 1)
+    sample_config["dynamic_validation_character_panel_fixed_count"] = max(
+        0,
+        min(int(args.world_size), len(validation_samples)),
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(yaml.safe_dump(parsed_config, sort_keys=False), encoding="utf-8")

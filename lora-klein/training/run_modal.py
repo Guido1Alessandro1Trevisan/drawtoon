@@ -1617,7 +1617,7 @@ def _drawtoon_cache_key(drawtoon: dict[str, Any]) -> str:
         "caption_run": drawtoon["caption_run"],
         "include_chapter_regex": drawtoon["include_chapter_regex"],
         "max_pages": int(drawtoon["max_pages"]),
-        "schema": "drawtoon_lamic_cache_v4_next_panel_previous_refs_pad_controls",
+        "schema": "drawtoon_lamic_cache_v6_same_character_random_refs_pad_controls",
     }
     digest = hashlib.sha1(json.dumps(fingerprint_payload, sort_keys=True).encode("utf-8")).hexdigest()[:16]
     run_label = sanitize_filename(str(drawtoon["caption_run"]), fallback="caption_run")
@@ -1766,40 +1766,23 @@ def _select_character_reference(
     target_character: dict[str, Any],
     target_panel_index: int,
     panel_contexts: list[dict[str, Any]],
-) -> tuple[dict[str, Any], str] | tuple[None, str]:
+) -> tuple[dict[str, Any], str]:
     target_source_id = str(target_character.get("source_character_id") or "").strip()
-    target_local_id = str(target_character.get("id") or "").strip()
-    single_panel_page = len(panel_contexts) <= 1
-    if single_panel_page:
-        return target_character, "single_panel_self_fallback"
+    same_character_other_panel: list[dict[str, Any]] = []
+    if target_source_id:
+        for panel in panel_contexts:
+            candidate_panel_index = int(panel.get("_panel_index") or 0)
+            if candidate_panel_index == target_panel_index:
+                continue
+            for character in panel.get("_characters") or []:
+                candidate_source_id = str(character.get("source_character_id") or "").strip()
+                if candidate_source_id == target_source_id:
+                    same_character_other_panel.append(character)
 
-    same_character_candidates: list[dict[str, Any]] = []
-    previous_panel_candidates: list[dict[str, Any]] = []
-    for panel in panel_contexts:
-        candidate_panel_index = int(panel.get("_panel_index") or 0)
-        if candidate_panel_index == target_panel_index:
-            continue
-        if candidate_panel_index > target_panel_index:
-            continue
-        for character in panel.get("_characters") or []:
-            candidate_source_id = str(character.get("source_character_id") or "").strip()
-            if target_source_id and candidate_source_id == target_source_id:
-                same_character_candidates.append(character)
-            previous_panel_candidates.append(character)
+    if same_character_other_panel:
+        return random.choice(same_character_other_panel), "same_character_random_other_panel"
 
-    def candidate_rank(character: dict[str, Any]) -> tuple[int, int, int]:
-        candidate_panel_index = int(character.get("_panel_index") or 0)
-        distance = abs(candidate_panel_index - target_panel_index)
-        same_local_id = str(character.get("id") or "").strip() == target_local_id
-        character_index_delta = abs(int(character.get("character_index") or 0) - int(target_character.get("character_index") or 0))
-        return (distance, 0 if same_local_id else 1, character_index_delta)
-
-    if same_character_candidates:
-        return sorted(same_character_candidates, key=candidate_rank)[0], "same_character_previous_panel"
-    if previous_panel_candidates:
-        return sorted(previous_panel_candidates, key=candidate_rank)[0], "previous_panel_character_fallback"
-
-    return None, "missing_previous_panel_character_ref"
+    return target_character, "same_character_target_panel_fallback"
 
 
 
@@ -1835,8 +1818,7 @@ def _iter_lamic_rows_for_caption(
         "characters": 0,
         "text_bubbles": 0,
         "skipped_panels": 0,
-        "skipped_missing_non_target_character_ref": 0,
-        "single_panel_self_ref_fallbacks": 0,
+        "target_panel_ref_fallbacks": 0,
     }
 
     for panel in panels:
@@ -1879,13 +1861,10 @@ def _iter_lamic_rows_for_caption(
             if target_box_norm is None:
                 continue
             ref_character, ref_policy = _select_character_reference(
-                target_character=character,
+                target_character={**character, "_pixel_box": char_box, "_panel_index": panel_index},
                 target_panel_index=panel_index,
                 panel_contexts=panel_contexts,
             )
-            if ref_character is None:
-                stats["skipped_missing_non_target_character_ref"] += 1
-                continue
             rx0, ry0, rx1, ry1 = ref_character["_pixel_box"]
             ref_path = cache_root / "refs" / sanitize_filename(chapter) / f"{sample_stem}__char_{len(control_paths):02d}.jpg"
             _save_jpeg(
@@ -1897,8 +1876,8 @@ def _iter_lamic_rows_for_caption(
                 ),
                 ref_path,
             )
-            if ref_policy == "single_panel_self_fallback":
-                stats["single_panel_self_ref_fallbacks"] += 1
+            if ref_policy == "same_character_target_panel_fallback":
+                stats["target_panel_ref_fallbacks"] += 1
             sad = str(character.get("SAD") or "preserve appearance; visible pose and expression.").strip()
             if not sad.endswith("."):
                 sad += "."
@@ -1977,7 +1956,7 @@ def _iter_lamic_rows_for_caption(
                 "controls": {
                     "character_ref_paths": control_paths,
                     "has_previous_control": False,
-                    "character_ref_policy": "previous_panel_refs_prefer_same_track_fallback_single_panel",
+                    "character_ref_policy": "same_character_random_other_panel_else_target_panel",
                 },
                 "lamic": {
                     "schema_version": 1,
@@ -2231,6 +2210,9 @@ def finalize_drawtoon_lamic_cache(config_path: str, plan: dict[str, Any]) -> dic
         dataset["local_cache_dir"] = str(cache_root / "_sample_cache")
         dataset["layout"] = "manifest"
         dataset["_prepared_row_count"] = row_count
+
+    sample_config = process_config.setdefault("sample", {})
+    sample_config["dynamic_validation_manifest_paths"] = [str(manifest_path)]
 
     parsed_config["drawtoon_cache"] = {
         "cache_root": str(cache_root),

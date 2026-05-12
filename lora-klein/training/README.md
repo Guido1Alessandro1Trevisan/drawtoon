@@ -54,7 +54,7 @@ Use `--preset`, not direct generated config paths:
 
 ```bash
 uv run --active --with modal --with pyyaml --with boto3 python -m modal run --detach lora-klein/training/run_modal.py \
-  --preset "haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr5e6_ga8" \
+  --preset "haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr28e7_ga8" \
   --target-epochs 4 \
   --ddp-world-size 8
 ```
@@ -63,7 +63,7 @@ For a small smoke cache and training parse check:
 
 ```bash
 uv run --active --with modal --with pyyaml --with boto3 python -m modal run --detach lora-klein/training/run_modal.py \
-  --preset "haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr5e6_ga8" \
+  --preset "haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr28e7_ga8" \
   --drawtoon-max-pages 32 \
   --max-train-steps 2 \
   --ddp-world-size 1

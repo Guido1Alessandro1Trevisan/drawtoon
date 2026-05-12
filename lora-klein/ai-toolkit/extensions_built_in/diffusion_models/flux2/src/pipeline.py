@@ -391,8 +391,6 @@ class Flux2Pipeline(DiffusionPipeline):
             and guidance_scale > 1.0
             and not self.is_guidance_distilled
         )
-        if gia_inputs is not None and do_guidance:
-            raise ValueError("gia_inputs does not support CFG with non-guidance-distilled FLUX.2")
 
         self._guidance_scale = guidance_scale
         self._current_timestep = None

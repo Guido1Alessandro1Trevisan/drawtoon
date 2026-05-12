@@ -31,7 +31,7 @@ Default practice is:
 The current Drawtoon preset is:
 
 ```text
-haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr5e6_ga8
+haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr28e7_ga8
 ```
 
 ## Directory Layout
