@@ -12,6 +12,7 @@ import hashlib
 import json
 import math
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -168,7 +169,7 @@ def compute_steps_per_epoch(row_count: int, *, batch_size: int, gradient_accumul
     return max(1, math.ceil(per_rank_microbatches / max(1, gradient_accumulation_steps)))
 
 
-def main() -> None:
+def prepare_ec2_ai_toolkit_config(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True)
     parser.add_argument("--output", required=True)
@@ -179,7 +180,7 @@ def main() -> None:
     parser.add_argument("--max-train-steps", type=int, default=0)
     parser.add_argument("--output-root", default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--validation-samples", type=int, default=16)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     config_path = Path(args.config)
     output_path = Path(args.output)
@@ -293,6 +294,98 @@ def main() -> None:
         "s3_model_prefix": s3_uri(S3_MODELS_PREFIX, model_id),
     }
     print(json.dumps(summary, indent=2, sort_keys=True))
+
+
+def _define_checkpoint_sync_modal_app():
+    import modal
+
+    volume_mount = Path("/mnt/models")
+    app = modal.App("lineart2-sync-existing-checkpoints-to-s3")
+    model_volume = modal.Volume.from_name("flux-lora-models")
+    aws_secret = modal.Secret.from_name("lineart2-aws-s3")
+    image = modal.Image.debian_slim().pip_install("boto3")
+
+    @app.function(
+        image=image,
+        volumes={str(volume_mount): model_volume},
+        secrets=[aws_secret],
+        timeout=6 * 60 * 60,
+        cpu=4,
+        memory=8192,
+    )
+    def sync_existing_checkpoints(job_names: list[str]) -> dict:
+        import boto3
+        from boto3.s3.transfer import TransferConfig
+
+        client = boto3.client("s3")
+        transfer_config = TransferConfig(
+            multipart_threshold=64 * 1024 * 1024,
+            multipart_chunksize=128 * 1024 * 1024,
+            max_concurrency=16,
+            use_threads=True,
+        )
+        uploaded = []
+        missing = []
+
+        def upload_file(path: Path, key: str) -> None:
+            print(f"upload {path} -> s3://{S3_BUCKET}/{key}", flush=True)
+            client.upload_file(str(path), S3_BUCKET, key, Config=transfer_config)
+            uploaded.append(
+                {
+                    "path": str(path),
+                    "s3": f"s3://{S3_BUCKET}/{key}",
+                    "bytes": path.stat().st_size,
+                }
+            )
+
+        for job_name in job_names:
+            save_root = volume_mount / job_name
+            if not save_root.exists():
+                missing.append({"job": job_name, "reason": "missing volume directory"})
+                continue
+
+            model_prefix = f"models/{job_name}"
+            for name in ("config.yaml", "optimizer.pt"):
+                path = save_root / name
+                if path.is_file():
+                    upload_file(path, f"{model_prefix}/{name}")
+
+            checkpoint_paths = [path for path in sorted(save_root.glob(f"{job_name}*")) if path.is_file()]
+            if not checkpoint_paths:
+                missing.append({"job": job_name, "reason": "no checkpoint files"})
+                continue
+
+            for path in checkpoint_paths:
+                upload_file(path, f"{model_prefix}/checkpoints/{path.name}")
+
+        return {"uploaded": uploaded, "missing": missing}
+
+    @app.local_entrypoint()
+    def sync_existing_checkpoints_to_s3(jobs: str):
+        job_names = [part.strip() for part in jobs.split(",") if part.strip()]
+        if not job_names:
+            raise ValueError("Pass --jobs with one job name or comma-separated job names")
+        result = sync_existing_checkpoints.remote(job_names)
+        print(result)
+
+    return app, sync_existing_checkpoints
+
+
+try:
+    app, sync_existing_checkpoints = _define_checkpoint_sync_modal_app()
+except ModuleNotFoundError:
+    app = None
+    sync_existing_checkpoints = None
+
+
+def main() -> None:
+    command = sys.argv[1] if len(sys.argv) > 1 else ""
+    if command in {"prepare-ec2-ai-toolkit-config", "prepare-ec2-config"}:
+        prepare_ec2_ai_toolkit_config(sys.argv[2:])
+        return
+    if command and not command.startswith("-"):
+        raise SystemExit(f"Unknown utils command: {command}")
+    prepare_ec2_ai_toolkit_config(sys.argv[1:])
 
 
 if __name__ == "__main__":

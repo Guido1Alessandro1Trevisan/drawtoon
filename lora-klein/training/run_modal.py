@@ -1528,11 +1528,6 @@ base_training_image = (
         remote_path="/root/training/configs",
         copy=False,
     )
-    .add_local_file(
-        str(TRAINING_DIR / "register_lora.py"),
-        remote_path="/root/training/register_lora.py",
-        copy=False,
-    )
 )
 
 image_4b = base_training_image
@@ -2214,7 +2209,7 @@ def prepare_drawtoon_lamic_cache_for_launch(
         S3_MOUNT_ROOT: s3_mount,
     },
     enable_memory_snapshot=True,  # Cache heavy imports and initialization
-    secrets=[modal.Secret.from_name("postgres-lora"), aws_secret, hf_secret],
+    secrets=[aws_secret, hf_secret],
 )
 class FluxTrainer:
     @modal.enter(snap=True)  # This gets captured in memory snapshot
@@ -2637,31 +2632,6 @@ class FluxTrainer:
         )
         print(f"✅ Exported checkpoints and validation images to {s3_uri(S3_MODELS_PREFIX, model_id)}")
         
-        # Register LoRA in database if PostgreSQL is configured
-        if os.environ.get("POSTGRES_URL") and is_lora_run and raw_lora_path is not None and adapter_dir is not None:
-            try:
-                import subprocess
-                metadata = {
-                    "format": "peft",
-                    "raw_file_path": f"{raw_lora_path.parent.name}/{raw_lora_path.name}",
-                    "adapter_dir": f"{raw_lora_path.parent.name}/{adapter_dir.name}",
-                }
-                result = subprocess.run([
-                    "python", "/root/training/register_lora.py",
-                    "--name", job_name,
-                    "--file-path", str(raw_lora_path),
-                    "--config", str(ai_toolkit_config),
-                    "--trigger-word", process_config.get('trigger_word', 'fluxklein'),
-                    "--metadata", json.dumps(metadata),
-                ], capture_output=True, text=True)
-                
-                if result.returncode == 0:
-                    print("✅ LoRA registered in database")
-                else:
-                    print(f"⚠️  Failed to register LoRA: {result.stderr}")
-            except Exception as e:
-                    print(f"⚠️  Could not register LoRA: {e}")
-        
         return (
             f"Training completed. Live resume state is in Modal volume 'flux-lora-models'. "
             f"Artifacts mirrored to {s3_uri(S3_MODELS_PREFIX, model_id)}."
@@ -2679,7 +2649,7 @@ class FluxTrainer:
         S3_MOUNT_ROOT: s3_mount,
         DATASET_CACHE_ROOT: dataset_cache_volume,
     },
-    secrets=[modal.Secret.from_name("postgres-lora"), aws_secret, hf_secret],
+    secrets=[aws_secret, hf_secret],
 )
 def train_flux_lora_ddp8(
     config_path: str = f"{REMOTE_CONFIGS_DIR}/mngrm12_klein4b_dataset_jpg_r16_768x1024_s12000_v1.yaml",

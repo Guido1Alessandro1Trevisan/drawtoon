@@ -28,7 +28,7 @@ The temporary cache is not dataset truth. It is rebuildable local training state
 
 - S3 canonical inputs stay under the Drawtoon dataset layout.
 - Modal volume `flux-dataset-cache` holds the temporary training cache.
-- Modal volume `flux-lora-models` is legacy/single-GPU state only.
+- Modal volume `flux-lora-models` is older single-GPU resume state only.
 - DDP checkpoints stage on local disk and are mirrored to S3 during training.
 - Durable training outputs go under:
 
@@ -36,6 +36,16 @@ The temporary cache is not dataset truth. It is rebuildable local training state
 s3://drawtoon/models/<job_name>/checkpoints/
 s3://drawtoon/models/<job_name>/validate/
 s3://drawtoon/models/<job_name>/final/
+```
+
+## Directory Layout
+
+```text
+training/
+  run_modal.py        # active Modal launcher
+  utils.py            # one Python helper entrypoint
+  sync_validate_images.sh
+  configs/           # training presets
 ```
 
 ## Launch

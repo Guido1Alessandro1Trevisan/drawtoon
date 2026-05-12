@@ -34,6 +34,13 @@ The current Drawtoon preset is:
 haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr5e6_ga8
 ```
 
+## Directory Layout
+
+- `run_modal.py`: active Modal launcher.
+- `configs/`: active presets.
+- `utils.py`: one Python helper entrypoint for launcher support and maintenance jobs.
+- `sync_validate_images.sh`: local validation-image sync helper.
+
 ## Dataset Encoding
 
 Keep ai-toolkit training on `type: manifest`. The launcher fills `manifest_path` after it builds the temporary Drawtoon cache.
@@ -51,7 +58,7 @@ Target panels are padded to model divisibility by the cache builder before train
 
 - S3 is the canonical source for pages, annotations, captions, and model artifacts.
 - Modal volume `flux-dataset-cache` stores rebuildable training cache files.
-- Modal volume `flux-lora-models` is legacy/single-GPU state only.
+- Modal volume `flux-lora-models` is older single-GPU resume state only.
 - DDP checkpoints are written to local disk first, then mirrored to S3.
 
 ## Fork Differences
