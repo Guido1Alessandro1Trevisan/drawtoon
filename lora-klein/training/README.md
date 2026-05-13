@@ -8,14 +8,14 @@ This directory owns Modal + ai-toolkit FLUX.2 Klein training for Drawtoon.
    - `datasets/pages/filtered/`
    - `datasets/annotations/magi_v3/`
    - `captions/<caption_run>/`
-2. Build a temporary LAMIC manifest cache in the Modal dataset volume before GPU allocation.
+2. Build a temporary panel manifest cache in the Modal dataset volume before GPU allocation.
 3. Launch ai-toolkit training from that local manifest.
 4. Mirror durable model artifacts to `s3://drawtoon/models/<job_name>/`.
 
 The temporary cache is not dataset truth. It is rebuildable local training state:
 
 ```text
-/root/training/datasets_cache/drawtoon_lamic/<fingerprint>/
+/root/training/datasets_cache/drawtoon_panel/<fingerprint>/
   manifest.jsonl
   panels/
   refs/
@@ -54,7 +54,16 @@ Use `--preset`, not direct generated config paths:
 
 ```bash
 uv run --active --with modal --with pyyaml --with boto3 python -m modal run --detach lora-klein/training/run_modal.py \
-  --preset "haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr28e7_ga8" \
+  --preset "haiku-4.5/panel_prediction_same_page_refs_native_pad16_lr28e7_ga8" \
+  --target-epochs 4 \
+  --ddp-world-size 8
+```
+
+HiDream O1 full fine-tune preset:
+
+```bash
+uv run --active --with modal --with pyyaml --with boto3 python -m modal run --detach lora-klein/training/run_modal.py \
+  --preset "hidream-o1/panel_prediction_full_finetune_same_page_refs_native_pad32_bf16_ddp8" \
   --target-epochs 4 \
   --ddp-world-size 8
 ```
@@ -63,7 +72,7 @@ For a small smoke cache and training parse check:
 
 ```bash
 uv run --active --with modal --with pyyaml --with boto3 python -m modal run --detach lora-klein/training/run_modal.py \
-  --preset "haiku-4.5/lamic_panel_prediction_same_page_not_target_native_pad16_lr28e7_ga8" \
+  --preset "haiku-4.5/panel_prediction_same_page_refs_native_pad16_lr28e7_ga8" \
   --drawtoon-max-pages 32 \
   --max-train-steps 2 \
   --ddp-world-size 1
@@ -73,5 +82,5 @@ Sync validation images:
 
 ```bash
 bash lora-klein/training/sync_validate_images.sh \
-  --job mangazero_flux2_klein9b_lamic_panel_prediction_same_page_not_target_native_pad16_haiku45_lr28e7_ga8
+  --job mangazero_flux2_klein9b_panel_prediction_same_page_refs_native_pad16_haiku45_lr28e7_ga8
 ```

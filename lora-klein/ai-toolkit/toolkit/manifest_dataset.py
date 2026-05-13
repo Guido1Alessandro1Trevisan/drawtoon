@@ -15,7 +15,7 @@ from urllib.parse import unquote, urlparse
 
 import boto3
 import torch
-from PIL import Image
+from PIL import Image, ImageDraw
 from PIL.ImageOps import exif_transpose
 from safetensors.torch import load_file, save_file
 from torch.utils.data import Dataset
@@ -23,15 +23,11 @@ from torchvision import transforms
 
 from toolkit.data_transfer_object.data_loader import DataLoaderBatchDTO, FileItemDTO
 from toolkit.dataloader_mixins import BucketsMixin, accelerator
-from toolkit.config_modules import DatasetConfig
+from toolkit.config_modules import DatasetConfig, MAX_CONTROL_IMAGE_SLOTS
 from toolkit.distributed_cache import run_once_with_filelock
 from toolkit.distributed_logging import rank_tqdm
 from toolkit.metadata import get_meta_for_safetensors, load_metadata_from_safetensors
 from toolkit.print import print_acc
-from extensions_built_in.diffusion_models.flux2.src.gia import (
-    build_gia_inputs_from_lamic_sample,
-    build_gia_prompt,
-)
 
 
 class ManifestDataset(BucketsMixin, Dataset):
@@ -152,10 +148,6 @@ class ManifestDataset(BucketsMixin, Dataset):
             raw_caption=sample["caption"],
             **preset_kwargs,
         )
-        gia_inputs = build_gia_inputs_from_lamic_sample(sample)
-        if gia_inputs is not None:
-            file_item.gia_inputs = gia_inputs
-            file_item.gia_prompt = build_gia_prompt(gia_inputs)[0]
         if self.resize_mode == "native":
             self._set_native_target_geometry(file_item)
         return file_item
@@ -316,7 +308,26 @@ class ManifestDataset(BucketsMixin, Dataset):
                 rows.append(row)
         return rows
 
+    def _source_ref_options(self, raw_value: Any) -> Dict[str, Any]:
+        if not isinstance(raw_value, dict):
+            return {}
+        options: Dict[str, Any] = {}
+        crop_box = raw_value.get("crop_box") or raw_value.get("bbox")
+        if isinstance(crop_box, (list, tuple)) and len(crop_box) == 4:
+            options["crop_box"] = [float(value) for value in crop_box]
+        pad_multiple = raw_value.get("pad_multiple")
+        if pad_multiple is not None:
+            options["pad_multiple"] = max(1, int(pad_multiple))
+        return options
+
     def _parse_source_ref(self, path_or_key: Any, allow_relative: bool = True) -> Dict[str, str]:
+        source_options = self._source_ref_options(path_or_key)
+
+        def with_options(source_ref: Dict[str, Any]) -> Dict[str, Any]:
+            if source_options:
+                source_ref.update(source_options)
+            return source_ref
+
         if isinstance(path_or_key, dict):
             path_or_key = path_or_key.get("image") or path_or_key.get("path")
         if not path_or_key:
@@ -325,27 +336,27 @@ class ManifestDataset(BucketsMixin, Dataset):
         raw_value = str(path_or_key).strip()
         if raw_value.startswith("s3://"):
             bucket, key = raw_value[5:].split("/", 1)
-            return {
+            return with_options({
                 "kind": "s3",
                 "bucket": bucket,
                 "key": key.lstrip("/"),
                 "canonical": f"s3://{bucket}/{key.lstrip('/')}",
-            }
+            })
         if raw_value.startswith("file://"):
             local_path = os.path.abspath(unquote(urlparse(raw_value).path))
-            return {
+            return with_options({
                 "kind": "local",
                 "path": local_path,
                 "canonical": local_path,
-            }
+            })
         if raw_value.startswith("http://") or raw_value.startswith("https://"):
             raise ValueError(f"HTTP(S) sources are not supported in ManifestDataset: {raw_value}")
         if os.path.isabs(raw_value):
-            return {
+            return with_options({
                 "kind": "local",
                 "path": os.path.abspath(raw_value),
                 "canonical": os.path.abspath(raw_value),
-            }
+            })
         if raw_value.startswith("datasets/"):
             bucket = None
             if self.dataset_root_ref is not None and self.dataset_root_ref["kind"] == "s3":
@@ -354,19 +365,19 @@ class ManifestDataset(BucketsMixin, Dataset):
                 bucket = self.manifest_ref["bucket"]
             if bucket is not None:
                 key = raw_value.lstrip("/")
-                return {
+                return with_options({
                     "kind": "s3",
                     "bucket": bucket,
                     "key": key,
                     "canonical": f"s3://{bucket}/{key}",
-                }
+                })
         if not allow_relative:
             local_path = os.path.abspath(raw_value)
-            return {
+            return with_options({
                 "kind": "local",
                 "path": local_path,
                 "canonical": local_path,
-            }
+            })
 
         if self.dataset_root_ref is not None and self.dataset_root_ref["kind"] == "s3":
             prefix = self.dataset_root_ref.get("key", "").strip("/")
@@ -375,25 +386,25 @@ class ManifestDataset(BucketsMixin, Dataset):
             if prefix and not key.startswith(prefix):
                 alternate_keys.append(key)
                 key = f"{prefix}/{key}"
-            return {
+            return with_options({
                 "kind": "s3",
                 "bucket": self.dataset_root_ref["bucket"],
                 "key": key,
                 "canonical": f"s3://{self.dataset_root_ref['bucket']}/{key}",
                 "alternate_keys": alternate_keys,
-            }
+            })
 
         if self.manifest_ref["kind"] == "s3":
             prefix = self.manifest_ref["key"].rsplit("/", 1)[0]
             key = raw_value.lstrip("/")
             if prefix and not key.startswith(prefix):
                 key = f"{prefix}/{key}"
-            return {
+            return with_options({
                 "kind": "s3",
                 "bucket": self.manifest_ref["bucket"],
                 "key": key,
                 "canonical": f"s3://{self.manifest_ref['bucket']}/{key}",
-            }
+            })
 
         base_dir = (
             self.dataset_root_ref["path"]
@@ -401,18 +412,18 @@ class ManifestDataset(BucketsMixin, Dataset):
             else os.path.dirname(self.manifest_ref["path"])
         )
         local_path = os.path.abspath(os.path.join(base_dir, raw_value))
-        return {
+        return with_options({
             "kind": "local",
             "path": local_path,
             "canonical": local_path,
-        }
+        })
 
     def _materialize_ref(self, source_ref: Dict[str, str]) -> str:
         if source_ref["kind"] == "local":
             return source_ref["path"]
 
         mounted_path = self._mounted_path_for_s3_ref(source_ref)
-        if mounted_path and os.path.exists(mounted_path):
+        if mounted_path and os.path.exists(mounted_path) and not source_ref.get("crop_box"):
             return mounted_path
 
         head, resolved_key = self._resolve_s3_object(source_ref)
@@ -556,11 +567,107 @@ class ManifestDataset(BucketsMixin, Dataset):
             return len(self.batch_indices)
         return len(self.file_list)
 
+    def _apply_source_ref_geometry(self, image: Image.Image, source_ref: Dict[str, Any]) -> Image.Image:
+        crop_box = source_ref.get("crop_box")
+        if isinstance(crop_box, (list, tuple)) and len(crop_box) == 4:
+            width, height = image.size
+            x0, y0, x1, y1 = [float(value) for value in crop_box]
+            x0 = max(0, min(width, int(math.floor(x0))))
+            y0 = max(0, min(height, int(math.floor(y0))))
+            x1 = max(0, min(width, int(math.ceil(x1))))
+            y1 = max(0, min(height, int(math.ceil(y1))))
+            if x1 <= x0 or y1 <= y0:
+                raise ValueError(f"Invalid manifest crop_box for {source_ref['canonical']}: {crop_box}")
+            image = image.crop((x0, y0, x1, y1))
+
+        pad_multiple = int(source_ref.get("pad_multiple") or 0)
+        if pad_multiple > 1:
+            padded_width = int(math.ceil(image.width / pad_multiple) * pad_multiple)
+            padded_height = int(math.ceil(image.height / pad_multiple) * pad_multiple)
+            if (padded_width, padded_height) != image.size:
+                padded = Image.new("RGB", (padded_width, padded_height), (255, 255, 255))
+                padded.paste(image, (0, 0))
+                image = padded
+        return image
+
     def _load_image(self, source_ref: Dict[str, str]) -> Image.Image:
         local_path = self._materialize_ref(source_ref)
         image = Image.open(local_path)
         image = exif_transpose(image)
-        return image.convert("RGB")
+        image = image.convert("RGB")
+        return self._apply_source_ref_geometry(image, source_ref)
+
+    @staticmethod
+    def _norm_box_to_pixel_box(box_norm: list[float], width: int, height: int) -> tuple[int, int, int, int] | None:
+        if not isinstance(box_norm, list) or len(box_norm) != 4:
+            return None
+        x0 = int(round(max(0.0, min(1.0, float(box_norm[0]))) * width))
+        y0 = int(round(max(0.0, min(1.0, float(box_norm[1]))) * height))
+        x1 = int(round(max(0.0, min(1.0, float(box_norm[2]))) * width))
+        y1 = int(round(max(0.0, min(1.0, float(box_norm[3]))) * height))
+        if x1 <= x0 or y1 <= y0:
+            return None
+        return x0, y0, x1, y1
+
+    @staticmethod
+    def _draw_metadata_box(draw: ImageDraw.ImageDraw, box_norm: list[float], width: int, height: int, color) -> bool:
+        pixel_box = ManifestDataset._norm_box_to_pixel_box(box_norm, width, height)
+        if pixel_box is None:
+            return False
+        draw.rectangle(pixel_box, fill=tuple(int(value) for value in color))
+        return True
+
+    @staticmethod
+    def _draw_metadata_text_region(
+        draw: ImageDraw.ImageDraw,
+        box_norm: list[float],
+        width: int,
+        height: int,
+        text_bubble_type: str,
+    ) -> bool:
+        pixel_box = ManifestDataset._norm_box_to_pixel_box(box_norm, width, height)
+        if pixel_box is None:
+            return False
+        x0, y0, x1, y1 = pixel_box
+        blue = (0, 96, 255)
+        black = (0, 0, 0)
+        draw.rectangle((x0, y0, x1, y1), fill=blue)
+
+        def band_edges(start: int, end: int, bands: int = 17) -> list[int]:
+            return [int(round(start + ((end - start) * index / bands))) for index in range(bands + 1)]
+
+        if text_bubble_type == "Narration Bubble":
+            edges = band_edges(x0, x1)
+            for band_index in range(1, 17, 2):
+                draw.rectangle((edges[band_index], y0, edges[band_index + 1], y1), fill=black)
+        elif text_bubble_type == "Shout Bubble":
+            edges = band_edges(y0, y1)
+            for band_index in range(1, 17, 2):
+                draw.rectangle((x0, edges[band_index], x1, edges[band_index + 1]), fill=black)
+        return True
+
+    def _layout_control_from_metadata(self, layout_metadata: dict[str, Any], width: int, height: int) -> Image.Image:
+        image = Image.new("RGB", (width, height), (255, 255, 255))
+        draw = ImageDraw.Draw(image)
+        for character in layout_metadata.get("characters") or []:
+            if not isinstance(character, dict):
+                continue
+            box_norm = character.get("bbox_norm")
+            rgb = character.get("rgb")
+            if isinstance(box_norm, list) and isinstance(rgb, list):
+                self._draw_metadata_box(draw, box_norm, width, height, rgb)
+        text_payload = layout_metadata.get("text") if isinstance(layout_metadata.get("text"), dict) else {}
+        for region in text_payload.get("regions") or []:
+            if not isinstance(region, dict):
+                continue
+            self._draw_metadata_text_region(
+                draw,
+                region.get("bbox_norm"),
+                width,
+                height,
+                str(region.get("type") or "Speech Bubble"),
+            )
+        return image
 
     def _apply_flip(self, image: Image.Image, file_item: FileItemDTO) -> Image.Image:
         if file_item.flip_x:
@@ -611,27 +718,16 @@ class ManifestDataset(BucketsMixin, Dataset):
         sample = file_item.manifest_sample
         controls = sample.get("controls", {})
         control_refs: List[Dict[str, str]] = []
-
-        prev_control = controls.get("previous_panel") or controls.get("previous_page")
-        if prev_control:
-            control_refs.append(self._parse_source_ref(prev_control))
-
-        for char_ref_path in controls.get("character_ref_paths", [])[: self.config.max_character_refs]:
-            control_refs.append(self._parse_source_ref(char_ref_path))
-
-        if not control_refs:
-            return
-
         tensors: List[torch.Tensor] = []
-        for control_ref in control_refs:
-            control_img = self._load_image(control_ref)
+
+        def append_control_image(control_img: Image.Image, canonical: str) -> None:
             control_img = self._apply_flip(control_img, file_item)
             control_img = self._apply_control_geometry(control_img, file_item)
             control_width, control_height = control_img.size
             target_multiple = self._target_multiple()
             if control_width <= 0 or control_height <= 0:
                 raise ValueError(
-                    f"Control image has invalid geometry: {control_ref['canonical']} = "
+                    f"Control image has invalid geometry: {canonical} = "
                     f"{control_width}x{control_height}"
                 )
             if control_width % target_multiple != 0 or control_height % target_multiple != 0:
@@ -641,6 +737,35 @@ class ManifestDataset(BucketsMixin, Dataset):
                 padded.paste(control_img, (0, 0))
                 control_img = padded
             tensors.append(self.control_transform(control_img))
+
+        layout_control = controls.get("layout_control_path")
+        if layout_control:
+            control_refs.append(self._parse_source_ref(layout_control))
+        elif isinstance(controls.get("layout_control"), dict):
+            append_control_image(
+                self._layout_control_from_metadata(
+                    controls["layout_control"],
+                    int(file_item.width),
+                    int(file_item.height),
+                ),
+                "manifest:layout_control",
+            )
+
+        prev_control = controls.get("previous_panel") or controls.get("previous_page")
+        if prev_control and len(control_refs) < MAX_CONTROL_IMAGE_SLOTS:
+            control_refs.append(self._parse_source_ref(prev_control))
+
+        remaining_character_slots = max(0, MAX_CONTROL_IMAGE_SLOTS - len(control_refs))
+        max_character_refs = min(self.config.max_character_refs, remaining_character_slots)
+        for char_ref_path in controls.get("character_ref_paths", [])[:max_character_refs]:
+            control_refs.append(self._parse_source_ref(char_ref_path))
+
+        if not control_refs and not tensors:
+            return
+
+        for control_ref in control_refs:
+            control_img = self._load_image(control_ref)
+            append_control_image(control_img, control_ref["canonical"])
 
         if not tensors:
             return
@@ -832,10 +957,6 @@ class ManifestDataset(BucketsMixin, Dataset):
         if not file_item.is_latent_cached:
             self._prepare_file_item_target_tensor(file_item)
         file_item.load_caption()
-        gia_prompt = getattr(file_item, "gia_prompt", None)
-        if gia_prompt:
-            file_item.caption = gia_prompt
-            file_item.caption_short = gia_prompt
         self._load_manifest_controls(file_item)
         return file_item
 

@@ -118,7 +118,6 @@ class SampleItem:
             'validation_control_paths',
             self.get_control_image_paths(),
         )
-        self.gia_inputs = kwargs.get('gia_inputs', None)
         
         self.network_multiplier: float = kwargs.get('network_multiplier', sample_config.network_multiplier)
         # convert to a number if it is a string
@@ -1188,7 +1187,6 @@ class GenerateImageConfig:
             ctrl_img_6: Optional[str] = None,  # sixth control image for multi control model
             ctrl_img_7: Optional[str] = None,  # seventh control image for multi control model
             control_images: Optional[List[str]] = None,
-            gia_inputs: Optional[dict] = None,
             num_frames: int = 1,
             fps: int = 15,
             ctrl_idx: int = 0,
@@ -1221,7 +1219,6 @@ class GenerateImageConfig:
         self.extra_kwargs = extra_kwargs if extra_kwargs is not None else {}
         self.refiner_start_at = refiner_start_at
         self.extra_values = extra_values if extra_values is not None else []
-        self.gia_inputs = gia_inputs
         self.num_frames = num_frames
         self.fps = fps
         self.ctrl_img = ctrl_img

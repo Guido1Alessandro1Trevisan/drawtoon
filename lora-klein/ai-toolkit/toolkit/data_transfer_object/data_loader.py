@@ -224,18 +224,6 @@ class DataLoaderBatchDTO:
                 str(getattr(x, "canonical_image_id", "") or getattr(x, "path", ""))
                 for x in self.file_items
             ]
-            self.gia_inputs_list = [
-                getattr(x, "gia_inputs", None)
-                for x in self.file_items
-            ]
-            if not any(item is not None for item in self.gia_inputs_list):
-                self.gia_inputs_list = None
-            self.gia_prompt_list = [
-                getattr(x, "gia_prompt", None)
-                for x in self.file_items
-            ]
-            if not any(item for item in self.gia_prompt_list):
-                self.gia_prompt_list = None
             self.conditioned_prompts = None
 
             # just for holding noise and preds during training

@@ -22,12 +22,6 @@ from transformers import AutoProcessor, Mistral3ForConditionalGeneration
 from .src.model import Flux2, Flux2Params
 from .src.pipeline import Flux2Pipeline
 from .src.autoencoder import AutoEncoder, AutoEncoderParams
-from .src.gia import (
-    bool_mask_to_additive_attention_mask,
-    build_gia_attention_mask,
-    build_gia_prompt,
-    cap_gia_inputs,
-)
 from safetensors.torch import load_file, save_file
 from PIL import Image
 import torch.nn.functional as F
@@ -293,30 +287,13 @@ class Flux2Model(BaseModel):
             gen_config.height // self.get_bucket_divisibility()
         ) * self.get_bucket_divisibility()
 
-        gia_inputs = getattr(gen_config, "gia_inputs", None)
         control_img_list = []
-        if gia_inputs is None:
-            for control_image_path in gen_config.get_control_image_paths():
-                control_img = Image.open(control_image_path)
-                control_img = control_img.convert("RGB")
-                control_img_list.append(control_img)
-        if not self.flux2_is_guidance_distilled and gia_inputs is None:
+        for control_image_path in gen_config.get_control_image_paths():
+            control_img = Image.open(control_image_path)
+            control_img = control_img.convert("RGB")
+            control_img_list.append(control_img)
+        if not self.flux2_is_guidance_distilled:
             extra["negative_prompt_embeds"] = unconditional_embeds.text_embeds
-        if gia_inputs is not None:
-            img = pipeline(
-                prompt=gen_config.prompt,
-                negative_prompt=gen_config.negative_prompt,
-                height=gen_config.height,
-                width=gen_config.width,
-                num_inference_steps=gen_config.num_inference_steps,
-                guidance_scale=gen_config.guidance_scale,
-                latents=gen_config.latents,
-                generator=generator,
-                control_img_list=control_img_list or None,
-                gia_inputs=gia_inputs,
-                **extra,
-            ).images[0]
-            return img
 
         img = pipeline(
             prompt_embeds=conditional_embeds.text_embeds,
@@ -465,59 +442,6 @@ class Flux2Model(BaseModel):
 
             cast_dtype = self.model.dtype
 
-            gia_attention_mask = None
-            gia_inputs_list = getattr(batch, "gia_inputs_list", None) if batch is not None else None
-            if gia_inputs_list is not None:
-                gia_inputs_list = align_list_to_model_batch(
-                    gia_inputs_list,
-                    "gia_inputs_list",
-                )
-                conditioned_prompts = align_list_to_model_batch(
-                    getattr(batch, "conditioned_prompts", None),
-                    "conditioned_prompts",
-                )
-                masks = []
-                any_gia_inputs = any(item is not None for item in gia_inputs_list)
-                if any_gia_inputs:
-                    for batch_idx, gia_inputs in enumerate(gia_inputs_list):
-                        total_tokens = int(txt.shape[1] + img_input_ids.shape[1])
-                        if gia_inputs is None:
-                            masks.append(
-                                torch.ones((total_tokens, total_tokens), dtype=torch.bool)
-                            )
-                            continue
-
-                        gia_inputs = cap_gia_inputs(gia_inputs)
-                        gia_prompt, _, _ = build_gia_prompt(gia_inputs)
-                        if conditioned_prompts is not None:
-                            conditioned_prompt = str(conditioned_prompts[batch_idx])
-                            if conditioned_prompt != gia_prompt:
-                                raise ValueError(
-                                    "GIA training prompt mismatch: expected the encoded "
-                                    "training prompt to be the SAD+CEI prompt built from gia_inputs"
-                                )
-
-                        prompt_spans = self.pipeline._get_gia_prompt_spans(
-                            gia_inputs,
-                            gia_prompt,
-                            max_sequence_length=txt.shape[1],
-                        )
-                        masks.append(
-                            build_gia_attention_mask(
-                                gia_inputs,
-                                prompt_spans,
-                                img_ids=img_input_ids[batch_idx],
-                                num_txt_tokens=txt.shape[1],
-                                target_token_count=packed_latents.shape[1],
-                            )
-                        )
-
-                    gia_attention_mask = bool_mask_to_additive_attention_mask(
-                        torch.stack(masks, dim=0),
-                        device=self.device_torch,
-                        dtype=cast_dtype,
-                    )
-
         packed_noise_pred = self.transformer(
             x=img_input.to(self.device_torch, cast_dtype),
             x_ids=img_input_ids.to(self.device_torch),
@@ -525,7 +449,6 @@ class Flux2Model(BaseModel):
             ctx=txt.to(self.device_torch, cast_dtype),
             ctx_ids=txt_ids.to(self.device_torch),
             guidance=guidance_vec.to(self.device_torch, cast_dtype),
-            attention_mask=gia_attention_mask,
         )
 
         if img_cond_seq is not None:

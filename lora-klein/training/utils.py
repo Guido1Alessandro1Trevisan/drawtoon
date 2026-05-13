@@ -21,7 +21,7 @@ from typing import Any
 
 import boto3
 import yaml
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 
 S3_BUCKET = os.environ.get("DRAWTOON_S3_BUCKET") or os.environ.get("S3_BUCKET") or "drawtoon"
@@ -31,7 +31,15 @@ DEFAULT_DATASET_CACHE_ROOT = "/mnt/local/training/datasets_cache"
 DEFAULT_DRAWTOON_PAGES_PREFIX = "datasets/pages/filtered"
 DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX = "datasets/annotations/magi_v3"
 DEFAULT_DRAWTOON_CAPTIONS_PREFIX = "captions"
-DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_lamic_v1"
+DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_panel_v1"
+MAX_CONTROL_IMAGE_SLOTS = 7
+REVIEW_CHARACTER_COLORS = [
+    ("Character 1", (255, 0, 0)),
+    ("Character 2", (0, 180, 0)),
+    ("Character 3", (220, 180, 0)),
+    ("Character 4", (220, 0, 220)),
+    ("Character 5", (0, 190, 190)),
+]
 
 
 def parse_s3_uri(uri: str) -> tuple[str, str]:
@@ -132,7 +140,7 @@ def build_static_validation_samples(
     asset_root = output_root / "_validation_assets"
     samples: list[dict[str, Any]] = []
     for row in iter_manifest_rows(manifest_path):
-        if row.get("sample_type") not in {"character_ref_to_panel", "lamic_panel_prediction"}:
+        if row.get("sample_type") not in {"character_ref_to_panel", "panel_prediction"}:
             continue
         target_path = materialize_asset(
             s3_client,
@@ -152,7 +160,19 @@ def build_static_validation_samples(
         }
         control_paths: list[str] = []
         controls = row.get("controls", {}) or {}
+        layout_control = controls.get("layout_control_path")
+        if layout_control:
+            local_layout = materialize_asset(
+                s3_client,
+                str(layout_control),
+                asset_root=asset_root,
+                dataset_s3_path=dataset_s3_path,
+            )
+            control_paths.append(str(local_layout))
+
         for ref_path in controls.get("character_ref_paths", [])[:max_character_refs]:
+            if len(control_paths) >= MAX_CONTROL_IMAGE_SLOTS:
+                break
             local_ref = materialize_asset(
                 s3_client,
                 str(ref_path),
@@ -160,9 +180,9 @@ def build_static_validation_samples(
                 dataset_s3_path=dataset_s3_path,
             )
             control_paths.append(str(local_ref))
-        for idx, control_path in enumerate(control_paths[:7], start=1):
+        for idx, control_path in enumerate(control_paths[:MAX_CONTROL_IMAGE_SLOTS], start=1):
             sample[f"ctrl_img_{idx}"] = control_path
-        sample["validation_control_paths"] = control_paths[:7]
+        sample["validation_control_paths"] = control_paths[:MAX_CONTROL_IMAGE_SLOTS]
         samples.append(sample)
         if len(samples) >= sample_count:
             break
@@ -407,8 +427,8 @@ def _load_training_module_for_ec2(cache_root: str):
     return module
 
 
-def build_drawtoon_lamic_cache(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Build the temporary Drawtoon LAMIC cache directly on EC2.")
+def build_drawtoon_panel_cache(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Build the temporary Drawtoon panel cache directly on EC2.")
     parser.add_argument("--config", required=True)
     parser.add_argument("--bucket", default=S3_BUCKET)
     parser.add_argument("--caption-run", default=DEFAULT_DRAWTOON_CAPTION_RUN)
@@ -433,7 +453,7 @@ def build_drawtoon_lamic_cache(argv: list[str] | None = None) -> None:
         "include_chapter_regex": args.include_chapter_regex,
         "max_pages": args.max_pages,
     }
-    plan = module.plan_drawtoon_lamic_cache(
+    plan = module.plan_drawtoon_panel_cache(
         args.config,
         overrides,
         shard_count=args.shard_count,
@@ -444,7 +464,7 @@ def build_drawtoon_lamic_cache(argv: list[str] | None = None) -> None:
         return
 
     print(
-        "Building Drawtoon LAMIC EC2 cache: "
+        "Building Drawtoon panel EC2 cache: "
         f"{plan['caption_key_count']} page captions across {plan['shard_count']} shards "
         f"with {max(1, args.workers)} workers",
         flush=True,
@@ -452,7 +472,7 @@ def build_drawtoon_lamic_cache(argv: list[str] | None = None) -> None:
     workers = max(1, min(int(args.workers), len(plan["shards"])))
     shard_results: list[dict[str, Any]] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(module.build_drawtoon_lamic_cache_shard, shard) for shard in plan["shards"]]
+        futures = [pool.submit(module.build_drawtoon_panel_cache_shard, shard) for shard in plan["shards"]]
         for index, future in enumerate(concurrent.futures.as_completed(futures), start=1):
             result = future.result()
             shard_results.append(result)
@@ -464,9 +484,350 @@ def build_drawtoon_lamic_cache(argv: list[str] | None = None) -> None:
                 flush=True,
             )
 
-    final = module.finalize_drawtoon_lamic_cache(args.config, plan)
+    final = module.finalize_drawtoon_panel_cache(args.config, plan)
     final["shard_results_observed"] = len(shard_results)
     print(json.dumps(final, indent=2, sort_keys=True))
+
+
+def _color_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
+    return abs(int(a[0]) - int(b[0])) + abs(int(a[1]) - int(b[1])) + abs(int(a[2]) - int(b[2]))
+
+
+def _is_text_layout_pixel(rgb: tuple[int, int, int]) -> bool:
+    red, green, blue = rgb
+    is_blue = blue >= 140 and red <= 90 and green <= 140
+    is_black_stripe = red <= 45 and green <= 45 and blue <= 45
+    return is_blue or is_black_stripe
+
+
+def _is_character_layout_pixel(rgb: tuple[int, int, int], target: tuple[int, int, int]) -> bool:
+    red, green, blue = rgb
+    if target == (255, 0, 0):
+        return red >= 130 and red - max(green, blue) >= 55
+    if target == (0, 180, 0):
+        return green >= 110 and green - max(red, blue) >= 45
+    if target == (220, 180, 0):
+        return red >= 130 and green >= 110 and blue <= 80 and min(red, green) - blue >= 60
+    if target == (220, 0, 220):
+        return red >= 120 and blue >= 120 and green <= 100 and min(red, blue) - green >= 45
+    if target == (0, 190, 190):
+        return green >= 120 and blue >= 120 and red <= 100 and min(green, blue) - red >= 45
+    return _color_distance(rgb, target) <= 80
+
+
+def _is_colored_layout_pixel(rgb: tuple[int, int, int]) -> bool:
+    if _is_text_layout_pixel(rgb) and not (rgb[0] <= 45 and rgb[1] <= 45 and rgb[2] <= 45):
+        return True
+    return any(_is_character_layout_pixel(rgb, color) for _, color in REVIEW_CHARACTER_COLORS)
+
+
+def _looks_like_layout_control(image: Image.Image) -> bool:
+    rgb = image.convert("RGB")
+    width, height = rgb.size
+    pixels = rgb.load()
+    colored = 0
+    step = max(1, (width * height) // 50000)
+    sampled = 0
+    for index in range(0, width * height, step):
+        x = index % width
+        y = index // width
+        if y >= height:
+            break
+        sampled += 1
+        if _is_colored_layout_pixel(pixels[x, y]):
+            colored += 1
+    return colored >= max(20, int(sampled * 0.002))
+
+
+def _connected_component_boxes(
+    image: Image.Image,
+    predicate,
+    *,
+    min_pixels: int = 12,
+    min_extent: int = 3,
+) -> list[tuple[int, int, int, int, int]]:
+    rgb = image.convert("RGB")
+    width, height = rgb.size
+    pixels = rgb.load()
+    visited = bytearray(width * height)
+    boxes: list[tuple[int, int, int, int, int]] = []
+
+    for y in range(height):
+        row_offset = y * width
+        for x in range(width):
+            index = row_offset + x
+            if visited[index] or not predicate(pixels[x, y]):
+                continue
+
+            stack = [(x, y)]
+            visited[index] = 1
+            x0 = x1 = x
+            y0 = y1 = y
+            count = 0
+
+            while stack:
+                cx, cy = stack.pop()
+                count += 1
+                if cx < x0:
+                    x0 = cx
+                elif cx > x1:
+                    x1 = cx
+                if cy < y0:
+                    y0 = cy
+                elif cy > y1:
+                    y1 = cy
+
+                for nx, ny in ((cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)):
+                    if nx < 0 or ny < 0 or nx >= width or ny >= height:
+                        continue
+                    nindex = ny * width + nx
+                    if visited[nindex] or not predicate(pixels[nx, ny]):
+                        continue
+                    visited[nindex] = 1
+                    stack.append((nx, ny))
+
+            if count >= min_pixels and (x1 - x0 + 1) >= min_extent and (y1 - y0 + 1) >= min_extent:
+                boxes.append((x0, y0, x1 + 1, y1 + 1, count))
+
+    return boxes
+
+
+def _detect_layout_boxes(layout_path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    with Image.open(layout_path) as layout:
+        layout = layout.convert("RGB")
+        if not _looks_like_layout_control(layout):
+            return [], []
+        characters: list[dict[str, Any]] = []
+        for label, color in REVIEW_CHARACTER_COLORS:
+            for x0, y0, x1, y1, area in _connected_component_boxes(
+                layout,
+                lambda rgb, target=color: _is_character_layout_pixel(rgb, target),
+            ):
+                characters.append({"label": label, "bbox": [x0, y0, x1, y1], "area": area, "color": color})
+
+        text_regions = [
+            {"label": f"Text {idx + 1}", "bbox": [x0, y0, x1, y1], "area": area, "color": (0, 90, 255)}
+            for idx, (x0, y0, x1, y1, area) in enumerate(
+                _connected_component_boxes(layout, _is_text_layout_pixel, min_pixels=12)
+            )
+        ]
+    return characters, text_regions
+
+
+def _draw_labeled_box(
+    draw: ImageDraw.ImageDraw,
+    box: list[float],
+    *,
+    label: str,
+    color: tuple[int, int, int],
+    width: int,
+    font: ImageFont.ImageFont,
+) -> None:
+    x0, y0, x1, y1 = [int(round(value)) for value in box]
+    draw.rectangle((x0, y0, x1, y1), outline=color, width=width)
+    text_bbox = draw.textbbox((0, 0), label, font=font)
+    label_width = text_bbox[2] - text_bbox[0] + 6
+    label_height = text_bbox[3] - text_bbox[1] + 4
+    label_y0 = max(0, y0 - label_height)
+    draw.rectangle((x0, label_y0, x0 + label_width, label_y0 + label_height), fill=color)
+    draw.text((x0 + 3, label_y0 + 2), label, fill=(255, 255, 255), font=font)
+
+
+def _overlay_generated_bboxes(generated_path: Path, layout_path: Path) -> Image.Image:
+    with Image.open(generated_path) as generated:
+        output = generated.convert("RGB")
+    with Image.open(layout_path) as layout_image:
+        layout_size = layout_image.size
+
+    characters, text_regions = _detect_layout_boxes(layout_path)
+    scale_x = output.width / max(1, layout_size[0])
+    scale_y = output.height / max(1, layout_size[1])
+    draw = ImageDraw.Draw(output)
+    font = ImageFont.load_default()
+    line_width = max(2, min(output.size) // 160)
+
+    for item in sorted(characters, key=lambda row: row["area"], reverse=True):
+        x0, y0, x1, y1 = item["bbox"]
+        _draw_labeled_box(
+            draw,
+            [x0 * scale_x, y0 * scale_y, x1 * scale_x, y1 * scale_y],
+            label=item["label"].replace("Character ", "C"),
+            color=tuple(item["color"]),
+            width=line_width,
+            font=font,
+        )
+
+    for item in sorted(text_regions, key=lambda row: row["area"], reverse=True):
+        x0, y0, x1, y1 = item["bbox"]
+        _draw_labeled_box(
+            draw,
+            [x0 * scale_x, y0 * scale_y, x1 * scale_x, y1 * scale_y],
+            label=item["label"].replace("Text ", "T"),
+            color=(0, 90, 255),
+            width=line_width,
+            font=font,
+        )
+
+    return output
+
+
+def _fit_image(image: Image.Image, *, max_width: int, max_height: int) -> Image.Image:
+    fitted = image.convert("RGB").copy()
+    fitted.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+    return fitted
+
+
+def _labeled_panel(title: str, image: Image.Image, *, max_width: int, max_height: int) -> Image.Image:
+    font = ImageFont.load_default()
+    image = _fit_image(image, max_width=max_width, max_height=max_height)
+    label_height = 22
+    canvas = Image.new("RGB", (max(max_width, image.width), image.height + label_height), (245, 245, 245))
+    draw = ImageDraw.Draw(canvas)
+    draw.rectangle((0, 0, canvas.width, label_height), fill=(30, 30, 30))
+    draw.text((6, 5), title, fill=(255, 255, 255), font=font)
+    canvas.paste(image, ((canvas.width - image.width) // 2, label_height))
+    return canvas
+
+
+def _reference_panel(ref_paths: list[Path], *, max_width: int, max_height: int) -> Image.Image:
+    font = ImageFont.load_default()
+    label_height = 22
+    canvas = Image.new("RGB", (max_width, max_height + label_height), (245, 245, 245))
+    draw = ImageDraw.Draw(canvas)
+    draw.rectangle((0, 0, canvas.width, label_height), fill=(30, 30, 30))
+    draw.text((6, 5), "character refs", fill=(255, 255, 255), font=font)
+    if not ref_paths:
+        draw.text((12, label_height + 12), "none", fill=(70, 70, 70), font=font)
+        return canvas
+
+    thumb_max = 132
+    gap = 8
+    x = gap
+    y = label_height + gap
+    row_height = 0
+    for index, ref_path in enumerate(ref_paths, start=1):
+        try:
+            with Image.open(ref_path) as ref_image:
+                thumb = _fit_image(ref_image, max_width=thumb_max, max_height=thumb_max)
+        except Exception:
+            continue
+        if x + thumb.width + gap > max_width:
+            x = gap
+            y += row_height + gap + 14
+            row_height = 0
+        if y + thumb.height + 14 > canvas.height:
+            break
+        canvas.paste(thumb, (x, y))
+        draw.text((x, y + thumb.height + 1), f"ref {index}", fill=(20, 20, 20), font=font)
+        x += thumb.width + gap
+        row_height = max(row_height, thumb.height)
+    return canvas
+
+
+def _compose_validation_review(
+    *,
+    generated_path: Path,
+    sample_dir: Path,
+    output_path: Path,
+) -> bool:
+    target_path = sample_dir / "target.jpg"
+    layout_path = sample_dir / "ctrl_img_1.jpg"
+    if not target_path.is_file() or not generated_path.is_file():
+        return False
+
+    ref_paths = sorted(
+        path for path in sample_dir.glob("ctrl_img_*.jpg") if path.stem != "ctrl_img_1"
+    )
+    with Image.open(target_path) as target_image:
+        target_panel = _labeled_panel("target", target_image, max_width=520, max_height=720)
+
+    refs_panel = _reference_panel(ref_paths, max_width=300, max_height=max(120, target_panel.height - 22))
+    if layout_path.is_file():
+        generated_image = _overlay_generated_bboxes(generated_path, layout_path)
+    else:
+        with Image.open(generated_path) as generated:
+            generated_image = generated.convert("RGB")
+    generated_panel = _labeled_panel("generated + boxes", generated_image, max_width=520, max_height=720)
+
+    gap = 12
+    panels = [target_panel, refs_panel, generated_panel]
+    width = sum(panel.width for panel in panels) + gap * (len(panels) + 1)
+    height = max(panel.height for panel in panels) + gap * 2
+    sheet = Image.new("RGB", (width, height), (235, 235, 235))
+    x = gap
+    for panel in panels:
+        sheet.paste(panel, (x, gap))
+        x += panel.width + gap
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(output_path, quality=92)
+    return True
+
+
+def build_validation_review_sheets(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Build local validation review images from synced ai-toolkit validation folders."
+    )
+    parser.add_argument("--job-dir", required=True)
+    parser.add_argument("--step", default="")
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--max-samples", type=int, default=0)
+    args = parser.parse_args(argv)
+
+    job_dir = Path(args.job_dir)
+    if not job_dir.is_dir():
+        raise FileNotFoundError(f"Validation job directory does not exist: {job_dir}")
+
+    if args.step:
+        step_dirs = [job_dir / args.step]
+    else:
+        step_dirs = sorted(path for path in job_dir.glob("step_*") if path.is_dir())
+
+    built = 0
+    skipped = 0
+    missing = 0
+    for step_dir in step_dirs:
+        if not step_dir.is_dir():
+            continue
+        review_dir = step_dir / "_review_sheets" / "per_sample"
+        generated_paths = sorted(
+            path
+            for path in step_dir.glob("*.jpg")
+            if path.is_file() and not path.name.startswith("prompt_")
+        )
+        for generated_path in generated_paths:
+            if args.max_samples > 0 and built >= args.max_samples:
+                break
+            sample_dir = step_dir / generated_path.stem
+            output_path = review_dir / f"{generated_path.stem}__target_refs_generated_bboxes.jpg"
+            if output_path.exists() and not args.force:
+                skipped += 1
+                continue
+            if not sample_dir.is_dir():
+                missing += 1
+                continue
+            if _compose_validation_review(
+                generated_path=generated_path,
+                sample_dir=sample_dir,
+                output_path=output_path,
+            ):
+                built += 1
+            else:
+                missing += 1
+
+    print(
+        json.dumps(
+            {
+                "job_dir": str(job_dir),
+                "steps": len(step_dirs),
+                "built": built,
+                "skipped_existing": skipped,
+                "missing_inputs": missing,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
 
 
 def _define_checkpoint_sync_modal_app():
@@ -553,8 +914,11 @@ except Exception:
 
 def main() -> None:
     command = sys.argv[1] if len(sys.argv) > 1 else ""
-    if command in {"build-drawtoon-lamic-cache", "build-ec2-cache"}:
-        build_drawtoon_lamic_cache(sys.argv[2:])
+    if command in {"build-drawtoon-panel-cache", "build-ec2-cache"}:
+        build_drawtoon_panel_cache(sys.argv[2:])
+        return
+    if command in {"build-validation-review-sheets", "build-validation-review"}:
+        build_validation_review_sheets(sys.argv[2:])
         return
     if command in {"prepare-ec2-ai-toolkit-config", "prepare-ec2-config"}:
         prepare_ec2_ai_toolkit_config(sys.argv[2:])

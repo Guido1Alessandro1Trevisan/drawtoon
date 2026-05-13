@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import torch
@@ -23,14 +23,6 @@ from .sampling import (
     batched_prc_txt,
     encode_image_refs,
     scatter_ids,
-)
-from .gia import (
-    bool_mask_to_additive_attention_mask,
-    build_gia_attention_mask,
-    build_gia_prompt,
-    build_gia_prompt_spans_from_offsets,
-    cap_gia_inputs,
-    load_gia_reference_images,
 )
 
 
@@ -241,67 +233,6 @@ class Flux2Pipeline(DiffusionPipeline):
 
         return prompt_embeds, prompt_embeds_mask
 
-    def _get_gia_prompt_spans(
-        self,
-        gia_inputs: dict[str, Any],
-        prompt: str,
-        max_sequence_length: int,
-    ):
-        if self.text_encoder_type == "mistral":
-            formatted = self.tokenizer.apply_chat_template(
-                self.format_input([prompt]),
-                add_generation_prompt=False,
-                tokenize=False,
-            )
-            if isinstance(formatted, list):
-                formatted = formatted[0]
-        elif self.text_encoder_type == "qwen":
-            formatted = self.tokenizer.apply_chat_template(
-                [{"role": "user", "content": prompt}],
-                tokenize=False,
-                add_generation_prompt=True,
-                enable_thinking=False,
-            )
-        else:
-            raise ValueError(f"Unsupported text_encoder_type for GIA: {self.text_encoder_type}")
-
-        tokenizer = self.tokenizer
-        try:
-            tokenized = tokenizer(
-                formatted,
-                padding="max_length",
-                truncation=True,
-                max_length=max_sequence_length,
-                return_offsets_mapping=True,
-                return_attention_mask=True,
-                return_tensors="pt",
-            )
-        except TypeError:
-            inner_tokenizer = getattr(tokenizer, "tokenizer", None)
-            if inner_tokenizer is None:
-                raise
-            tokenized = inner_tokenizer(
-                formatted,
-                padding="max_length",
-                truncation=True,
-                max_length=max_sequence_length,
-                return_offsets_mapping=True,
-                return_attention_mask=True,
-                return_tensors="pt",
-            )
-
-        prompt_start = str(formatted).find(prompt)
-        if prompt_start < 0:
-            raise ValueError("Could not locate GIA SAD+CEI text inside the formatted prompt")
-
-        return build_gia_prompt_spans_from_offsets(
-            gia_inputs,
-            offsets=tokenized["offset_mapping"][0],
-            attention_mask=tokenized["attention_mask"][0],
-            prompt_start=prompt_start,
-            max_sequence_length=max_sequence_length,
-        )
-
     def prepare_latents(
         self,
         batch_size,
@@ -367,24 +298,9 @@ class Flux2Pipeline(DiffusionPipeline):
         return_dict: bool = True,
         max_sequence_length: int = 512,
         control_img_list: Optional[List[PIL.Image.Image]] = None,
-        gia_inputs: Optional[dict[str, Any]] = None,
-        gia_attention_mask: Optional[torch.Tensor] = None,
     ):
         height = height or self.default_sample_size * self.vae_scale_factor
         width = width or self.default_sample_size * self.vae_scale_factor
-        gia_prompt_spans = None
-        if gia_inputs is not None:
-            gia_inputs = cap_gia_inputs(gia_inputs)
-            if prompt_embeds is not None:
-                raise ValueError("gia_inputs requires text prompt tokenization; pass prompt text, not prompt_embeds")
-            prompt, _, _ = build_gia_prompt(gia_inputs)
-            gia_prompt_spans = self._get_gia_prompt_spans(
-                gia_inputs,
-                prompt,
-                max_sequence_length=max_sequence_length,
-            )
-            if control_img_list is None:
-                control_img_list = load_gia_reference_images(gia_inputs)
 
         do_guidance = (
             guidance_scale is not None
@@ -463,30 +379,6 @@ class Flux2Pipeline(DiffusionPipeline):
         else:
             img_cond_seq, img_cond_seq_ids = None, None
 
-        gia_step_attention_mask = None
-        if gia_inputs is not None and gia_attention_mask is None:
-            if packed_latents.shape[0] != 1:
-                raise ValueError("gia_inputs currently supports a single generated image at a time")
-            img_input_ids_for_mask = img_ids[0]
-            if img_cond_seq_ids is not None:
-                img_input_ids_for_mask = torch.cat(
-                    (img_input_ids_for_mask, img_cond_seq_ids[0].to(img_input_ids_for_mask.device)),
-                    dim=0,
-                )
-            gia_attention_mask = build_gia_attention_mask(
-                gia_inputs,
-                gia_prompt_spans,
-                img_ids=img_input_ids_for_mask,
-                num_txt_tokens=txt.shape[1],
-                target_token_count=packed_latents.shape[1],
-            )
-        if gia_attention_mask is not None:
-            gia_step_attention_mask = bool_mask_to_additive_attention_mask(
-                gia_attention_mask,
-                device=packed_latents.device,
-                dtype=packed_latents.dtype,
-            )
-
         # 6. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for t_curr, t_prev in zip(timesteps[:-1], timesteps[1:]):
@@ -517,7 +409,6 @@ class Flux2Pipeline(DiffusionPipeline):
                     ctx=txt,
                     ctx_ids=txt_ids,
                     guidance=guidance_vec,
-                    attention_mask=gia_step_attention_mask,
                 )
 
                 if do_guidance:
@@ -528,7 +419,6 @@ class Flux2Pipeline(DiffusionPipeline):
                         ctx=neg_txt,
                         ctx_ids=neg_txt_ids,
                         guidance=guidance_vec,
-                        attention_mask=gia_step_attention_mask,
                     )
                     pred = pred_uncond + guidance_scale * (pred - pred_uncond)
 

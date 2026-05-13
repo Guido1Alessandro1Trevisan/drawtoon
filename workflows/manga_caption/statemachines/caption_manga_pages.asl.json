@@ -1,5 +1,5 @@
 {
-  "Comment": "Caption Drawtoon filtered manga pages with page-level fanout. This temporary fast path drops sequential chapter memory so concurrency applies to pages.",
+  "Comment": "Caption Drawtoon manga pages with a Haiku-only page worker that sends one Bedrock request per panel.",
   "StartAt": "PrepareConfig",
   "States": {
     "PrepareConfig": {
@@ -41,17 +41,7 @@
       },
       "ItemSelector": {
         "row_index.$": "$$.Map.Item.Index",
-        "chapter.$": "$$.Map.Item.Value.chapter",
-        "pages_key.$": "$$.Map.Item.Value.pages_key",
-        "page_count.$": "$$.Map.Item.Value.page_count",
-        "next_page_index.$": "$$.Map.Item.Value.page_index",
-        "memory": {},
-        "counts": {
-          "ok": 0,
-          "skipped_existing": 0,
-          "error": 0
-        },
-        "done": false,
+        "page.$": "$$.Map.Item.Value",
         "config_ref": {
           "bucket.$": "$.worker_config.bucket",
           "key.$": "$.worker_config.key"

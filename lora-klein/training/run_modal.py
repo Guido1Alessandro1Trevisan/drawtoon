@@ -23,7 +23,7 @@ import boto3
 import modal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_validator, model_validator
-from PIL import Image
+from PIL import Image, ImageDraw
 
 # Define volumes for persistent storage
 model_volume = modal.Volume.from_name("flux-lora-models", create_if_missing=True)
@@ -48,7 +48,21 @@ AWS_SECRET_NAME = os.environ.get("DRAWTOON_AWS_SECRET_NAME", "lineart2-aws-s3")
 DEFAULT_DRAWTOON_PAGES_PREFIX = "datasets/pages/filtered"
 DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX = "datasets/annotations/magi_v3"
 DEFAULT_DRAWTOON_CAPTIONS_PREFIX = "captions"
-DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_lamic_v1"
+DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_panel_v1"
+MAX_CONTROL_IMAGE_SLOTS = 7
+MAX_LAYOUT_CHARACTER_REFS = 5
+MAX_LAYOUT_TEXT_REGIONS = 7
+LAYOUT_TEXT_COLOR = (0, 96, 255)
+LAYOUT_STRIPE_COLOR = (0, 0, 0)
+LAYOUT_TEXT_BUBBLE_TYPES = ("Speech Bubble", "Narration Bubble", "Shout Bubble")
+LAYOUT_CHARACTER_COLORS = [
+    (255, 0, 0),
+    (0, 180, 0),
+    (255, 220, 0),
+    (255, 0, 255),
+    (0, 220, 255),
+]
+LAYOUT_CHARACTER_COLOR_NAMES = ["red", "green", "yellow", "magenta", "cyan"]
 
 
 class LaunchArgs(BaseModel):
@@ -319,7 +333,7 @@ def sha256_file(path: Path) -> str:
 class CharacterPanelControls(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    character_ref_paths: list[str] = Field(default_factory=list)
+    character_ref_paths: list[Any] = Field(default_factory=list)
     has_previous_control: bool = False
 
 
@@ -328,13 +342,13 @@ class CharacterPanelManifestEntry(BaseModel):
 
     schema_version: int | None = None
     sample_id: str | None = None
-    target_panel: str = Field(min_length=1)
+    target_panel: Any
     target_width: int | None = Field(default=None, ge=1)
     target_height: int | None = Field(default=None, ge=1)
     bucket_key: str | None = None
     target_geometry: dict[str, Any] | None = None
     caption: str = Field(min_length=1)
-    sample_type: Literal["character_ref_to_panel", "lamic_panel_prediction"]
+    sample_type: Literal["character_ref_to_panel", "panel_prediction"]
     page_root: str = Field(min_length=1)
     panel_index: int = Field(ge=0)
     source_page: str | None = None
@@ -373,12 +387,19 @@ def materialize_manifest_dataset_view(
     }
 
 
+def _manifest_entry_identity(entry: dict) -> str:
+    sample_id = str(entry.get("sample_id") or "").strip()
+    if sample_id:
+        return sample_id
+    return json.dumps(entry.get("target_panel") or entry, sort_keys=True, ensure_ascii=False)
+
+
 def _stable_sample(entries: list[dict], count: int, seed_key: str) -> list[dict]:
     if count <= 0:
         return []
     decorated: list[tuple[str, dict]] = []
     for entry in entries:
-        entry_key = entry.get("target_panel") or json.dumps(entry, sort_keys=True)
+        entry_key = _manifest_entry_identity(entry)
         stable_key = hashlib.sha1(f"{seed_key}:{entry_key}".encode("utf-8")).hexdigest()
         decorated.append((stable_key, entry))
     decorated.sort(key=lambda item: item[0])
@@ -389,7 +410,7 @@ def _manifest_sample_types(entries: list[dict]) -> set[str]:
     return {str(entry.get("sample_type", "")).strip() for entry in entries if entry.get("sample_type")}
 
 
-def _resolve_manifest_validation_asset_path(manifest_path: Path, asset_ref: str) -> Path:
+def _resolve_manifest_validation_asset_path(manifest_path: Path, asset_ref: Any) -> Path:
     raw_value = str(asset_ref).strip()
     if not raw_value:
         raise ValueError("Validation asset reference must be non-empty")
@@ -406,45 +427,128 @@ def _resolve_manifest_validation_asset_path(manifest_path: Path, asset_ref: str)
     return manifest_path.parent / normalized
 
 
-def _build_gia_inputs_from_manifest_entry(manifest_path: Path, entry: dict) -> dict | None:
-    lamic = entry.get("lamic")
-    if not isinstance(lamic, dict):
-        return None
-    references = lamic.get("references")
-    if not isinstance(references, list) or not references:
-        return None
-    cei = str(lamic.get("CEI") or entry.get("caption") or "").strip()
-    if not cei:
-        return None
-    gia_inputs: dict = {"CEI": cei}
-    character_count = 0
-    dialogue_count = 0
-    for reference in references:
-        if not isinstance(reference, dict):
-            continue
-        sad = reference.get("SAD")
-        bbox = reference.get("target_box_norm") or reference.get("bbox")
-        if sad is None or bbox is None:
-            continue
-        image_path = reference.get("image_path")
-        if image_path:
-            if character_count >= 6:
-                continue
-            character_count += 1
-            image_path = str(_resolve_manifest_validation_asset_path(manifest_path, str(image_path)))
-        else:
-            if dialogue_count >= 10:
-                continue
-            dialogue_count += 1
-        gia_inputs[f"ref_img_{len(gia_inputs)}"] = {
-            "image_path": image_path,
-            "SAD": sad,
-            "bbox": bbox,
-        }
-    if not any(str(key).startswith("ref_img_") for key in gia_inputs):
-        return None
-    return gia_inputs
+def _manifest_validation_asset_cache_path(asset_ref: Any, suffix: str) -> Path:
+    digest = hashlib.sha1(json.dumps(asset_ref, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+    return Path("/tmp/drawtoon_manifest_validation_assets") / digest[:2] / f"{digest}{suffix}"
 
+
+def _coerce_manifest_crop_box(asset_ref: Any) -> tuple[int, int, int, int] | None:
+    if not isinstance(asset_ref, dict):
+        return None
+    crop_box = asset_ref.get("crop_box") or asset_ref.get("bbox")
+    if not isinstance(crop_box, (list, tuple)) or len(crop_box) != 4:
+        return None
+    x0, y0, x1, y1 = [float(value) for value in crop_box]
+    return int(math.floor(x0)), int(math.floor(y0)), int(math.ceil(x1)), int(math.ceil(y1))
+
+
+def _materialize_manifest_validation_asset(manifest_path: Path, asset_ref: Any) -> Path:
+    if not isinstance(asset_ref, dict):
+        return _resolve_manifest_validation_asset_path(manifest_path, asset_ref)
+    image_ref = asset_ref.get("image") or asset_ref.get("path")
+    if not image_ref:
+        raise ValueError(f"Lazy manifest validation asset is missing image/path: {asset_ref}")
+    output_path = _manifest_validation_asset_cache_path(asset_ref, ".jpg")
+    if output_path.exists():
+        return output_path
+    source_path = _resolve_manifest_validation_asset_path(manifest_path, image_ref)
+    with Image.open(source_path) as image:
+        image = image.convert("RGB")
+        crop_box = _coerce_manifest_crop_box(asset_ref)
+        if crop_box is not None:
+            image = image.crop(crop_box)
+        pad_multiple = int(asset_ref.get("pad_multiple") or 0)
+        if pad_multiple > 1:
+            image = _pad_image_to_multiple(image, multiple=pad_multiple)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        image.save(output_path, format="JPEG", quality=95, optimize=True)
+    return output_path
+
+
+def _layout_control_image_from_metadata(layout_metadata: dict[str, Any], width: int, height: int) -> Image.Image:
+    layout = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(layout)
+    for character in layout_metadata.get("characters") or []:
+        if not isinstance(character, dict):
+            continue
+        box_norm = character.get("bbox_norm")
+        rgb = character.get("rgb")
+        if isinstance(box_norm, list) and isinstance(rgb, list):
+            _draw_layout_blob(
+                draw,
+                box_norm,
+                width=width,
+                height=height,
+                color=tuple(int(value) for value in rgb),
+            )
+    text_payload = layout_metadata.get("text") if isinstance(layout_metadata.get("text"), dict) else {}
+    for region in text_payload.get("regions") or []:
+        if not isinstance(region, dict):
+            continue
+        _draw_text_layout_region(
+            draw,
+            region.get("bbox_norm"),
+            width=width,
+            height=height,
+            text_bubble_type=str(region.get("type") or "Speech Bubble"),
+        )
+    return layout
+
+
+def _materialize_manifest_validation_layout(manifest_path: Path, entry: dict[str, Any]) -> Path | None:
+    controls = entry.get("controls") if isinstance(entry.get("controls"), dict) else {}
+    layout_metadata = controls.get("layout_control")
+    if not isinstance(layout_metadata, dict):
+        return None
+    width = int(entry.get("target_width") or 0)
+    height = int(entry.get("target_height") or 0)
+    if width <= 0 or height <= 0:
+        return None
+    output_path = _manifest_validation_asset_cache_path(
+        {
+            "manifest": str(manifest_path),
+            "sample_id": entry.get("sample_id"),
+            "layout_control": layout_metadata,
+            "width": width,
+            "height": height,
+        },
+        ".png",
+    )
+    if output_path.exists():
+        return output_path
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    _layout_control_image_from_metadata(layout_metadata, width, height).save(output_path, format="PNG", optimize=True)
+    return output_path
+
+
+def _manifest_validation_control_paths_for_entry(
+    manifest_path: Path,
+    entry: dict[str, Any],
+    *,
+    include_previous: bool = True,
+    max_controls: int = MAX_CONTROL_IMAGE_SLOTS,
+) -> list[Path]:
+    controls = entry.get("controls") if isinstance(entry.get("controls"), dict) else {}
+    control_paths: list[Path] = []
+
+    layout_control = controls.get("layout_control_path")
+    if layout_control:
+        control_paths.append(_materialize_manifest_validation_asset(manifest_path, layout_control))
+    else:
+        layout_path = _materialize_manifest_validation_layout(manifest_path, entry)
+        if layout_path is not None:
+            control_paths.append(layout_path)
+
+    previous_control = controls.get("previous_panel") or controls.get("previous_page")
+    if include_previous and previous_control and len(control_paths) < max_controls:
+        control_paths.append(_materialize_manifest_validation_asset(manifest_path, previous_control))
+
+    for ref_path in controls.get("character_ref_paths", []):
+        if len(control_paths) >= max_controls:
+            break
+        control_paths.append(_materialize_manifest_validation_asset(manifest_path, ref_path))
+
+    return control_paths[:max_controls]
 
 
 def _build_manifest_validation_sample_dicts(
@@ -499,9 +603,9 @@ def _build_manifest_validation_sample_dicts(
             fixed_count,
             f"{manifest_path}:{sample_type}:fixed",
         )
-        fixed_keys = {entry.get("target_panel") for entry in fixed_selection}
+        fixed_keys = {_manifest_entry_identity(entry) for entry in fixed_selection}
         random_pool = [
-            entry for entry in candidates if entry.get("target_panel") not in fixed_keys
+            entry for entry in candidates if _manifest_entry_identity(entry) not in fixed_keys
         ]
         random_count = effective_total - len(fixed_selection)
         random_selection = random.sample(random_pool, random_count) if random_count > 0 else []
@@ -518,9 +622,9 @@ def _build_manifest_validation_sample_dicts(
 
     samples: list[dict] = []
     for entry in selected:
-        target_path = _resolve_manifest_validation_asset_path(
+        target_path = _materialize_manifest_validation_asset(
             manifest_path,
-            str(entry["target_panel"]),
+            entry["target_panel"],
         )
         sample_width, sample_height = _infer_validation_dimensions(
             target_path=target_path,
@@ -531,35 +635,14 @@ def _build_manifest_validation_sample_dicts(
             "width": sample_width,
             "height": sample_height,
         }
-        control_paths: list[Path] = []
-        controls = entry.get("controls", {})
+        control_paths = _manifest_validation_control_paths_for_entry(manifest_path, entry)
 
-        previous_control = controls.get("previous_panel") or controls.get("previous_page")
-        if previous_control:
-            control_paths.append(
-                _resolve_manifest_validation_asset_path(
-                    manifest_path,
-                    str(previous_control),
-                )
-            )
-
-        for ref_path in controls.get("character_ref_paths", [])[:6]:
-            control_paths.append(
-                _resolve_manifest_validation_asset_path(
-                    manifest_path,
-                    str(ref_path),
-                )
-            )
-
-        for idx, path in enumerate(control_paths[:7], start=1):
+        for idx, path in enumerate(control_paths, start=1):
             sample[f"ctrl_img_{idx}"] = str(path)
         sample["validation_sample_id"] = str(entry.get("sample_id", ""))
         sample["validation_target_path"] = str(target_path)
         sample["validation_caption"] = str(entry["caption"])
-        sample["validation_control_paths"] = [str(path) for path in control_paths[:7]]
-        gia_inputs = _build_gia_inputs_from_manifest_entry(manifest_path, entry)
-        if gia_inputs is not None:
-            sample["gia_inputs"] = gia_inputs
+        sample["validation_control_paths"] = [str(path) for path in control_paths]
 
         samples.append(sample)
 
@@ -579,7 +662,7 @@ def _build_character_panel_validation_sample_dicts(
     candidates = [
         entry
         for entry in entries
-        if entry.get("sample_type") in {"character_ref_to_panel", "lamic_panel_prediction"}
+        if entry.get("sample_type") in {"character_ref_to_panel", "panel_prediction"}
     ]
     if not candidates:
         raise RuntimeError(
@@ -601,17 +684,17 @@ def _build_character_panel_validation_sample_dicts(
         effective_fixed_count,
         f"{manifest_path}:character_ref_to_panel:fixed",
     )
-    fixed_keys = {entry.get("target_panel") for entry in fixed_selection}
-    random_pool = [entry for entry in candidates if entry.get("target_panel") not in fixed_keys]
+    fixed_keys = {_manifest_entry_identity(entry) for entry in fixed_selection}
+    random_pool = [entry for entry in candidates if _manifest_entry_identity(entry) not in fixed_keys]
     random_count = effective_total - len(fixed_selection)
     random_selection = random.sample(random_pool, random_count) if random_count > 0 else []
     selected = fixed_selection + random_selection
 
     samples: list[dict] = []
     for entry in selected:
-        target_path = _resolve_manifest_validation_asset_path(
+        target_path = _materialize_manifest_validation_asset(
             manifest_path,
-            str(entry["target_panel"]),
+            entry["target_panel"],
         )
         sample_width, sample_height = _infer_validation_dimensions(
             target_path=target_path,
@@ -622,25 +705,14 @@ def _build_character_panel_validation_sample_dicts(
             "width": sample_width,
             "height": sample_height,
         }
-        control_paths: list[Path] = []
-        controls = entry.get("controls", {})
-        for ref_path in controls.get("character_ref_paths", [])[:6]:
-            control_paths.append(
-                _resolve_manifest_validation_asset_path(
-                    manifest_path,
-                    str(ref_path),
-                )
-            )
+        control_paths = _manifest_validation_control_paths_for_entry(manifest_path, entry)
 
-        for idx, path in enumerate(control_paths[:7], start=1):
+        for idx, path in enumerate(control_paths, start=1):
             sample[f"ctrl_img_{idx}"] = str(path)
         sample["validation_sample_id"] = str(entry.get("sample_id", ""))
         sample["validation_target_path"] = str(target_path)
         sample["validation_caption"] = str(entry["caption"])
-        sample["validation_control_paths"] = [str(path) for path in control_paths[:7]]
-        gia_inputs = _build_gia_inputs_from_manifest_entry(manifest_path, entry)
-        if gia_inputs is not None:
-            sample["gia_inputs"] = gia_inputs
+        sample["validation_control_paths"] = [str(path) for path in control_paths]
         samples.append(sample)
 
     return samples
@@ -657,7 +729,7 @@ def build_manifest_validation_samples(
 ) -> list[dict]:
     entries = load_manifest_entries(manifest_path)
     sample_types = _manifest_sample_types(entries)
-    if sample_types and sample_types.issubset({"character_ref_to_panel", "lamic_panel_prediction"}):
+    if sample_types and sample_types.issubset({"character_ref_to_panel", "panel_prediction"}):
         return _build_character_panel_validation_sample_dicts(
             manifest_path=manifest_path,
             sample_count=character_panel_count
@@ -1245,7 +1317,11 @@ def prepare_manifest_training_datasets(
         if resolved_staged_dataset_dir is None:
             dataset_s3_path = str(manifest_dataset.get("dataset_s3_path") or "").strip()
             if dataset_s3_path:
-                resolved_staged_dataset_dir = s3_uri_to_mount_path(dataset_s3_path)
+                resolved_staged_dataset_dir = (
+                    s3_uri_to_mount_path(dataset_s3_path)
+                    if dataset_s3_path.startswith("s3://")
+                    else Path(dataset_s3_path)
+                )
             else:
                 resolved_staged_dataset_dir = manifest_path.parent
 
@@ -1598,6 +1674,7 @@ def _drawtoon_config_from_parsed(
         "caption_run": caption_run,
         "include_chapter_regex": str(drawtoon.get("include_chapter_regex") or "").strip(),
         "max_pages": max(0, int(drawtoon.get("max_pages") or 0)),
+        "target_multiple": max(1, int(drawtoon.get("target_multiple") or 16)),
     }
 
 
@@ -1617,7 +1694,8 @@ def _drawtoon_cache_key(drawtoon: dict[str, Any]) -> str:
         "caption_run": drawtoon["caption_run"],
         "include_chapter_regex": drawtoon["include_chapter_regex"],
         "max_pages": int(drawtoon["max_pages"]),
-        "schema": "drawtoon_lamic_cache_v6_same_character_random_refs_pad_controls",
+        "target_multiple": int(drawtoon["target_multiple"]),
+        "schema": "drawtoon_panel_cache_v6_lazy_page_crops_white_mask_text_stripes_max5_character_refs",
     }
     digest = hashlib.sha1(json.dumps(fingerprint_payload, sort_keys=True).encode("utf-8")).hexdigest()[:16]
     run_label = sanitize_filename(str(drawtoon["caption_run"]), fallback="caption_run")
@@ -1714,9 +1792,177 @@ def _pad_image_to_multiple(image: Image.Image, multiple: int = 16) -> Image.Imag
     return padded
 
 
-def _save_jpeg(image: Image.Image, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    image.convert("RGB").save(path, format="JPEG", quality=95, optimize=True)
+def _panel_text_regions(panel: dict[str, Any]) -> list[Any]:
+    for field_name in ("text_bubbles", "speech_bubbles", "text_regions", "texts", "bubbles"):
+        regions = panel.get(field_name)
+        if isinstance(regions, list):
+            return regions
+    return []
+
+
+def _norm_box_to_pixel_box(
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+) -> tuple[int, int, int, int] | None:
+    if len(box_norm) != 4:
+        return None
+    x0 = int(round(max(0.0, min(1.0, float(box_norm[0]))) * width))
+    y0 = int(round(max(0.0, min(1.0, float(box_norm[1]))) * height))
+    x1 = int(round(max(0.0, min(1.0, float(box_norm[2]))) * width))
+    y1 = int(round(max(0.0, min(1.0, float(box_norm[3]))) * height))
+    if x1 <= x0 or y1 <= y0:
+        return None
+    return x0, y0, x1, y1
+
+
+def _draw_layout_blob(
+    draw: ImageDraw.ImageDraw,
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+    color: tuple[int, int, int],
+) -> bool:
+    pixel_box = _norm_box_to_pixel_box(box_norm, width=width, height=height)
+    if pixel_box is None:
+        return False
+    x0, y0, x1, y1 = pixel_box
+    draw.rectangle((x0, y0, x1, y1), fill=color)
+    return True
+
+
+def _normalize_layout_text_bubble_type(value: object) -> str:
+    text = " ".join(str(value or "").split()).strip().lower()
+    if "narration" in text or "caption" in text:
+        return "Narration Bubble"
+    if "shout" in text or "yell" in text or "scream" in text or "burst" in text:
+        return "Shout Bubble"
+    return "Speech Bubble"
+
+
+def _draw_text_layout_region(
+    draw: ImageDraw.ImageDraw,
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+    text_bubble_type: str,
+) -> bool:
+    pixel_box = _norm_box_to_pixel_box(box_norm, width=width, height=height)
+    if pixel_box is None:
+        return False
+    x0, y0, x1, y1 = pixel_box
+    draw.rectangle((x0, y0, x1, y1), fill=LAYOUT_TEXT_COLOR)
+
+    def band_edges(start: int, end: int, bands: int = 17) -> list[int]:
+        return [int(round(start + ((end - start) * index / bands))) for index in range(bands + 1)]
+
+    if text_bubble_type == "Narration Bubble":
+        edges = band_edges(x0, x1)
+        for band_index in range(1, 17, 2):
+            draw.rectangle((edges[band_index], y0, edges[band_index + 1], y1), fill=LAYOUT_STRIPE_COLOR)
+    elif text_bubble_type == "Shout Bubble":
+        edges = band_edges(y0, y1)
+        for band_index in range(1, 17, 2):
+            draw.rectangle((x0, edges[band_index], x1, edges[band_index + 1]), fill=LAYOUT_STRIPE_COLOR)
+    return True
+
+
+def _build_panel_layout_control(
+    *,
+    panel: dict[str, Any],
+    target_box: tuple[float, float, float, float],
+    page_width: int,
+    page_height: int,
+    padded_width: int,
+    padded_height: int,
+    character_layout_items: list[dict[str, Any]],
+) -> tuple[Image.Image, dict[str, Any]]:
+    layout = Image.new("RGB", (padded_width, padded_height), "white")
+    draw = ImageDraw.Draw(layout)
+    drawn_characters: list[dict[str, Any]] = []
+    for item in character_layout_items[:MAX_LAYOUT_CHARACTER_REFS]:
+        box_norm = item.get("bbox_norm")
+        color = item.get("rgb")
+        if not isinstance(box_norm, list) or not isinstance(color, tuple):
+            continue
+        if _draw_layout_blob(
+            draw,
+            box_norm,
+            width=padded_width,
+            height=padded_height,
+            color=color,
+        ):
+            drawn_characters.append(
+                {
+                    "character_label": item.get("character_label"),
+                    "control_slot": item.get("control_slot"),
+                    "color": item.get("color"),
+                    "rgb": list(color),
+                    "bbox_norm": box_norm,
+                }
+            )
+
+    text_count = 0
+    text_type_counts = {text_type: 0 for text_type in LAYOUT_TEXT_BUBBLE_TYPES}
+    drawn_text_regions: list[dict[str, Any]] = []
+    for text_region in _panel_text_regions(panel):
+        if text_count >= MAX_LAYOUT_TEXT_REGIONS:
+            break
+        if not isinstance(text_region, dict):
+            continue
+        text_box = _coerce_pixel_box(text_region.get("bbox"), width=page_width, height=page_height)
+        if text_box is None:
+            text_box = _coerce_pixel_box(text_region.get("bbox_norm"), width=page_width, height=page_height)
+        if text_box is None:
+            continue
+        text_box_norm = _panel_relative_norm_box(
+            text_box,
+            target_box,
+            padded_width=padded_width,
+            padded_height=padded_height,
+        )
+        if text_box_norm is None:
+            continue
+        text_bubble_type = _normalize_layout_text_bubble_type(text_region.get("type"))
+        if _draw_text_layout_region(
+            draw,
+            text_box_norm,
+            width=padded_width,
+            height=padded_height,
+            text_bubble_type=text_bubble_type,
+        ):
+            text_type_counts[text_bubble_type] = int(text_type_counts.get(text_bubble_type, 0)) + 1
+            drawn_text_regions.append(
+                {
+                    "text_region_index": text_region.get("text_region_index"),
+                    "type": text_bubble_type,
+                    "bbox_norm": text_box_norm,
+                }
+            )
+            text_count += 1
+
+    metadata = {
+        "control_slot": 1,
+        "text": {
+            "color": "blue",
+            "rgb": list(LAYOUT_TEXT_COLOR),
+            "stripe_color": "black",
+            "stripe_rgb": list(LAYOUT_STRIPE_COLOR),
+            "count": text_count,
+            "type_counts": text_type_counts,
+            "types": {
+                "Speech Bubble": "solid blue rectangle",
+                "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+                "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            },
+            "regions": drawn_text_regions,
+        },
+        "characters": drawn_characters,
+    }
+    return layout, metadata
 
 
 def _caption_page_key(caption_payload: dict[str, Any], drawtoon: dict[str, Any]) -> str:
@@ -1786,7 +2032,32 @@ def _select_character_reference(
 
 
 
-def _iter_lamic_rows_for_caption(
+def _caption_panels(caption_payload: dict[str, Any]) -> list[Any]:
+    panels = caption_payload.get("panels")
+    if isinstance(panels, list):
+        return panels
+    return []
+
+
+def _caption_page_size(caption_payload: dict[str, Any]) -> tuple[int, int] | None:
+    page_size = caption_payload.get("page_size")
+    if not isinstance(page_size, dict):
+        return None
+    try:
+        width = int(page_size.get("width_px") or page_size.get("width") or 0)
+        height = int(page_size.get("height_px") or page_size.get("height") or 0)
+    except (TypeError, ValueError):
+        return None
+    if width <= 0 or height <= 0:
+        return None
+    return width, height
+
+
+def _panel_caption(panel: dict[str, Any]) -> str:
+    return str(panel.get("caption") or "").strip()
+
+
+def _iter_panel_rows_for_caption(
     *,
     s3_client,
     bucket: str,
@@ -1801,22 +2072,25 @@ def _iter_lamic_rows_for_caption(
 
     chapter = str(caption_payload.get("chapter") or "").strip()
     page_id = str(caption_payload.get("page_id") or "").strip()
-    lamic = caption_payload.get("lamic") if isinstance(caption_payload.get("lamic"), dict) else {}
-    panels = lamic.get("panels") if isinstance(lamic.get("panels"), list) else []
+    panels = _caption_panels(caption_payload)
     if not chapter or not page_id or not panels:
-        return [], {"skipped_no_lamic": 1}
+        return [], {"skipped_no_panels": 1}
 
     page_key = _caption_page_key(caption_payload, drawtoon)
-    page_bytes = s3_client.get_object(Bucket=bucket, Key=page_key)["Body"].read()
-    page_image = Image.open(io.BytesIO(page_bytes)).convert("RGB")
-    page_width, page_height = page_image.size
+    page_size = _caption_page_size(caption_payload)
+    if page_size is None:
+        page_bytes = s3_client.get_object(Bucket=bucket, Key=page_key)["Body"].read()
+        with Image.open(io.BytesIO(page_bytes)) as page_image:
+            page_width, page_height = page_image.size
+    else:
+        page_width, page_height = page_size
+    target_multiple = int(drawtoon.get("target_multiple") or 16)
     panel_contexts = _panel_character_contexts(panels, page_width=page_width, page_height=page_height)
     rows: list[dict[str, Any]] = []
     stats = {
         "pages": 1,
         "panels": 0,
         "characters": 0,
-        "text_bubbles": 0,
         "skipped_panels": 0,
         "target_panel_ref_fallbacks": 0,
     }
@@ -1828,23 +2102,21 @@ def _iter_lamic_rows_for_caption(
         panel_box = _coerce_pixel_box(panel.get("bbox"), width=page_width, height=page_height)
         if panel_box is None:
             panel_box = _coerce_pixel_box(panel.get("bbox_norm"), width=page_width, height=page_height)
-        cei = str(panel.get("CEI") or "").strip()
-        if panel_box is None or not cei:
+        caption = _panel_caption(panel)
+        if panel_box is None or not caption:
             stats["skipped_panels"] += 1
             continue
 
         px0, py0, px1, py1 = panel_box
         crop_box = (int(math.floor(px0)), int(math.floor(py0)), int(math.ceil(px1)), int(math.ceil(py1)))
         target_box = tuple(float(value) for value in crop_box)
-        target_image = _pad_image_to_multiple(page_image.crop(crop_box), multiple=16)
-        padded_width, padded_height = target_image.size
-        sample_stem = f"{sanitize_filename(chapter)}__{sanitize_filename(page_id)}__p{panel_index:03d}"
-        target_path = cache_root / "panels" / sanitize_filename(chapter) / f"{sample_stem}.jpg"
-        _save_jpeg(target_image, target_path)
-
-        references: list[dict[str, Any]] = []
-        control_paths: list[str] = []
+        padded_width = int(math.ceil(max(1, crop_box[2] - crop_box[0]) / target_multiple) * target_multiple)
+        padded_height = int(math.ceil(max(1, crop_box[3] - crop_box[1]) / target_multiple) * target_multiple)
+        control_paths: list[dict[str, Any]] = []
+        character_layout_items: list[dict[str, Any]] = []
         for character in panel.get("characters") or []:
+            if len(control_paths) >= MAX_LAYOUT_CHARACTER_REFS:
+                break
             if not isinstance(character, dict):
                 continue
             char_box = _coerce_pixel_box(character.get("bbox"), width=page_width, height=page_height)
@@ -1852,92 +2124,67 @@ def _iter_lamic_rows_for_caption(
                 char_box = _coerce_pixel_box(character.get("bbox_norm"), width=page_width, height=page_height)
             if char_box is None:
                 continue
-            target_box_norm = _panel_relative_norm_box(
+            char_box_norm = _panel_relative_norm_box(
                 char_box,
                 target_box,
                 padded_width=padded_width,
                 padded_height=padded_height,
             )
-            if target_box_norm is None:
+            if char_box_norm is None:
                 continue
+            character_index = len(control_paths)
             ref_character, ref_policy = _select_character_reference(
                 target_character={**character, "_pixel_box": char_box, "_panel_index": panel_index},
                 target_panel_index=panel_index,
                 panel_contexts=panel_contexts,
             )
             rx0, ry0, rx1, ry1 = ref_character["_pixel_box"]
-            ref_path = cache_root / "refs" / sanitize_filename(chapter) / f"{sample_stem}__char_{len(control_paths):02d}.jpg"
-            _save_jpeg(
-                _pad_image_to_multiple(
-                    page_image.crop(
-                        (int(math.floor(rx0)), int(math.floor(ry0)), int(math.ceil(rx1)), int(math.ceil(ry1)))
-                    ),
-                    multiple=16,
-                ),
-                ref_path,
-            )
             if ref_policy == "same_character_target_panel_fallback":
                 stats["target_panel_ref_fallbacks"] += 1
-            sad = str(character.get("SAD") or "preserve appearance; visible pose and expression.").strip()
-            if not sad.endswith("."):
-                sad += "."
-            control_paths.append(str(ref_path))
-            references.append(
+            control_paths.append(
                 {
-                    "id": str(character.get("id") or f"Character {len(control_paths)}"),
-                    "kind": "character",
-                    "image_path": str(ref_path),
-                    "SAD": sad,
-                    "bbox": target_box_norm,
-                    "target_box_norm": target_box_norm,
-                    "reference_policy": ref_policy,
-                    "reference_panel_index": int(ref_character.get("_panel_index") or panel_index),
-                    "target_panel_index": int(panel_index),
+                    "image": f"s3://{bucket}/{page_key}",
+                    "crop_box": [
+                        int(math.floor(rx0)),
+                        int(math.floor(ry0)),
+                        int(math.ceil(rx1)),
+                        int(math.ceil(ry1)),
+                    ],
+                    "pad_multiple": target_multiple,
+                }
+            )
+            character_layout_items.append(
+                {
+                    "character_label": f"Character {character_index + 1}",
+                    "control_slot": character_index + 2,
+                    "bbox_norm": char_box_norm,
+                    "color": LAYOUT_CHARACTER_COLOR_NAMES[character_index],
+                    "rgb": LAYOUT_CHARACTER_COLORS[character_index],
+                    "source_character_id": str(character.get("source_character_id") or ""),
+                    "ref_policy": ref_policy,
                 }
             )
             stats["characters"] += 1
 
-        for bubble in panel.get("text_bubbles") or []:
-            if not isinstance(bubble, dict):
-                continue
-            bubble_box = _coerce_pixel_box(bubble.get("bbox"), width=page_width, height=page_height)
-            if bubble_box is None:
-                bubble_box = _coerce_pixel_box(bubble.get("bbox_norm"), width=page_width, height=page_height)
-            if bubble_box is None:
-                continue
-            target_box_norm = _panel_relative_norm_box(
-                bubble_box,
-                target_box,
-                padded_width=padded_width,
-                padded_height=padded_height,
-            )
-            if target_box_norm is None:
-                continue
-            sad = str(bubble.get("SAD") or bubble.get("type") or "Speech Bubble.").strip()
-            if not sad.endswith("."):
-                sad += "."
-            references.append(
-                {
-                    "id": str(bubble.get("id") or f"Text Bubble {stats['text_bubbles'] + 1}"),
-                    "kind": "text_bubble",
-                    "type": str(bubble.get("type") or "").strip(),
-                    "image_path": None,
-                    "SAD": sad,
-                    "bbox": target_box_norm,
-                    "target_box_norm": target_box_norm,
-                }
-            )
-            stats["text_bubbles"] += 1
-
-        if not references:
+        if not control_paths:
             stats["skipped_panels"] += 1
             continue
+
+        _, layout_metadata = _build_panel_layout_control(
+            panel=panel,
+            target_box=target_box,
+            page_width=page_width,
+            page_height=page_height,
+            padded_width=padded_width,
+            padded_height=padded_height,
+            character_layout_items=character_layout_items,
+        )
 
         rows.append(
             {
                 "schema_version": 1,
                 "source": "drawtoon",
-                "sample_type": "lamic_panel_prediction",
+                "sample_type": "panel_prediction",
                 "sample_id": f"{chapter}/{page_id}/panel_{panel_index:03d}",
                 "chapter": chapter,
                 "page_id": page_id,
@@ -1948,20 +2195,20 @@ def _iter_lamic_rows_for_caption(
                 "source_annotation": (
                     f"s3://{bucket}/{drawtoon['annotations_prefix'].rstrip('/')}/{chapter}/{page_id}.jsonl"
                 ),
-                "target_panel": str(target_path),
+                "target_panel": {
+                    "image": f"s3://{bucket}/{page_key}",
+                    "crop_box": list(crop_box),
+                    "pad_multiple": target_multiple,
+                },
                 "target_width": int(padded_width),
                 "target_height": int(padded_height),
-                "caption": cei.rstrip(".") + ".",
+                "caption": caption.rstrip(".") + ".",
                 "character_count": len(control_paths),
                 "controls": {
+                    "layout_control": layout_metadata,
                     "character_ref_paths": control_paths,
                     "has_previous_control": False,
                     "character_ref_policy": "same_character_random_other_panel_else_target_panel",
-                },
-                "lamic": {
-                    "schema_version": 1,
-                    "CEI": cei.rstrip(".") + ".",
-                    "references": references,
                 },
             }
         )
@@ -1977,7 +2224,7 @@ def _iter_lamic_rows_for_caption(
     cpu=2,
     memory=8192,
 )
-def plan_drawtoon_lamic_cache(
+def plan_drawtoon_panel_cache(
     config_path: str,
     overrides: dict[str, Any] | None = None,
     *,
@@ -1991,7 +2238,7 @@ def plan_drawtoon_lamic_cache(
     drawtoon = _drawtoon_config_from_parsed(parsed_config, overrides)
     bucket = drawtoon["bucket"]
     caption_root = f"{drawtoon['captions_prefix'].rstrip('/')}/{drawtoon['caption_run'].strip('/')}"
-    cache_root = Path(DATASET_CACHE_ROOT) / "drawtoon_lamic" / _drawtoon_cache_key(drawtoon)
+    cache_root = Path(DATASET_CACHE_ROOT) / "drawtoon_panel" / _drawtoon_cache_key(drawtoon)
     manifest_path = cache_root / "manifest.jsonl"
     summary_path = cache_root / "summary.json"
     resolved_config_path = cache_root / "resolved_config.yaml"
@@ -2094,7 +2341,7 @@ def plan_drawtoon_lamic_cache(
     cpu=4,
     memory=16384,
 )
-def build_drawtoon_lamic_cache_shard(spec: dict[str, Any]) -> dict[str, Any]:
+def build_drawtoon_panel_cache_shard(spec: dict[str, Any]) -> dict[str, Any]:
     try:
         dataset_cache_volume.reload()
     except Exception:
@@ -2114,17 +2361,16 @@ def build_drawtoon_lamic_cache_shard(spec: dict[str, Any]) -> dict[str, Any]:
         "pages": 0,
         "panels": 0,
         "characters": 0,
-        "text_bubbles": 0,
         "skipped_panels": 0,
         "skipped_status": 0,
-        "skipped_no_lamic": 0,
+        "skipped_no_panels": 0,
         "errors": 0,
     }
     error_samples: list[dict[str, str]] = []
 
     for caption_key in caption_keys:
         try:
-            page_rows, page_stats = _iter_lamic_rows_for_caption(
+            page_rows, page_stats = _iter_panel_rows_for_caption(
                 s3_client=s3_client,
                 bucket=bucket,
                 caption_key=str(caption_key),
@@ -2159,7 +2405,7 @@ def build_drawtoon_lamic_cache_shard(spec: dict[str, Any]) -> dict[str, Any]:
     cpu=2,
     memory=8192,
 )
-def finalize_drawtoon_lamic_cache(config_path: str, plan: dict[str, Any]) -> dict[str, Any]:
+def finalize_drawtoon_panel_cache(config_path: str, plan: dict[str, Any]) -> dict[str, Any]:
     try:
         dataset_cache_volume.reload()
     except Exception:
@@ -2207,7 +2453,7 @@ def finalize_drawtoon_lamic_cache(config_path: str, plan: dict[str, Any]) -> dic
     for dataset in manifest_datasets:
         dataset["manifest_path"] = str(manifest_path)
         dataset["dataset_s3_path"] = str(cache_root)
-        dataset["local_cache_dir"] = str(cache_root / "_sample_cache")
+        dataset["local_cache_dir"] = f"/tmp/drawtoon_panel_sample_cache/{cache_root.name}"
         dataset["layout"] = "manifest"
         dataset["_prepared_row_count"] = row_count
 
@@ -2224,7 +2470,7 @@ def finalize_drawtoon_lamic_cache(config_path: str, plan: dict[str, Any]) -> dic
 
     summary = {
         "schema_version": 1,
-        "cache_type": "drawtoon_lamic_modal_cache",
+        "cache_type": "drawtoon_panel_modal_cache",
         "cache_root": str(cache_root),
         "manifest_path": str(manifest_path),
         "resolved_config_path": str(resolved_config_path),
@@ -2250,14 +2496,14 @@ def finalize_drawtoon_lamic_cache(config_path: str, plan: dict[str, Any]) -> dic
     }
 
 
-def prepare_drawtoon_lamic_cache_for_launch(
+def prepare_drawtoon_panel_cache_for_launch(
     *,
     config_path: str,
     overrides: dict[str, Any],
     shard_count: int,
     overwrite: bool,
 ) -> dict[str, Any]:
-    plan = plan_drawtoon_lamic_cache.remote(
+    plan = plan_drawtoon_panel_cache.remote(
         config_path,
         overrides,
         shard_count=shard_count,
@@ -2267,12 +2513,16 @@ def prepare_drawtoon_lamic_cache_for_launch(
         return plan
 
     print(
-        "🧩 Building Drawtoon LAMIC Modal cache: "
+        "🧩 Building Drawtoon panel Modal cache: "
         f"{plan['caption_key_count']} page captions across {plan['shard_count']} CPU shards",
         flush=True,
     )
-    list(build_drawtoon_lamic_cache_shard.map(plan["shards"]))
-    final = finalize_drawtoon_lamic_cache.remote(config_path, plan)
+    completed_shards = 0
+    for _ in build_drawtoon_panel_cache_shard.map(plan["shards"], order_outputs=False):
+        completed_shards += 1
+        if completed_shards % 25 == 0 or completed_shards == plan["shard_count"]:
+            print(f"🧩 Drawtoon cache shards complete: {completed_shards}/{plan['shard_count']}", flush=True)
+    final = finalize_drawtoon_panel_cache.remote(config_path, plan)
     print(
         "🧩 Drawtoon cache ready: "
         f"{final['row_count']} panel rows at {final['manifest_path']}",
@@ -3011,6 +3261,88 @@ def train_flux_lora_ddp8(
     )
 
 
+@app.function(
+    image=image_4b,
+    timeout=24 * 60 * 60,
+    cpu=4,
+    memory=16384,
+    volumes={DATASET_CACHE_ROOT: dataset_cache_volume},
+    secrets=[aws_secret, hf_secret],
+)
+def run_drawtoon_cache_then_train(
+    *,
+    config_path: str,
+    dataset_subpath: str | None,
+    model_id: str | None,
+    target_epochs: int,
+    ddp_world_size: int,
+    ddp_smoke: bool,
+    max_train_steps: int,
+    drawtoon_bucket: str,
+    drawtoon_caption_run: str,
+    drawtoon_pages_prefix: str,
+    drawtoon_annotations_prefix: str,
+    drawtoon_captions_prefix: str,
+    drawtoon_include_chapter_regex: str,
+    drawtoon_max_pages: int,
+    drawtoon_shard_count: int,
+    drawtoon_overwrite_cache: bool,
+):
+    print("🚀 Starting AI-toolkit training orchestration", flush=True)
+    print(f"📄 Config path: {config_path}", flush=True)
+    print(f"🔁 Target epochs: {target_epochs}", flush=True)
+    print(f"🌐 DDP world size: {ddp_world_size}", flush=True)
+    if max_train_steps > 0:
+        print(f"🧪 Max train steps: {max_train_steps}", flush=True)
+
+    cache_result = prepare_drawtoon_panel_cache_for_launch(
+        config_path=config_path,
+        overrides={
+            "bucket": drawtoon_bucket,
+            "caption_run": drawtoon_caption_run,
+            "pages_prefix": drawtoon_pages_prefix,
+            "annotations_prefix": drawtoon_annotations_prefix,
+            "captions_prefix": drawtoon_captions_prefix,
+            "include_chapter_regex": drawtoon_include_chapter_regex,
+            "max_pages": drawtoon_max_pages,
+        },
+        shard_count=drawtoon_shard_count,
+        overwrite=drawtoon_overwrite_cache,
+    )
+    if cache_result.get("enabled"):
+        config_path = str(cache_result["resolved_config_path"])
+        print(f"📚 Drawtoon cache manifest: {cache_result['manifest_path']}", flush=True)
+        if cache_result.get("row_count"):
+            print(f"📚 Drawtoon cache rows: {cache_result['row_count']}", flush=True)
+    else:
+        print("📚 Using manifest_path already present in the training config.", flush=True)
+
+    if ddp_world_size == DDP_WORLD_SIZE_8:
+        function_call = train_flux_lora_ddp8.spawn(
+            config_path=config_path,
+            dataset_subpath=dataset_subpath or None,
+            model_id=model_id or None,
+            target_epochs=target_epochs,
+            ddp_smoke=ddp_smoke,
+            max_train_steps=max_train_steps,
+        )
+    elif ddp_world_size == 1:
+        trainer = FluxTrainer()
+        function_call = trainer.train_flux_lora.spawn(
+            config_path=config_path,
+            dataset_subpath=dataset_subpath or None,
+            model_id=model_id or None,
+            target_epochs=target_epochs,
+            max_train_steps=max_train_steps,
+        )
+    else:
+        raise ValueError(f"Unsupported ddp_world_size={ddp_world_size}")
+
+    print(f"🆔 Training Modal call id: {function_call.object_id}", flush=True)
+    print("✅ Training job submitted after cache success.", flush=True)
+    return function_call.get()
+
+
 @app.local_entrypoint()
 def main(
     config_path: str = DEFAULT_CONFIG_PATH,
@@ -3047,7 +3379,7 @@ def main(
     target_epochs = launch_args.target_epochs
     ddp_world_size = launch_args.ddp_world_size
     max_train_steps = launch_args.max_train_steps
-    print("🚀 Starting AI-toolkit FLUX.2-klein training")
+    print("🚀 Starting AI-toolkit training")
     print("🔧 Optimized with memory snapshots for fast cold starts")
     print("=" * 60)
     print(f"📄 Config path: {config_path}")
@@ -3064,48 +3396,26 @@ def main(
     if ddp_smoke:
         print("🧪 DDP smoke logging enabled")
 
-    cache_result = prepare_drawtoon_lamic_cache_for_launch(
+    function_call = run_drawtoon_cache_then_train.spawn(
         config_path=config_path,
-        overrides={
-            "bucket": drawtoon_bucket,
-            "caption_run": drawtoon_caption_run,
-            "pages_prefix": drawtoon_pages_prefix,
-            "annotations_prefix": drawtoon_annotations_prefix,
-            "captions_prefix": drawtoon_captions_prefix,
-            "include_chapter_regex": drawtoon_include_chapter_regex,
-            "max_pages": drawtoon_max_pages,
-        },
-        shard_count=drawtoon_shard_count,
-        overwrite=drawtoon_overwrite_cache,
+        dataset_subpath=dataset_subpath or None,
+        model_id=model_id or None,
+        target_epochs=target_epochs,
+        ddp_world_size=ddp_world_size,
+        ddp_smoke=ddp_smoke,
+        max_train_steps=max_train_steps,
+        drawtoon_bucket=drawtoon_bucket,
+        drawtoon_caption_run=drawtoon_caption_run,
+        drawtoon_pages_prefix=drawtoon_pages_prefix,
+        drawtoon_annotations_prefix=drawtoon_annotations_prefix,
+        drawtoon_captions_prefix=drawtoon_captions_prefix,
+        drawtoon_include_chapter_regex=drawtoon_include_chapter_regex,
+        drawtoon_max_pages=drawtoon_max_pages,
+        drawtoon_shard_count=drawtoon_shard_count,
+        drawtoon_overwrite_cache=drawtoon_overwrite_cache,
     )
-    if cache_result.get("enabled"):
-        config_path = str(cache_result["resolved_config_path"])
-        print(f"📚 Drawtoon cache manifest: {cache_result['manifest_path']}")
-        if cache_result.get("row_count"):
-            print(f"📚 Drawtoon cache rows: {cache_result['row_count']}")
-    else:
-        print("📚 Using manifest_path already present in the training config.")
-    
-    if ddp_world_size == DDP_WORLD_SIZE_8:
-        function_call = train_flux_lora_ddp8.spawn(
-            config_path=config_path,
-            dataset_subpath=dataset_subpath or None,
-            model_id=model_id or None,
-            target_epochs=target_epochs,
-            ddp_smoke=ddp_smoke,
-            max_train_steps=max_train_steps,
-        )
-    elif ddp_world_size == 1:
-        trainer = FluxTrainer()
-        function_call = trainer.train_flux_lora.spawn(
-            config_path=config_path,
-            dataset_subpath=dataset_subpath or None,
-            model_id=model_id or None,
-            target_epochs=target_epochs,
-            max_train_steps=max_train_steps,
-        )
-    print(f"🆔 Modal call id: {function_call.object_id}")
-    print("✅ Training job submitted in detached mode.")
+    print(f"🆔 Orchestration Modal call id: {function_call.object_id}")
+    print("✅ Detached orchestration submitted; it will launch training after cache success.")
     print("⏳ Waiting on the spawned training call so detached Modal keeps the live job attached.")
     print("💻 You can close your computer now; Modal will keep running the job.")
 

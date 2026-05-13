@@ -693,50 +693,6 @@ class BaseSDTrainProcess(BaseTrainProcess):
             )
         return int(width), int(height)
 
-    def _build_gia_inputs_from_validation_entry(
-        self,
-        manifest_path: str,
-        entry: dict,
-    ) -> dict | None:
-        lamic = entry.get("lamic")
-        if not isinstance(lamic, dict):
-            return None
-        references = lamic.get("references")
-        if not isinstance(references, list) or not references:
-            return None
-        cei = str(lamic.get("CEI") or entry.get("caption") or "").strip()
-        if not cei:
-            return None
-        gia_inputs: dict = {"CEI": cei}
-        character_count = 0
-        dialogue_count = 0
-        for ref_position, reference in enumerate(references, start=1):
-            if not isinstance(reference, dict):
-                continue
-            sad = reference.get("SAD")
-            bbox = reference.get("target_box_norm") or reference.get("bbox")
-            if sad is None or bbox is None:
-                continue
-            image_path = reference.get("image_path")
-            if image_path:
-                if character_count >= 6:
-                    continue
-                character_count += 1
-            else:
-                if dialogue_count >= 10:
-                    continue
-                dialogue_count += 1
-            if image_path:
-                image_path = self._resolve_validation_asset_path(manifest_path, str(image_path))
-            gia_inputs[f"ref_img_{len(gia_inputs)}"] = {
-                "image_path": image_path,
-                "SAD": sad,
-                "bbox": bbox,
-            }
-        if not any(str(key).startswith("ref_img_") for key in gia_inputs):
-            return None
-        return gia_inputs
-
     def _build_dynamic_validation_samples(
         self,
         sample_config,
@@ -757,7 +713,7 @@ class BaseSDTrainProcess(BaseTrainProcess):
             candidates: list[tuple[str, dict]] = []
             for manifest_path in manifest_paths:
                 for entry in self._load_validation_manifest_entries(manifest_path):
-                    if entry.get("sample_type") in {"character_ref_to_panel", "lamic_panel_prediction"}:
+                    if entry.get("sample_type") in {"character_ref_to_panel", "panel_prediction"}:
                         candidates.append((manifest_path, entry))
             self._dynamic_validation_candidates_cache_key = cache_key
             self._dynamic_validation_candidates_cache = candidates
@@ -829,16 +785,13 @@ class BaseSDTrainProcess(BaseTrainProcess):
             }
             controls = entry.get("controls", {}) or {}
             control_paths: list[str] = []
-            for ref_path in controls.get("character_ref_paths", [])[:6]:
+            for ref_path in controls.get("character_ref_paths", [])[:7]:
                 control_paths.append(
                     self._resolve_validation_asset_path(manifest_path, str(ref_path))
                 )
             for idx, control_path in enumerate(control_paths[:7], start=1):
                 sample[f"ctrl_img_{idx}"] = control_path
             sample["validation_control_paths"] = control_paths[:7]
-            gia_inputs = self._build_gia_inputs_from_validation_entry(manifest_path, entry)
-            if gia_inputs is not None:
-                sample["gia_inputs"] = gia_inputs
             sample_dicts.append(sample)
         return sample_dicts
 
@@ -960,7 +913,6 @@ class BaseSDTrainProcess(BaseTrainProcess):
                 fps=sample_item.fps,
                 ctrl_idx=sample_item.ctrl_idx,
                 control_images=sample_item.get_control_image_paths(),
-                gia_inputs=getattr(sample_item, "gia_inputs", None),
                 do_cfg_norm=sample_config.do_cfg_norm,
                 **extra_args
             ))

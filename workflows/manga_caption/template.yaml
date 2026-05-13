@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Drawtoon sequential manga page captioning workflow using Claude Haiku and chapter memory.
+Description: Drawtoon Haiku panel caption workflow.
 
 Parameters:
   DatasetBucketName:
@@ -12,6 +12,9 @@ Parameters:
   DefaultCaptionModel:
     Type: String
     Default: global.anthropic.claude-haiku-4-5-20251001-v1:0
+  DefaultMangaMetadataJson:
+    Type: String
+    Default: metadata/mangazero_manga_credits_20260511.json
 
 Globals:
   Function:
@@ -24,6 +27,7 @@ Globals:
       Variables:
         DATASET_BUCKET_NAME: !Ref DatasetBucketName
         DEFAULT_CAPTION_MODEL: !Ref DefaultCaptionModel
+        MANGA_METADATA_JSON: !Ref DefaultMangaMetadataJson
 
 Resources:
   PrepareMangaCaptionConfigFunction:
@@ -31,33 +35,6 @@ Resources:
     Properties:
       Handler: src/handlers.prepare_manga_caption_config
       MemorySize: 1536
-      Timeout: 300
-      Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:PutObject
-                - s3:ListBucket
-              Resource:
-                - !Sub arn:aws:s3:::${DatasetBucketName}
-                - !Sub arn:aws:s3:::${DatasetBucketName}/*
-            - Effect: Allow
-              Action:
-                - bedrock:InvokeModel
-              Resource: "*"
-            - Effect: Allow
-              Action:
-                - aws-marketplace:ViewSubscriptions
-                - aws-marketplace:Subscribe
-                - aws-marketplace:Unsubscribe
-              Resource: "*"
-
-  InitializeMangaCaptionChapterFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: src/handlers.initialize_manga_caption_chapter
-      MemorySize: 1024
       Timeout: 300
       Policies:
         - Statement:
@@ -100,13 +77,10 @@ Resources:
       DefinitionUri: statemachines/caption_manga_pages.asl.json
       DefinitionSubstitutions:
         PrepareMangaCaptionConfigArn: !GetAtt PrepareMangaCaptionConfigFunction.Arn
-        InitializeMangaCaptionChapterArn: !GetAtt InitializeMangaCaptionChapterFunction.Arn
         CaptionMangaPageArn: !GetAtt CaptionMangaPageFunction.Arn
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref PrepareMangaCaptionConfigFunction
-        - LambdaInvokePolicy:
-            FunctionName: !Ref InitializeMangaCaptionChapterFunction
         - LambdaInvokePolicy:
             FunctionName: !Ref CaptionMangaPageFunction
         - Statement:

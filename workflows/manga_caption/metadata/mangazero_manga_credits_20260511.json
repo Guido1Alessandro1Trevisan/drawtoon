@@ -1,0 +1,583 @@
+[
+  {
+    "artist": "Naoki Urasawa",
+    "author": "Naoki Urasawa",
+    "confidence": "high",
+    "credit_name": "Naoki Urasawa",
+    "display_title": "20th Century Boys",
+    "slug": "20th-century-boys",
+    "sources": [
+      "https://en.wikipedia.org/wiki/20th_Century_Boys",
+      "https://www.ebsco.com/research-starters/literature-and-writing/20th-century-boys"
+    ]
+  },
+  {
+    "artist": "Gamon Sakurai",
+    "author": "Gamon Sakurai; Tsuina Miura credited for Volume 1 story",
+    "confidence": "high",
+    "credit_name": "Gamon Sakurai; Tsuina Miura / Gamon Sakurai for Volume 1",
+    "display_title": "Ajin: Demi-Human",
+    "slug": "ajin-demi-human",
+    "sources": [
+      "https://kodansha.us/series/ajin-demi-human/",
+      "https://en.wikipedia.org/wiki/Ajin:_Demi-Human",
+      "https://kodansha-comics.fandom.com/wiki/Ajin:_Demi-Human"
+    ]
+  },
+  {
+    "artist": "Yusei Matsui",
+    "author": "Yusei Matsui",
+    "confidence": "high",
+    "credit_name": "Yusei Matsui",
+    "display_title": "Assassination Classroom",
+    "slug": "assassination-classroom",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Assassination_Classroom"
+    ]
+  },
+  {
+    "artist": "Hajime Isayama",
+    "author": "Hajime Isayama",
+    "confidence": "high",
+    "credit_name": "Hajime Isayama",
+    "display_title": "Attack on Titan",
+    "slug": "attack-on-titan",
+    "sources": [
+      "https://aot-portal.com/en/about/",
+      "https://en.wikipedia.org/wiki/Attack_on_Titan",
+      "https://attackontitan.fandom.com/wiki/Hajime_Isayama"
+    ]
+  },
+  {
+    "artist": "Kiyohiko Azuma",
+    "author": "Kiyohiko Azuma",
+    "confidence": "high",
+    "credit_name": "Kiyohiko Azuma",
+    "display_title": "Azumanga Daioh",
+    "slug": "azumanga-daioh",
+    "sources": [
+      "https://www.anime-planet.com/manga/azumanga-daioh",
+      "https://en.wikipedia.org/wiki/Azumanga_Daioh",
+      "https://en.wikipedia.org/wiki/Kiyohiko_Azuma"
+    ]
+  },
+  {
+    "artist": "Yukito Kishiro",
+    "author": "Yukito Kishiro",
+    "confidence": "high",
+    "credit_name": "Yukito Kishiro",
+    "display_title": "Battle Angel Alita",
+    "slug": "battle-angel-alita",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Battle_Angel_Alita",
+      "https://en.wikipedia.org/wiki/Battle_Angel_Alita:_Last_Order",
+      "https://www.ebsco.com/research-starters/literature-and-writing/battle-angel-alita"
+    ]
+  },
+  {
+    "artist": "Kentaro Miura",
+    "author": "Kentaro Miura",
+    "confidence": "high",
+    "credit_name": "Kentaro Miura",
+    "display_title": "Berserk",
+    "slug": "berserk",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Berserk_(manga)",
+      "https://www.nippon.com/en/japan-topics/g01193/"
+    ]
+  },
+  {
+    "artist": "Tite Kubo",
+    "author": "Tite Kubo",
+    "confidence": "high",
+    "credit_name": "Tite Kubo",
+    "display_title": "Bleach",
+    "slug": "bleach",
+    "sources": [
+      "https://www.viz.com/bleach"
+    ]
+  },
+  {
+    "artist": "CLAMP",
+    "author": "CLAMP",
+    "confidence": "high",
+    "credit_name": "CLAMP",
+    "display_title": "Cardcaptor Sakura",
+    "slug": "cardcaptor-sakura",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cardcaptor_Sakura",
+      "https://www.ebsco.com/research-starters/literature-and-writing/cardcaptor-sakura",
+      "https://www.anime-planet.com/people/clamp"
+    ]
+  },
+  {
+    "artist": "Tatsuki Fujimoto",
+    "author": "Tatsuki Fujimoto",
+    "confidence": "high",
+    "credit_name": "Tatsuki Fujimoto",
+    "display_title": "Chainsaw Man",
+    "slug": "chainsaw-man",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Chainsaw_Man",
+      "https://chainsaw-man.fandom.com/wiki/Chainsaw_Man_(Manga)",
+      "https://jump.fandom.com/wiki/Chainsaw_Man"
+    ]
+  },
+  {
+    "artist": "Norihiro Yagi",
+    "author": "Norihiro Yagi",
+    "confidence": "high",
+    "credit_name": "Norihiro Yagi",
+    "display_title": "Claymore",
+    "slug": "claymore",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Claymore_(manga)",
+      "https://claymore.fandom.com/wiki/Norihiro_Yagi"
+    ]
+  },
+  {
+    "artist": "Yutaka Nanten",
+    "author": "Hajime Yatate",
+    "confidence": "medium",
+    "credit_name": "Hajime Yatate / Yutaka Nanten",
+    "display_title": "Cowboy Bebop",
+    "slug": "cowboy-bebop",
+    "sources": [
+      "https://evergreen.lib.in.us/eg/opac/record/7597815",
+      "https://www.lambiek.net/artists/n/nanten_yutaka.htm",
+      "https://en.wikipedia.org/wiki/Cowboy_Bebop"
+    ]
+  },
+  {
+    "artist": "Yoshito Usui",
+    "author": "Yoshito Usui",
+    "confidence": "high",
+    "credit_name": "Yoshito Usui",
+    "display_title": "Crayon Shin-chan",
+    "slug": "crayon-shin-chan",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Crayon_Shin-chan",
+      "https://en.wikipedia.org/wiki/Yoshito_Usui"
+    ]
+  },
+  {
+    "artist": "Takeshi Obata",
+    "author": "Tsugumi Ohba",
+    "confidence": "high",
+    "credit_name": "Tsugumi Ohba / Takeshi Obata",
+    "display_title": "Death Note",
+    "slug": "death-note",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Death_Note",
+      "https://deathnote.fandom.com/wiki/Death_Note_(manga)"
+    ]
+  },
+  {
+    "artist": "Gosho Aoyama",
+    "author": "Gosho Aoyama",
+    "confidence": "high",
+    "credit_name": "Gosho Aoyama",
+    "display_title": "Detective Conan",
+    "slug": "detective-conan",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Case_Closed",
+      "https://www.detectiveconanworld.com/wiki/Detective_Conan"
+    ]
+  },
+  {
+    "artist": "Fujiko F. Fujio",
+    "author": "Fujiko F. Fujio",
+    "confidence": "high",
+    "credit_name": "Fujiko F. Fujio",
+    "display_title": "Doraemon",
+    "slug": "doraemon",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Doraemon",
+      "https://en.wikipedia.org/wiki/Fujiko_F._Fujio"
+    ]
+  },
+  {
+    "artist": "Akira Toriyama",
+    "author": "Akira Toriyama",
+    "confidence": "high",
+    "credit_name": "Akira Toriyama",
+    "display_title": "Dragon Ball",
+    "slug": "dragon-ball",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dragon_Ball_(manga)",
+      "https://en.wikipedia.org/wiki/Dragon_Ball"
+    ]
+  },
+  {
+    "artist": "Ryoko Kui",
+    "author": "Ryoko Kui",
+    "confidence": "high",
+    "credit_name": "Ryoko Kui",
+    "display_title": "Dungeon Meshi",
+    "slug": "dungeon-meshi",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Delicious_in_Dungeon",
+      "https://times.abema.tv/en/articles/-/10182331"
+    ]
+  },
+  {
+    "artist": "Hiro Mashima",
+    "author": "Hiro Mashima",
+    "confidence": "high",
+    "credit_name": "Hiro Mashima",
+    "display_title": "Fairy Tail",
+    "slug": "fairy-tail",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fairy_Tail",
+      "https://www.liveabout.com/fairy-tail-manga-profile-2282683"
+    ]
+  },
+  {
+    "artist": "Hiromu Arakawa",
+    "author": "Hiromu Arakawa",
+    "confidence": "high",
+    "credit_name": "Hiromu Arakawa",
+    "display_title": "Fullmetal Alchemist",
+    "slug": "fullmetal-alchemist",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fullmetal_Alchemist",
+      "https://www.ebsco.com/research-starters/literature-and-writing/fullmetal-alchemist"
+    ]
+  },
+  {
+    "artist": "Izumi Tsubaki",
+    "author": "Izumi Tsubaki",
+    "confidence": "high",
+    "credit_name": "Izumi Tsubaki",
+    "display_title": "Gekkan Shoujo Nozaki-kun",
+    "slug": "gekkan-shoujo-nozaki-kun",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Monthly_Girls%27_Nozaki-kun",
+      "https://gekkan-shoujo-nozakikun.fandom.com/wiki/Manga"
+    ]
+  },
+  {
+    "artist": "Hideaki Sorachi",
+    "author": "Hideaki Sorachi",
+    "confidence": "high",
+    "credit_name": "Hideaki Sorachi",
+    "display_title": "Gintama",
+    "slug": "gintama",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Gintama",
+      "https://gintama.fandom.com/wiki/Sorachi_Hideaki"
+    ]
+  },
+  {
+    "artist": "Tsukumizu",
+    "author": "Tsukumizu",
+    "confidence": "high",
+    "credit_name": "Tsukumizu",
+    "display_title": "Girls' Last Tour",
+    "slug": "girls-last-tour",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Girls%27_Last_Tour",
+      "https://www.anime-planet.com/manga/girls-last-tour"
+    ]
+  },
+  {
+    "artist": "Nanaki Nanao",
+    "author": "Nanaki Nanao",
+    "confidence": "high",
+    "credit_name": "Nanaki Nanao",
+    "display_title": "Helck",
+    "slug": "helck",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Helck_(manga)",
+      "https://es.wikipedia.org/wiki/Helck"
+    ]
+  },
+  {
+    "artist": "Yoshihiro Togashi",
+    "author": "Yoshihiro Togashi",
+    "confidence": "high",
+    "credit_name": "Yoshihiro Togashi",
+    "display_title": "Hunter x Hunter",
+    "slug": "hunter-x-hunter",
+    "sources": [
+      "https://www.viz.com/hunter-x-hunter",
+      "https://hunterxhunter.fandom.com/wiki/Hunter_%C3%97_Hunter"
+    ]
+  },
+  {
+    "artist": "Rumiko Takahashi",
+    "author": "Rumiko Takahashi",
+    "confidence": "high",
+    "credit_name": "Rumiko Takahashi",
+    "display_title": "Inuyasha",
+    "slug": "inuyasha",
+    "sources": [
+      "https://www.viz.com/inuyasha",
+      "https://en.wikipedia.org/wiki/Inuyasha"
+    ]
+  },
+  {
+    "artist": "Hotondoshindeiru",
+    "author": "Hotondoshindeiru",
+    "confidence": "high",
+    "credit_name": "Hotondoshindeiru",
+    "display_title": "Isekai Ojisan",
+    "slug": "isekai-ojisan",
+    "sources": [
+      "https://yenpress.com/series/uncle-from-another-world",
+      "https://en.wikipedia.org/wiki/Uncle_from_Another_World"
+    ]
+  },
+  {
+    "artist": "Hirohiko Araki",
+    "author": "Hirohiko Araki",
+    "confidence": "high",
+    "credit_name": "Hirohiko Araki",
+    "display_title": "JoJo's Bizarre Adventure Part 7: Steel Ball Run",
+    "slug": "jojo-s-bizarre-adventure-part-7-steel-ball-run",
+    "sources": [
+      "https://www.viz.com/manga-books/manga/jojo-s-bizarre-adventure-part-7-steel-ball-run-volume-1/product/8330/hardcover",
+      "https://en.wikipedia.org/wiki/Steel_Ball_Run"
+    ]
+  },
+  {
+    "artist": "Hirohiko Araki",
+    "author": "Hirohiko Araki",
+    "confidence": "high",
+    "credit_name": "Hirohiko Araki",
+    "display_title": "JoJo's Bizarre Adventure Part 8: JoJolion",
+    "slug": "jojo-s-bizarre-adventure-part-8-jojolion",
+    "sources": [
+      "https://en.wikipedia.org/wiki/JoJolion",
+      "https://jump.fandom.com/wiki/JoJolion"
+    ]
+  },
+  {
+    "artist": "Junji Ito",
+    "author": "Junji Ito",
+    "confidence": "high",
+    "credit_name": "Junji Ito",
+    "display_title": "Junji Ito Horror Manga Collection",
+    "slug": "junji-ito-horror-manga-collection",
+    "sources": [
+      "https://www.viz.com/junji-ito",
+      "https://en.wikipedia.org/wiki/Junji_Ito"
+    ]
+  },
+  {
+    "artist": "Koyoharu Gotouge",
+    "author": "Koyoharu Gotouge",
+    "confidence": "high",
+    "credit_name": "Koyoharu Gotouge",
+    "display_title": "Demon Slayer: Kimetsu no Yaiba",
+    "slug": "kimetsu-no-yaiba",
+    "sources": [
+      "https://www.viz.com/demon-slayer-kimetsu-no-yaiba",
+      "https://ci.nii.ac.jp/ncid/BC04936993"
+    ]
+  },
+  {
+    "artist": "Akihito Tsukushi",
+    "author": "Akihito Tsukushi",
+    "confidence": "high",
+    "credit_name": "Akihito Tsukushi",
+    "display_title": "Made in Abyss",
+    "slug": "made-in-abyss",
+    "sources": [
+      "https://sevenseasentertainment.com/series/made-in-abyss/",
+      "https://en.wikipedia.org/wiki/Made_in_Abyss"
+    ]
+  },
+  {
+    "artist": "Iori Furuya",
+    "author": "Looseboy",
+    "confidence": "high",
+    "credit_name": "Looseboy / Iori Furuya",
+    "display_title": "Munou na Nana",
+    "slug": "munou-na-nana",
+    "sources": [
+      "https://munou-na-nana.fandom.com/wiki/Munou_na_Nana_%28Manga%29",
+      "https://en.wikipedia.org/wiki/Talentless_Nana"
+    ]
+  },
+  {
+    "artist": "Masashi Kishimoto",
+    "author": "Masashi Kishimoto",
+    "confidence": "high",
+    "credit_name": "Masashi Kishimoto",
+    "display_title": "Naruto",
+    "slug": "naruto",
+    "sources": [
+      "https://www.viz.com/naruto",
+      "https://www.ebsco.com/research-starters/literature-and-writing/naruto-manga"
+    ]
+  },
+  {
+    "artist": "Yuki Midorikawa",
+    "author": "Yuki Midorikawa",
+    "confidence": "high",
+    "credit_name": "Yuki Midorikawa",
+    "display_title": "Natsume Yuujinchou",
+    "slug": "natsume-yuujinchou",
+    "sources": [
+      "https://www.viz.com/natsume-s-book-of-friends",
+      "https://en.wikipedia.org/wiki/Natsume%27s_Book_of_Friends"
+    ]
+  },
+  {
+    "artist": "Yoshiyuki Sadamoto",
+    "author": "Yoshiyuki Sadamoto",
+    "confidence": "high",
+    "credit_name": "Yoshiyuki Sadamoto",
+    "display_title": "Neon Genesis Evangelion",
+    "slug": "neon-genesis-evangelion",
+    "sources": [
+      "https://www.viz.com/manga-books/manga/neon-genesis-evangelion-3-in-1-edition-volume-1-0/product/3182",
+      "https://www.viz.com/neon-genesis-evangelion"
+    ]
+  },
+  {
+    "artist": "Eiichiro Oda",
+    "author": "Eiichiro Oda",
+    "confidence": "high",
+    "credit_name": "Eiichiro Oda",
+    "display_title": "One Piece",
+    "slug": "one-piece",
+    "sources": [
+      "https://www.viz.com/one-piece",
+      "https://en.wikipedia.org/wiki/One_Piece"
+    ]
+  },
+  {
+    "artist": "Yusuke Murata",
+    "author": "ONE",
+    "confidence": "high",
+    "credit_name": "ONE / Yusuke Murata",
+    "display_title": "One-Punch Man",
+    "slug": "one-punch-man",
+    "sources": [
+      "https://en.wikipedia.org/wiki/One-Punch_Man",
+      "https://onepunchman.fandom.com/wiki/One-Punch_Man"
+    ]
+  },
+  {
+    "artist": "Hitoshi Iwaaki",
+    "author": "Hitoshi Iwaaki",
+    "confidence": "high",
+    "credit_name": "Hitoshi Iwaaki",
+    "display_title": "Parasyte",
+    "slug": "parasyte",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Parasyte",
+      "https://parasyte.fandom.com/wiki/Hitoshi_Iwaaki"
+    ]
+  },
+  {
+    "artist": "Naoko Takeuchi",
+    "author": "Naoko Takeuchi",
+    "confidence": "high",
+    "credit_name": "Naoko Takeuchi",
+    "display_title": "Pretty Guardian Sailor Moon",
+    "slug": "pretty-guardian-sailor-moon",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sailor_Moon",
+      "https://www.wikimoon.org/index.php/Sailor_Moon_(manga)"
+    ]
+  },
+  {
+    "artist": "Akira Amano",
+    "author": "Akira Amano",
+    "confidence": "high",
+    "credit_name": "Akira Amano",
+    "display_title": "Ron Kamonohashi: Deranged Detective",
+    "slug": "ron-kamonohashi-deranged-detective",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ron_Kamonohashi",
+      "https://ronkamonohashi.wiki.gg/wiki/Ron_Kamonohashi:_Deranged_Detective"
+    ]
+  },
+  {
+    "artist": "Takehiko Inoue",
+    "author": "Takehiko Inoue",
+    "confidence": "high",
+    "credit_name": "Takehiko Inoue",
+    "display_title": "Slam Dunk",
+    "slug": "slam-dunk",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Slam_Dunk_(manga)",
+      "https://slamdunk.fandom.com/wiki/Manga"
+    ]
+  },
+  {
+    "artist": "Tsukasa Abe",
+    "author": "Kanehito Yamada",
+    "confidence": "high",
+    "credit_name": "Kanehito Yamada / Tsukasa Abe",
+    "display_title": "Frieren: Beyond Journey's End",
+    "slug": "sousou-no-frieren",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Frieren",
+      "https://times.abema.tv/en/articles/-/10177400"
+    ]
+  },
+  {
+    "artist": "Kyotaro Azuma",
+    "author": "Yosuke Nakamaru",
+    "confidence": "high",
+    "credit_name": "Yosuke Nakamaru / Kyotaro Azuma",
+    "display_title": "Tenkaichi: Nihon Saikyo Bugeisha Ketteisen",
+    "slug": "tenkaichi-nihon-saikyou-bugeisha-ketteisen",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tenkaichi:_The_Greatest_Warrior_Under_the_Rising_Sun",
+      "https://tenkaichi.fandom.com/wiki/Tenkaichi_Nihon_Saikyo_Bugeisha_Ketteisen"
+    ]
+  },
+  {
+    "artist": "Posuka Demizu",
+    "author": "Kaiu Shirai",
+    "confidence": "high",
+    "credit_name": "Kaiu Shirai / Posuka Demizu",
+    "display_title": "The Promised Neverland",
+    "slug": "the-promised-neverland",
+    "sources": [
+      "https://en.wikipedia.org/wiki/The_Promised_Neverland",
+      "https://yakusokunoneverland.fandom.com/wiki/The_Promised_Neverland_(Manga)"
+    ]
+  },
+  {
+    "artist": "Junji Ito",
+    "author": "Junji Ito",
+    "confidence": "high",
+    "credit_name": "Junji Ito",
+    "display_title": "Uzumaki",
+    "slug": "uzumaki",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Uzumaki",
+      "https://www.britannica.com/topic/Uzumaki"
+    ]
+  },
+  {
+    "artist": "Hitoshi Ashinano",
+    "author": "Hitoshi Ashinano",
+    "confidence": "high",
+    "credit_name": "Hitoshi Ashinano",
+    "display_title": "Yokohama Kaidashi Kikou",
+    "slug": "yokohama-kaidashi-kikou",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Yokohama_Kaidashi_Kikou",
+      "https://ykk.wiki/"
+    ]
+  },
+  {
+    "artist": "Kazuki Takahashi",
+    "author": "Kazuki Takahashi",
+    "confidence": "high",
+    "credit_name": "Kazuki Takahashi",
+    "display_title": "Yu-Gi-Oh!",
+    "slug": "yu-gi-oh",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Yu-Gi-Oh!",
+      "https://yugioh.fandom.com/wiki/Yu-Gi-Oh!_(manga)"
+    ]
+  }
+]

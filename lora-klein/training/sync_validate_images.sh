@@ -7,6 +7,13 @@ FORCE_ARGS=()
 JOB_NAMES=()
 S3_MODELS_ROOT="${S3_MODELS_ROOT:-s3://drawtoon/models}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
+if [ -z "${PYTHON_BIN:-}" ]; then
+  if [ -x "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3" ]; then
+    PYTHON_BIN="/Library/Frameworks/Python.framework/Versions/3.12/bin/python3"
+  else
+    PYTHON_BIN="python3"
+  fi
+fi
 
 mkdir -p "$VALIDATE_ROOT"
 
@@ -91,6 +98,13 @@ normalize_job_dir() {
   fi
 }
 
+build_review_sheets() {
+  local job_dir="$1"
+  [ -d "$job_dir" ] || return 0
+  echo "Building target/ref/generated bbox review images for $job_dir"
+  "$PYTHON_BIN" "$SCRIPT_DIR/utils.py" build-validation-review-sheets --job-dir "$job_dir"
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --force)
@@ -135,6 +149,7 @@ for JOB_NAME in "${JOB_NAMES[@]}"; do
     if ! sync_s3_validation "$JOB_NAME" "$TARGET_DIR"; then
       echo "No remote validation folder found for $JOB_NAME"
     fi
+    build_review_sheets "$TARGET_DIR"
     continue
   fi
 
@@ -152,6 +167,7 @@ for JOB_NAME in "${JOB_NAMES[@]}"; do
     if ! sync_s3_validation "$JOB_NAME" "$TARGET_DIR"; then
       echo "No remote step folders found for $JOB_NAME"
     fi
+    build_review_sheets "$TARGET_DIR"
     continue
   fi
 
@@ -182,6 +198,7 @@ for JOB_NAME in "${JOB_NAMES[@]}"; do
   done
 
   sync_s3_validation "$JOB_NAME" "$TARGET_DIR" || true
+  build_review_sheets "$TARGET_DIR"
 done
 
 echo "Done."
