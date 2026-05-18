@@ -1,0 +1,277 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. One Piece by Eiichiro Oda. Character 2 displays a wide-open mouth with bared teeth and intense forward gaze, fist raised in aggressive posture, while Character 3 stands beside with mouth open. Dynamic action lines and heavy black screen tone fill the background, creating high-energy composition with tilted framing and stark white space on the right.",
+    "chapter": "one-piece_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0134/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0134/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0134/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.602778,
+              0.0,
+              0.743056,
+              0.059783
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.025,
+              0.0625,
+              0.493056,
+              0.975543
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.441667,
+              0.086957,
+              0.852778,
+              0.959239
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.8375,
+                0.529891,
+                0.980556,
+                0.630435
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0134/ctrl_img_1.png"
+    },
+    "eval_index": 134,
+    "eval_seed": 20260649,
+    "eval_stratum": "3plus/1/landscape",
+    "page_id": "862__side_00",
+    "page_root": "one-piece_mangazero/862__side_00",
+    "panel_index": 3,
+    "sample_id": "one-piece_mangazero/862__side_00/panel_003",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/one-piece_mangazero/862__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/one-piece_mangazero/862__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/862__side_00.jpg",
+    "target_height": 368,
+    "target_panel": "/root/validation_datasets/generalist/img_0134/target.png",
+    "target_width": 720,
+    "validation_set_dir": "img_0134"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. One Piece by Eiichiro Oda. Character 2 displays a wide-open mouth with bared teeth and intense forward gaze, fist raised in aggressive posture, while Character 3 stands beside with mouth open. Dynamic action lines and heavy black screen tone fill the background, creating high-energy composition with tilted framing and stark white space on the right.",
+    "chapter": "one-piece_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            473,
+            731,
+            574,
+            859
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/862__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            168,
+            2,
+            419,
+            459
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/862__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            419,
+            32,
+            760,
+            418
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/862__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.602778,
+              0.0,
+              0.743056,
+              0.059783
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.025,
+              0.0625,
+              0.493056,
+              0.975543
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.441667,
+              0.086957,
+              0.852778,
+              0.959239
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.8375,
+                0.529891,
+                0.980556,
+                0.630435
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "862__side_00",
+    "page_root": "one-piece_mangazero/862__side_00",
+    "panel_index": 3,
+    "sample_id": "one-piece_mangazero/862__side_00/panel_003",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/one-piece_mangazero/862__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/one-piece_mangazero/862__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/862__side_00.jpg",
+    "target_height": 368,
+    "target_panel": {
+      "crop_box": [
+        39,
+        837,
+        745,
+        1196
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/862__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 720
+  }
+}

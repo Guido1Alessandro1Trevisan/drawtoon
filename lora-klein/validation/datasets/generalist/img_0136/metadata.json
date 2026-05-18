@@ -1,0 +1,234 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Slam Dunk by Takehiko Inoue. Character 1 stands with arms raised and mouth open in an interior setting with windows and furniture visible behind. Character 2 faces Character 1 from the foreground, head tilted downward. Medium shot with dynamic diagonal framing and heavy cross-hatching screen tone throughout the panel.",
+    "chapter": "slam-dunk_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0136/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0136/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.401786,
+              0.161458,
+              0.783929,
+              0.473958
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.1,
+              0.395833,
+              0.885714,
+              0.966146
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.905357,
+                0.822917,
+                0.983929,
+                0.950521
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0136/ctrl_img_1.png"
+    },
+    "eval_index": 136,
+    "eval_seed": 20260651,
+    "eval_stratum": "2/1/landscape",
+    "page_id": "600__side_00",
+    "page_root": "slam-dunk_mangazero/600__side_00",
+    "panel_index": 0,
+    "sample_id": "slam-dunk_mangazero/600__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/slam-dunk_mangazero/600__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/slam-dunk_mangazero/600__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/600__side_00.jpg",
+    "target_height": 384,
+    "target_panel": "/root/validation_datasets/generalist/img_0136/target.png",
+    "target_width": 560,
+    "validation_set_dir": "img_0136"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Slam Dunk by Takehiko Inoue. Character 1 stands with arms raised and mouth open in an interior setting with windows and furniture visible behind. Character 2 faces Character 1 from the foreground, head tilted downward. Medium shot with dynamic diagonal framing and heavy cross-hatching screen tone throughout the panel.",
+    "chapter": "slam-dunk_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            26,
+            638,
+            426,
+            935
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/600__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            82,
+            245,
+            522,
+            465
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/600__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.401786,
+              0.161458,
+              0.783929,
+              0.473958
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.1,
+              0.395833,
+              0.885714,
+              0.966146
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.905357,
+                0.822917,
+                0.983929,
+                0.950521
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "600__side_00",
+    "page_root": "slam-dunk_mangazero/600__side_00",
+    "panel_index": 0,
+    "sample_id": "slam-dunk_mangazero/600__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/slam-dunk_mangazero/600__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/slam-dunk_mangazero/600__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/600__side_00.jpg",
+    "target_height": 384,
+    "target_panel": {
+      "crop_box": [
+        26,
+        93,
+        580,
+        464
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/600__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 560
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Parasyte by Hitoshi Iwaaki. Character 1 holds Character 2 in both arms, mouth open wide with visible tension in facial features, eyes wide and staring forward. Jagged speed lines and motion marks radiate outward across white background. Medium close-up shot with tilted framing emphasizing dynamic action.",
+    "chapter": "parasyte_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0111/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0111/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.1875,
+              0.032609,
+              0.78125,
+              0.913043
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.221591,
+              0.486413,
+              0.698864,
+              0.736413
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.829545,
+                0.211957,
+                0.928977,
+                0.665761
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.051136,
+                0.070652,
+                0.173295,
+                0.649457
+              ],
+              "text_region_index": 1,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 2,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0111/ctrl_img_1.png"
+    },
+    "eval_index": 111,
+    "eval_seed": 20260626,
+    "eval_stratum": "2/2plus/square",
+    "page_id": "733__side_00",
+    "page_root": "parasyte_mangazero/733__side_00",
+    "panel_index": 5,
+    "sample_id": "parasyte_mangazero/733__side_00/panel_005",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/parasyte_mangazero/733__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/parasyte_mangazero/733__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/733__side_00.jpg",
+    "target_height": 368,
+    "target_panel": "/root/validation_datasets/generalist/img_0111/target.png",
+    "target_width": 352,
+    "validation_set_dir": "img_0111"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Parasyte by Hitoshi Iwaaki. Character 1 holds Character 2 in both arms, mouth open wide with visible tension in facial features, eyes wide and staring forward. Jagged speed lines and motion marks radiate outward across white background. Medium close-up shot with tilted framing emphasizing dynamic action.",
+    "chapter": "parasyte_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            400,
+            394,
+            655,
+            674
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/733__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            406,
+            607,
+            540,
+            668
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/733__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.1875,
+              0.032609,
+              0.78125,
+              0.913043
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.221591,
+              0.486413,
+              0.698864,
+              0.736413
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.829545,
+                0.211957,
+                0.928977,
+                0.665761
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.051136,
+                0.070652,
+                0.173295,
+                0.649457
+              ],
+              "text_region_index": 1,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 2,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "733__side_00",
+    "page_root": "parasyte_mangazero/733__side_00",
+    "panel_index": 5,
+    "sample_id": "parasyte_mangazero/733__side_00/panel_005",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/parasyte_mangazero/733__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/parasyte_mangazero/733__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/733__side_00.jpg",
+    "target_height": 368,
+    "target_panel": {
+      "crop_box": [
+        27,
+        680,
+        364,
+        1033
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/733__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 352
+  }
+}

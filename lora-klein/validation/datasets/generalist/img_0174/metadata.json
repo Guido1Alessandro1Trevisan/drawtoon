@@ -1,0 +1,403 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Hunter x Hunter by Yoshihiro Togashi. Multiple characters stand in a horizontal line facing forward with open mouths and wide eyes, arranged from left to right across the panel. The composition uses stark black fill and white space, with sound-effect marks scattered throughout. Medium shot, frontal camera angle, crowded group arrangement.",
+    "chapter": "hunter-x-hunter_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0174/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0174/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0174/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0174/ctrl_img_5.png",
+        "/root/validation_datasets/generalist/img_0174/ctrl_img_6.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.792683,
+              0.107143,
+              0.934451,
+              0.955357
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.679878,
+              0.151786,
+              0.782012,
+              0.955357
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.603659,
+              0.339286,
+              0.664634,
+              0.892857
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.522866,
+              0.491071,
+              0.588415,
+              0.955357
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.464939,
+              0.205357,
+              0.52439,
+              0.553571
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.442073,
+                0.0,
+                0.591463,
+                0.303571
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.16311,
+                0.0,
+                0.324695,
+                0.357143
+              ],
+              "text_region_index": 1,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.146341,
+                0.026786,
+                0.26372,
+                0.375
+              ],
+              "text_region_index": 2,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 3,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0174/ctrl_img_1.png"
+    },
+    "eval_index": 174,
+    "eval_seed": 20260689,
+    "eval_stratum": "3plus/2plus/landscape",
+    "page_id": "845__side_01",
+    "page_root": "hunter-x-hunter_mangazero/845__side_01",
+    "panel_index": 0,
+    "sample_id": "hunter-x-hunter_mangazero/845__side_01/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/hunter-x-hunter_mangazero/845__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/hunter-x-hunter_mangazero/845__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+    "target_height": 112,
+    "target_panel": "/root/validation_datasets/generalist/img_0174/target.png",
+    "target_width": 656,
+    "validation_set_dir": "img_0174"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Hunter x Hunter by Yoshihiro Togashi. Multiple characters stand in a horizontal line facing forward with open mouths and wide eyes, arranged from left to right across the panel. The composition uses stark black fill and white space, with sound-effect marks scattered throughout. Medium shot, frontal camera angle, crowded group arrangement.",
+    "chapter": "hunter-x-hunter_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            562,
+            51,
+            655,
+            146
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            488,
+            56,
+            555,
+            146
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            438,
+            77,
+            478,
+            139
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            385,
+            94,
+            428,
+            146
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            347,
+            62,
+            386,
+            101
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.792683,
+              0.107143,
+              0.934451,
+              0.955357
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.679878,
+              0.151786,
+              0.782012,
+              0.955357
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.603659,
+              0.339286,
+              0.664634,
+              0.892857
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.522866,
+              0.491071,
+              0.588415,
+              0.955357
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.464939,
+              0.205357,
+              0.52439,
+              0.553571
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.442073,
+                0.0,
+                0.591463,
+                0.303571
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.16311,
+                0.0,
+                0.324695,
+                0.357143
+              ],
+              "text_region_index": 1,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.146341,
+                0.026786,
+                0.26372,
+                0.375
+              ],
+              "text_region_index": 2,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 3,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "845__side_01",
+    "page_root": "hunter-x-hunter_mangazero/845__side_01",
+    "panel_index": 0,
+    "sample_id": "hunter-x-hunter_mangazero/845__side_01/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/hunter-x-hunter_mangazero/845__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/hunter-x-hunter_mangazero/845__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+    "target_height": 112,
+    "target_panel": {
+      "crop_box": [
+        42,
+        39,
+        688,
+        148
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/845__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 656
+  }
+}

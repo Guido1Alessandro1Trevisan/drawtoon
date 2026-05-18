@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Frieren: Beyond Journey's End by Kanehito Yamada / Tsukasa Abe. Character 1 stands with head tilted downward, eyes narrowed, mouth slightly open in contemplation, positioned left of center against a weathered wall with vertical window frames visible in background, two speech bubbles stacked on right side, medium shot with neutral framing.",
+    "chapter": "sousou-no-frieren_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0149/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.116071,
+              0.395313,
+              0.535714,
+              0.98125
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.520089,
+                0.192188,
+                0.897321,
+                0.470313
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.495536,
+                0.667188,
+                0.883929,
+                0.903125
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0149/ctrl_img_1.png"
+    },
+    "eval_index": 149,
+    "eval_seed": 20260664,
+    "eval_stratum": "1/2plus/portrait",
+    "page_id": "162__side_00",
+    "page_root": "sousou-no-frieren_mangazero/162__side_00",
+    "panel_index": 6,
+    "sample_id": "sousou-no-frieren_mangazero/162__side_00/panel_006",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/sousou-no-frieren_mangazero/162__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/sousou-no-frieren_mangazero/162__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/162__side_00.jpg",
+    "target_height": 640,
+    "target_panel": "/root/validation_datasets/generalist/img_0149/target.png",
+    "target_width": 448,
+    "validation_set_dir": "img_0149"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Frieren: Beyond Journey's End by Kanehito Yamada / Tsukasa Abe. Character 1 stands with head tilted downward, eyes narrowed, mouth slightly open in contemplation, positioned left of center against a weathered wall with vertical window frames visible in background, two speech bubbles stacked on right side, medium shot with neutral framing.",
+    "chapter": "sousou-no-frieren_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            649,
+            1070,
+            811,
+            1250
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/162__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.116071,
+              0.395313,
+              0.535714,
+              0.98125
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.520089,
+                0.192188,
+                0.897321,
+                0.470313
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.495536,
+                0.667188,
+                0.883929,
+                0.903125
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "162__side_00",
+    "page_root": "sousou-no-frieren_mangazero/162__side_00",
+    "panel_index": 6,
+    "sample_id": "sousou-no-frieren_mangazero/162__side_00/panel_006",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/sousou-no-frieren_mangazero/162__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/sousou-no-frieren_mangazero/162__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/162__side_00.jpg",
+    "target_height": 640,
+    "target_panel": {
+      "crop_box": [
+        34,
+        967,
+        467,
+        1595
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/162__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 448
+  }
+}

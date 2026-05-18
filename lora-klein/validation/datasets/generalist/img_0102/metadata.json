@@ -1,0 +1,169 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Yokohama Kaidashi Kikou by Hitoshi Ashinano. Character 1 sits alone in shallow water, viewed from behind with head bowed, body upright and still. Minimal landscape with horizontal water line and sparse hatching in sky, medium shot, vertical composition with stark white space dominating upper half and dark water fill below.",
+    "chapter": "yokohama-kaidashi-kikou_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0102/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.465278,
+              0.1875,
+              0.854167,
+              0.673077
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0102/ctrl_img_1.png"
+    },
+    "eval_index": 102,
+    "eval_seed": 20260617,
+    "eval_stratum": "1/0/portrait",
+    "page_id": "578__side_00",
+    "page_root": "yokohama-kaidashi-kikou_mangazero/578__side_00",
+    "panel_index": 2,
+    "sample_id": "yokohama-kaidashi-kikou_mangazero/578__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/yokohama-kaidashi-kikou_mangazero/578__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/yokohama-kaidashi-kikou_mangazero/578__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/yokohama-kaidashi-kikou_mangazero/578__side_00.jpg",
+    "target_height": 416,
+    "target_panel": "/root/validation_datasets/generalist/img_0102/target.png",
+    "target_width": 288,
+    "validation_set_dir": "img_0102"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Yokohama Kaidashi Kikou by Hitoshi Ashinano. Character 1 sits alone in shallow water, viewed from behind with head bowed, body upright and still. Minimal landscape with horizontal water line and sparse hatching in sky, medium shot, vertical composition with stark white space dominating upper half and dark water fill below.",
+    "chapter": "yokohama-kaidashi-kikou_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            1,
+            144,
+            767,
+            606
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/yokohama-kaidashi-kikou_mangazero/578__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.465278,
+              0.1875,
+              0.854167,
+              0.673077
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "578__side_00",
+    "page_root": "yokohama-kaidashi-kikou_mangazero/578__side_00",
+    "panel_index": 2,
+    "sample_id": "yokohama-kaidashi-kikou_mangazero/578__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/yokohama-kaidashi-kikou_mangazero/578__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/yokohama-kaidashi-kikou_mangazero/578__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/yokohama-kaidashi-kikou_mangazero/578__side_00.jpg",
+    "target_height": 416,
+    "target_panel": {
+      "crop_box": [
+        78,
+        623,
+        362,
+        1031
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/yokohama-kaidashi-kikou_mangazero/578__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 288
+  }
+}

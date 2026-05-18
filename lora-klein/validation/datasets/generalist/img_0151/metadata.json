@@ -1,0 +1,234 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. 20th Century Boys by Naoki Urasawa. Character 1 stands in center with neutral gaze and closed mouth, flanked by Character 2 on the right with wide eyes and open mouth. Dark urban interior background with stark black fill and white space, medium shot framing both figures closely together in tight composition.",
+    "chapter": "20th-century-boys_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0151/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0151/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.267857,
+              0.329167,
+              0.791667,
+              0.975
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.619048,
+              0.208333,
+              0.952381,
+              0.970833
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.764881,
+                0.216667,
+                0.952381,
+                0.379167
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0151/ctrl_img_1.png"
+    },
+    "eval_index": 151,
+    "eval_seed": 20260666,
+    "eval_stratum": "2/1/landscape",
+    "page_id": "569__side_00",
+    "page_root": "20th-century-boys_mangazero/569__side_00",
+    "panel_index": 4,
+    "sample_id": "20th-century-boys_mangazero/569__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/20th-century-boys_mangazero/569__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/20th-century-boys_mangazero/569__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/569__side_00.jpg",
+    "target_height": 240,
+    "target_panel": "/root/validation_datasets/generalist/img_0151/target.png",
+    "target_width": 336,
+    "validation_set_dir": "img_0151"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. 20th Century Boys by Naoki Urasawa. Character 1 stands in center with neutral gaze and closed mouth, flanked by Character 2 on the right with wide eyes and open mouth. Dark urban interior background with stark black fill and white space, medium shot framing both figures closely together in tight composition.",
+    "chapter": "20th-century-boys_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            383,
+            819,
+            581,
+            1099
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/569__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            548,
+            916,
+            677,
+            1099
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/569__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.267857,
+              0.329167,
+              0.791667,
+              0.975
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.619048,
+              0.208333,
+              0.952381,
+              0.970833
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.764881,
+                0.216667,
+                0.952381,
+                0.379167
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "569__side_00",
+    "page_root": "20th-century-boys_mangazero/569__side_00",
+    "panel_index": 4,
+    "sample_id": "20th-century-boys_mangazero/569__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/20th-century-boys_mangazero/569__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/20th-century-boys_mangazero/569__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/569__side_00.jpg",
+    "target_height": 240,
+    "target_panel": {
+      "crop_box": [
+        56,
+        798,
+        377,
+        1034
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/569__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 336
+  }
+}

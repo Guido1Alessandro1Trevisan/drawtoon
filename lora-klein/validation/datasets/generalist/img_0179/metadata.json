@@ -1,0 +1,317 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Neon Genesis Evangelion by Yoshiyuki Sadamoto. Character 1 stands with arms raised and mouth open in an exclamatory pose, Character 2 faces forward with neutral expression, and Character 3 stands with arms spread wide and head tilted back in an animated gesture. Indoor corridor setting with tiled floor and architectural elements visible in background. Medium shot with characters arranged in a line across the panel. Multiple speech bubbles and narration bubbles present.",
+    "chapter": "neon-genesis-evangelion_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0179/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0179/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0179/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.135081,
+              0.402218,
+              0.364919,
+              0.674395
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.429435,
+              0.397177,
+              0.641129,
+              0.759073
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.693548,
+              0.360887,
+              0.939516,
+              0.759073
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.671371,
+                0.066532,
+                0.897177,
+                0.222782
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.169355,
+                0.295363,
+                0.375,
+                0.344758
+              ],
+              "text_region_index": 1,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.09879,
+                0.757056,
+                0.385081,
+                0.913306
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0179/ctrl_img_1.png"
+    },
+    "eval_index": 179,
+    "eval_seed": 20260694,
+    "eval_stratum": "3plus/2plus/portrait",
+    "page_id": "832__side_01",
+    "page_root": "neon-genesis-evangelion_mangazero/832__side_01",
+    "panel_index": 0,
+    "sample_id": "neon-genesis-evangelion_mangazero/832__side_01/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/neon-genesis-evangelion_mangazero/832__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/neon-genesis-evangelion_mangazero/832__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/neon-genesis-evangelion_mangazero/832__side_01.jpg",
+    "target_height": 992,
+    "target_panel": "/root/validation_datasets/generalist/img_0179/target.png",
+    "target_width": 496,
+    "validation_set_dir": "img_0179"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Neon Genesis Evangelion by Yoshiyuki Sadamoto. Character 1 stands with arms raised and mouth open in an exclamatory pose, Character 2 faces forward with neutral expression, and Character 3 stands with arms spread wide and head tilted back in an animated gesture. Indoor corridor setting with tiled floor and architectural elements visible in background. Medium shot with characters arranged in a line across the panel. Multiple speech bubbles and narration bubbles present.",
+    "chapter": "neon-genesis-evangelion_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            175,
+            81,
+            507,
+            360
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/neon-genesis-evangelion_mangazero/832__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            271,
+            1019,
+            375,
+            1367
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/neon-genesis-evangelion_mangazero/832__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            159,
+            679,
+            461,
+            989
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/neon-genesis-evangelion_mangazero/832__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.135081,
+              0.402218,
+              0.364919,
+              0.674395
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.429435,
+              0.397177,
+              0.641129,
+              0.759073
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.693548,
+              0.360887,
+              0.939516,
+              0.759073
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.671371,
+                0.066532,
+                0.897177,
+                0.222782
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.169355,
+                0.295363,
+                0.375,
+                0.344758
+              ],
+              "text_region_index": 1,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.09879,
+                0.757056,
+                0.385081,
+                0.913306
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "832__side_01",
+    "page_root": "neon-genesis-evangelion_mangazero/832__side_01",
+    "panel_index": 0,
+    "sample_id": "neon-genesis-evangelion_mangazero/832__side_01/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/neon-genesis-evangelion_mangazero/832__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/neon-genesis-evangelion_mangazero/832__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/neon-genesis-evangelion_mangazero/832__side_01.jpg",
+    "target_height": 992,
+    "target_panel": {
+      "crop_box": [
+        519,
+        0,
+        1002,
+        989
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/neon-genesis-evangelion_mangazero/832__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 496
+  }
+}

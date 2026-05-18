@@ -1,0 +1,380 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 stands with head tilted, mouth open in speech, gazing downward toward Character 2 and Character 4 who crouch below with wide eyes and open mouths. Character 3 appears at left edge. Gray background with multiple speech bubbles and narration areas scattered across the composition.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 4,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0054/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0054/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0054/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0054/ctrl_img_5.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.516827,
+              0.3375,
+              0.96875,
+              0.758333
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.372596,
+              0.672917,
+              0.651442,
+              0.954167
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.016827,
+              0.504167,
+              0.322115,
+              0.9875
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.627404,
+              0.772917,
+              0.987981,
+              0.972917
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.757212,
+                0.141667,
+                0.877404,
+                0.229167
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.475962,
+                0.220833,
+                0.629808,
+                0.35
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.038462,
+                0.216667,
+                0.307692,
+                0.51875
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.605769,
+                0.670833,
+                0.896635,
+                0.80625
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 4
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0054/ctrl_img_1.png"
+    },
+    "eval_index": 54,
+    "eval_seed": 20260569,
+    "eval_stratum": "3plus/2plus/square",
+    "page_id": "376__side_01",
+    "page_root": "made-in-abyss_mangazero/376__side_01",
+    "panel_index": 3,
+    "sample_id": "made-in-abyss_mangazero/376__side_01/panel_003",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/376__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/376__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+    "target_height": 480,
+    "target_panel": "/root/validation_datasets/generalist/img_0054/target.png",
+    "target_width": 416,
+    "validation_set_dir": "img_0054"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 stands with head tilted, mouth open in speech, gazing downward toward Character 2 and Character 4 who crouch below with wide eyes and open mouths. Character 3 appears at left edge. Gray background with multiple speech bubbles and narration areas scattered across the composition.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 4,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            871,
+            907,
+            983,
+            1045
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            467,
+            1324,
+            696,
+            1584
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            519,
+            764,
+            742,
+            1116
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            156,
+            941,
+            465,
+            1155
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.516827,
+              0.3375,
+              0.96875,
+              0.758333
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.372596,
+              0.672917,
+              0.651442,
+              0.954167
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.016827,
+              0.504167,
+              0.322115,
+              0.9875
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.627404,
+              0.772917,
+              0.987981,
+              0.972917
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.757212,
+                0.141667,
+                0.877404,
+                0.229167
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.475962,
+                0.220833,
+                0.629808,
+                0.35
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.038462,
+                0.216667,
+                0.307692,
+                0.51875
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.605769,
+                0.670833,
+                0.896635,
+                0.80625
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 4
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "376__side_01",
+    "page_root": "made-in-abyss_mangazero/376__side_01",
+    "panel_index": 3,
+    "sample_id": "made-in-abyss_mangazero/376__side_01/panel_003",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/376__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/376__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+    "target_height": 480,
+    "target_panel": {
+      "crop_box": [
+        716,
+        1120,
+        1128,
+        1594
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/376__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 416
+  }
+}

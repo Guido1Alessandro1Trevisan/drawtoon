@@ -1,0 +1,380 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Yu-Gi-Oh! by Kazuki Takahashi. Character 1 and Character 4 huddle together in a dark, densely screened panel on the left, while Character 3 stands alone on the right side in a lighter area, body turned with arm raised. Multiple speech bubbles and shout bubbles frame the scene. Character 2 crouches at the bottom left. Jagged panel borders and speed lines create dynamic vertical composition.",
+    "chapter": "yu-gi-oh_mangazero",
+    "character_count": 4,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0144/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0144/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0144/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0144/ctrl_img_5.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.180147,
+              0.160473,
+              0.441176,
+              0.402027
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.011029,
+              0.724662,
+              0.367647,
+              0.991554
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.540441,
+              0.501689,
+              0.911765,
+              0.932432
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.007353,
+              0.216216,
+              0.172794,
+              0.376689
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.577206,
+                0.059122,
+                0.930147,
+                0.190878
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.794118,
+                0.320946,
+                0.933824,
+                0.380068
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.672794,
+                0.322635,
+                0.830882,
+                0.388514
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.014706,
+                0.493243,
+                0.294118,
+                0.662162
+              ],
+              "text_region_index": 3,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 2,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0144/ctrl_img_1.png"
+    },
+    "eval_index": 144,
+    "eval_seed": 20260659,
+    "eval_stratum": "3plus/2plus/portrait",
+    "page_id": "379__side_01",
+    "page_root": "yu-gi-oh_mangazero/379__side_01",
+    "panel_index": 0,
+    "sample_id": "yu-gi-oh_mangazero/379__side_01/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/yu-gi-oh_mangazero/379__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/yu-gi-oh_mangazero/379__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+    "target_height": 592,
+    "target_panel": "/root/validation_datasets/generalist/img_0144/target.png",
+    "target_width": 272,
+    "validation_set_dir": "img_0144"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Yu-Gi-Oh! by Kazuki Takahashi. Character 1 and Character 4 huddle together in a dark, densely screened panel on the left, while Character 3 stands alone on the right side in a lighter area, body turned with arm raised. Multiple speech bubbles and shout bubbles frame the scene. Character 2 crouches at the bottom left. Jagged panel borders and speed lines create dynamic vertical composition.",
+    "chapter": "yu-gi-oh_mangazero",
+    "character_count": 4,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            54,
+            784,
+            180,
+            874
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            563,
+            913,
+            727,
+            1148
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            263,
+            85,
+            339,
+            529
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            16,
+            101,
+            73,
+            236
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.180147,
+              0.160473,
+              0.441176,
+              0.402027
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.011029,
+              0.724662,
+              0.367647,
+              0.991554
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.540441,
+              0.501689,
+              0.911765,
+              0.932432
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.007353,
+              0.216216,
+              0.172794,
+              0.376689
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.577206,
+                0.059122,
+                0.930147,
+                0.190878
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.794118,
+                0.320946,
+                0.933824,
+                0.380068
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.672794,
+                0.322635,
+                0.830882,
+                0.388514
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.014706,
+                0.493243,
+                0.294118,
+                0.662162
+              ],
+              "text_region_index": 3,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 2,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "379__side_01",
+    "page_root": "yu-gi-oh_mangazero/379__side_01",
+    "panel_index": 0,
+    "sample_id": "yu-gi-oh_mangazero/379__side_01/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/yu-gi-oh_mangazero/379__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/yu-gi-oh_mangazero/379__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+    "target_height": 592,
+    "target_panel": {
+      "crop_box": [
+        469,
+        3,
+        727,
+        595
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/yu-gi-oh_mangazero/379__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 272
+  }
+}

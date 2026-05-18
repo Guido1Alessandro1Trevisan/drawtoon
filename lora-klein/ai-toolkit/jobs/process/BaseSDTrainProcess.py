@@ -2,6 +2,7 @@ import copy
 import glob
 import inspect
 import json
+import math
 import random
 import shutil
 from collections import OrderedDict
@@ -623,11 +624,17 @@ class BaseSDTrainProcess(BaseTrainProcess):
             return []
         decorated: list[tuple[str, tuple[str, dict]]] = []
         for manifest_path, entry in entries:
-            entry_key = entry.get("target_panel") or json.dumps(entry, sort_keys=True)
+            entry_key = self._validation_entry_identity(entry)
             stable_key = hashlib.sha1(f"{seed_key}:{manifest_path}:{entry_key}".encode("utf-8")).hexdigest()
             decorated.append((stable_key, (manifest_path, entry)))
         decorated.sort(key=lambda item: item[0])
         return [entry for _, entry in decorated[:count]]
+
+    def _validation_entry_identity(self, entry: dict) -> str:
+        sample_id = str(entry.get("sample_id") or "").strip()
+        if sample_id:
+            return sample_id
+        return json.dumps(entry.get("target_panel") or entry, sort_keys=True, ensure_ascii=False)
 
     def _resolve_validation_asset_path(self, manifest_path: str, asset_ref: str) -> str:
         raw_value = str(asset_ref).strip()
@@ -675,6 +682,196 @@ class BaseSDTrainProcess(BaseTrainProcess):
         if os.path.exists(mounted_path):
             return mounted_path
         return os.path.join(os.path.dirname(manifest_path), normalized)
+
+    def _validation_asset_cache_path(self, asset_ref, suffix: str) -> str:
+        cache_root = os.environ.get("LINEART2_DYNAMIC_VALIDATION_ASSET_CACHE")
+        if not cache_root:
+            output_root = os.environ.get("LINEART2_TRAINING_OUTPUT_ROOT", "/tmp/lineart2_training_output")
+            cache_root = os.path.join(output_root, "_dynamic_validation_assets")
+        digest = hashlib.sha1(
+            json.dumps(asset_ref, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        return os.path.join(cache_root, digest[:2], f"{digest}{suffix}")
+
+    def _coerce_validation_crop_box(self, asset_ref) -> tuple[int, int, int, int] | None:
+        if not isinstance(asset_ref, dict):
+            return None
+        crop_box = asset_ref.get("crop_box") or asset_ref.get("bbox")
+        if not isinstance(crop_box, (list, tuple)) or len(crop_box) != 4:
+            return None
+        x0, y0, x1, y1 = [float(value) for value in crop_box]
+        return int(math.floor(x0)), int(math.floor(y0)), int(math.ceil(x1)), int(math.ceil(y1))
+
+    def _materialize_validation_asset_ref(self, manifest_path: str, asset_ref) -> str:
+        if not isinstance(asset_ref, dict):
+            return self._resolve_validation_asset_path(manifest_path, str(asset_ref))
+        image_ref = asset_ref.get("image") or asset_ref.get("path")
+        if not image_ref:
+            raise ValueError(f"Lazy validation asset is missing image/path: {asset_ref}")
+        output_path = self._validation_asset_cache_path(asset_ref, ".jpg")
+        if os.path.exists(output_path):
+            return output_path
+
+        from PIL import Image, ImageOps
+
+        source_path = self._resolve_validation_asset_path(manifest_path, str(image_ref))
+        with Image.open(source_path) as image:
+            image = image.convert("RGB")
+            crop_box = self._coerce_validation_crop_box(asset_ref)
+            if crop_box is not None:
+                image = image.crop(crop_box)
+            pad_multiple = int(asset_ref.get("pad_multiple") or 0)
+            border_width = int(asset_ref.get("border_width") or 0)
+            border_rgb = asset_ref.get("border_rgb")
+            if border_width > 0 and isinstance(border_rgb, (list, tuple)) and len(border_rgb) == 3:
+                if pad_multiple > 1:
+                    inner_width = int(math.ceil((image.width + border_width * 2) / pad_multiple) * pad_multiple) - border_width * 2
+                    inner_height = int(math.ceil((image.height + border_width * 2) / pad_multiple) * pad_multiple) - border_width * 2
+                    if inner_width != image.width or inner_height != image.height:
+                        padded = Image.new("RGB", (max(image.width, inner_width), max(image.height, inner_height)), (255, 255, 255))
+                        padded.paste(image, (0, 0))
+                        image = padded
+                image = ImageOps.expand(image, border=border_width, fill=tuple(int(value) for value in border_rgb))
+            elif pad_multiple > 1:
+                padded_width = int(math.ceil(image.width / pad_multiple) * pad_multiple)
+                padded_height = int(math.ceil(image.height / pad_multiple) * pad_multiple)
+                if (padded_width, padded_height) != image.size:
+                    padded = Image.new("RGB", (padded_width, padded_height), (255, 255, 255))
+                    padded.paste(image, (0, 0))
+                    image = padded
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            tmp_path = f"{output_path}.{os.getpid()}.tmp"
+            try:
+                image.save(tmp_path, format="JPEG", quality=95, optimize=True)
+                os.replace(tmp_path, output_path)
+            finally:
+                if os.path.exists(tmp_path):
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
+        return output_path
+
+    def _norm_validation_box_to_pixel_box(
+        self,
+        box_norm,
+        *,
+        width: int,
+        height: int,
+    ) -> tuple[int, int, int, int] | None:
+        if not isinstance(box_norm, list) or len(box_norm) != 4:
+            return None
+        x0 = int(round(max(0.0, min(1.0, float(box_norm[0]))) * width))
+        y0 = int(round(max(0.0, min(1.0, float(box_norm[1]))) * height))
+        x1 = int(round(max(0.0, min(1.0, float(box_norm[2]))) * width))
+        y1 = int(round(max(0.0, min(1.0, float(box_norm[3]))) * height))
+        if x1 <= x0 or y1 <= y0:
+            return None
+        return x0, y0, x1, y1
+
+    def _draw_dynamic_validation_text_region(self, draw, box_norm, *, width: int, height: int, bubble_type: str) -> bool:
+        normalized_type = " ".join(str(bubble_type or "").split()).strip().lower()
+        if normalized_type in {"", "none", "null"}:
+            return False
+        pixel_box = self._norm_validation_box_to_pixel_box(box_norm, width=width, height=height)
+        if pixel_box is None:
+            return False
+        colors = {
+            "speech bubble": (0, 96, 255),
+            "narration bubble": (255, 128, 0),
+            "shout bubble": (128, 0, 255),
+        }
+        if "speech" in normalized_type:
+            color = colors["speech bubble"]
+        elif "shout" in normalized_type or "yell" in normalized_type or "scream" in normalized_type:
+            color = colors["shout bubble"]
+        elif "narration" in normalized_type or "caption" in normalized_type:
+            color = colors["narration bubble"]
+        else:
+            return False
+        draw.rectangle(pixel_box, fill=color)
+        return True
+
+    def _materialize_dynamic_validation_layout(self, manifest_path: str, entry: dict) -> str | None:
+        controls = entry.get("controls") if isinstance(entry.get("controls"), dict) else {}
+        layout_metadata = controls.get("layout_control")
+        if not isinstance(layout_metadata, dict):
+            return None
+        width = int(entry.get("target_width") or 0)
+        height = int(entry.get("target_height") or 0)
+        if width <= 0 or height <= 0:
+            return None
+        output_path = self._validation_asset_cache_path(
+            {
+                "manifest": manifest_path,
+                "sample_id": entry.get("sample_id"),
+                "layout_control": layout_metadata,
+                "width": width,
+                "height": height,
+            },
+            ".png",
+        )
+        if os.path.exists(output_path):
+            return output_path
+
+        from PIL import Image, ImageDraw
+
+        layout = Image.new("RGB", (width, height), (0, 0, 0))
+        draw = ImageDraw.Draw(layout)
+        for character in layout_metadata.get("characters") or []:
+            if not isinstance(character, dict):
+                continue
+            pixel_box = self._norm_validation_box_to_pixel_box(
+                character.get("bbox_norm"),
+                width=width,
+                height=height,
+            )
+            rgb = character.get("rgb")
+            if pixel_box is not None and isinstance(rgb, list) and len(rgb) == 3:
+                draw.rectangle(
+                    pixel_box,
+                    outline=tuple(int(value) for value in rgb),
+                    width=max(1, int(character.get("line_width") or 6)),
+                )
+        text_payload = layout_metadata.get("text") if isinstance(layout_metadata.get("text"), dict) else {}
+        for region in text_payload.get("regions") or []:
+            if not isinstance(region, dict):
+                continue
+            self._draw_dynamic_validation_text_region(
+                draw,
+                region.get("bbox_norm"),
+                width=width,
+                height=height,
+                bubble_type=str(region.get("type") or "Speech Bubble"),
+            )
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        tmp_path = f"{output_path}.{os.getpid()}.tmp"
+        try:
+            layout.save(tmp_path, format="PNG", optimize=True)
+            os.replace(tmp_path, output_path)
+        finally:
+            if os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+        return output_path
+
+    def _dynamic_validation_control_paths_for_entry(self, manifest_path: str, entry: dict, max_controls: int = 7) -> list[str]:
+        controls = entry.get("controls") if isinstance(entry.get("controls"), dict) else {}
+        control_paths: list[str] = []
+        layout_control = controls.get("layout_control_path")
+        if layout_control:
+            control_paths.append(self._materialize_validation_asset_ref(manifest_path, layout_control))
+        else:
+            layout_path = self._materialize_dynamic_validation_layout(manifest_path, entry)
+            if layout_path is not None:
+                control_paths.append(layout_path)
+        for ref_path in controls.get("character_ref_paths", []):
+            if len(control_paths) >= max_controls:
+                break
+            control_paths.append(self._materialize_validation_asset_ref(manifest_path, ref_path))
+        return control_paths[:max_controls]
 
     def _infer_validation_dimensions(
         self,
@@ -740,13 +937,13 @@ class BaseSDTrainProcess(BaseTrainProcess):
             "character_ref_to_panel:fixed",
         )
         fixed_keys = {
-            entry.get("target_panel") or json.dumps(entry, sort_keys=True)
+            self._validation_entry_identity(entry)
             for _, entry in fixed_selection
         }
         random_pool = [
             (manifest_path, entry)
             for manifest_path, entry in candidates
-            if (entry.get("target_panel") or json.dumps(entry, sort_keys=True)) not in fixed_keys
+            if self._validation_entry_identity(entry) not in fixed_keys
         ]
         random_count = sample_count - len(fixed_selection)
         step_key = self.step_num if step is None else step
@@ -770,7 +967,7 @@ class BaseSDTrainProcess(BaseTrainProcess):
         bucket_tolerance = int(getattr(sample_config, "dynamic_validation_bucket_tolerance", 16) or 16)
         sample_dicts: list[dict] = []
         for manifest_path, entry in [*fixed_selection, *random_selection]:
-            target_path = self._resolve_validation_asset_path(manifest_path, str(entry["target_panel"]))
+            target_path = self._materialize_validation_asset_ref(manifest_path, entry["target_panel"])
             sample_width, sample_height = self._infer_validation_dimensions(
                 target_path,
                 bucket_tolerance,
@@ -783,15 +980,10 @@ class BaseSDTrainProcess(BaseTrainProcess):
                 "validation_target_path": target_path,
                 "validation_caption": str(entry["caption"]),
             }
-            controls = entry.get("controls", {}) or {}
-            control_paths: list[str] = []
-            for ref_path in controls.get("character_ref_paths", [])[:7]:
-                control_paths.append(
-                    self._resolve_validation_asset_path(manifest_path, str(ref_path))
-                )
-            for idx, control_path in enumerate(control_paths[:7], start=1):
+            control_paths = self._dynamic_validation_control_paths_for_entry(manifest_path, entry, max_controls=7)
+            for idx, control_path in enumerate(control_paths, start=1):
                 sample[f"ctrl_img_{idx}"] = control_path
-            sample["validation_control_paths"] = control_paths[:7]
+            sample["validation_control_paths"] = control_paths
             sample_dicts.append(sample)
         return sample_dicts
 

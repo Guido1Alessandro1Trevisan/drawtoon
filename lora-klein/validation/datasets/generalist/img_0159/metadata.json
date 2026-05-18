@@ -1,0 +1,234 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Attack on Titan by Hajime Isayama. Character 2 leans forward with wide eyes and open mouth, gazing toward Character 1 in a close interior space with heavy cross-hatching and dark screen tone; a large speech bubble floats between them, medium shot with tilted framing and overlapping figures.",
+    "chapter": "attack-on-titan_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0159/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0159/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.53125,
+              0.164583,
+              0.959375,
+              0.997917
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.196875,
+              0.197917,
+              0.434375,
+              0.995833
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.271875,
+                0.139583,
+                0.503125,
+                0.245833
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0159/ctrl_img_1.png"
+    },
+    "eval_index": 159,
+    "eval_seed": 20260674,
+    "eval_stratum": "2/1/portrait",
+    "page_id": "722__side_00",
+    "page_root": "attack-on-titan_mangazero/722__side_00",
+    "panel_index": 2,
+    "sample_id": "attack-on-titan_mangazero/722__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/attack-on-titan_mangazero/722__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/attack-on-titan_mangazero/722__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/attack-on-titan_mangazero/722__side_00.jpg",
+    "target_height": 480,
+    "target_panel": "/root/validation_datasets/generalist/img_0159/target.png",
+    "target_width": 320,
+    "validation_set_dir": "img_0159"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Attack on Titan by Hajime Isayama. Character 2 leans forward with wide eyes and open mouth, gazing toward Character 1 in a close interior space with heavy cross-hatching and dark screen tone; a large speech bubble floats between them, medium shot with tilted framing and overlapping figures.",
+    "chapter": "attack-on-titan_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            371,
+            763,
+            554,
+            953
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/attack-on-titan_mangazero/722__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            562,
+            737,
+            741,
+            1153
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/attack-on-titan_mangazero/722__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.53125,
+              0.164583,
+              0.959375,
+              0.997917
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.196875,
+              0.197917,
+              0.434375,
+              0.995833
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.271875,
+                0.139583,
+                0.503125,
+                0.245833
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "722__side_00",
+    "page_root": "attack-on-titan_mangazero/722__side_00",
+    "panel_index": 2,
+    "sample_id": "attack-on-titan_mangazero/722__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/attack-on-titan_mangazero/722__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/attack-on-titan_mangazero/722__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/attack-on-titan_mangazero/722__side_00.jpg",
+    "target_height": 480,
+    "target_panel": {
+      "crop_box": [
+        0,
+        719,
+        307,
+        1198
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/attack-on-titan_mangazero/722__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 320
+  }
+}

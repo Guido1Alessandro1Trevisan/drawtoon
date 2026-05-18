@@ -33,6 +33,7 @@ DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_S3_REGION")
 DEFAULT_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
 DEFAULT_INPUT_PREFIX = "datasets/pages/single"
 DEFAULT_OUTPUT_PREFIX = "datasets/pages/filtered"
+DEFAULT_FILTER_MODE = "manga"
 DEFAULT_CLASSIFICATION_MODEL = os.environ.get(
     "DEFAULT_CLASSIFICATION_MODEL",
     "global.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -107,11 +108,17 @@ def main() -> None:
     filter_cmd.add_argument("--bucket", default=DEFAULT_BUCKET)
     filter_cmd.add_argument("--input-prefix", default=DEFAULT_INPUT_PREFIX)
     filter_cmd.add_argument("--output-prefix", default=DEFAULT_OUTPUT_PREFIX)
+    filter_cmd.add_argument("--mode", choices=["manga", "manhwa", "manwa", "webtoon"], default=DEFAULT_FILTER_MODE)
     filter_cmd.add_argument("--model", default=DEFAULT_CLASSIFICATION_MODEL)
-    filter_cmd.add_argument("--prompt-filename", default="classify_manga_pages.md")
+    filter_cmd.add_argument("--prompt-filename", default="")
     filter_cmd.add_argument("--timeout-seconds", type=float, default=60.0)
     filter_cmd.add_argument("--retries", type=int, default=5)
-    filter_cmd.add_argument("--max-output-tokens", type=int, default=160)
+    filter_cmd.add_argument("--max-output-tokens", type=int, default=0)
+    filter_cmd.add_argument("--manhwa-diagnostic-width", type=int, default=896)
+    filter_cmd.add_argument("--manhwa-full-thumb-height", type=int, default=640)
+    filter_cmd.add_argument("--manhwa-edge-crop-source-px", type=int, default=1536)
+    filter_cmd.add_argument("--manhwa-jpeg-quality", type=int, default=82)
+    filter_cmd.add_argument("--manhwa-chain-confidence-threshold", type=float, default=0.75)
     filter_cmd.add_argument("--include-relative-path-regex", default="")
     filter_cmd.add_argument("--run-id", default="")
     filter_cmd.add_argument("--overwrite", action="store_true")
@@ -142,11 +149,17 @@ def main() -> None:
         "bucket": str(args.bucket).strip(),
         "input_prefix": str(args.input_prefix).strip().strip("/"),
         "output_prefix": str(args.output_prefix).strip().strip("/"),
+        "mode": str(args.mode).strip(),
         "model": str(args.model).strip(),
         "prompt_filename": str(args.prompt_filename).strip(),
         "timeout_seconds": float(args.timeout_seconds),
         "retries": int(args.retries),
         "max_output_tokens": int(args.max_output_tokens),
+        "manhwa_diagnostic_width": int(args.manhwa_diagnostic_width),
+        "manhwa_full_thumb_height": int(args.manhwa_full_thumb_height),
+        "manhwa_edge_crop_source_px": int(args.manhwa_edge_crop_source_px),
+        "manhwa_jpeg_quality": int(args.manhwa_jpeg_quality),
+        "manhwa_chain_confidence_threshold": float(args.manhwa_chain_confidence_threshold),
         "include_relative_path_regex": str(args.include_relative_path_regex or "").strip(),
         "bedrock_preflight": not bool(args.no_bedrock_preflight),
         "run_id": str(args.run_id or "").strip(),

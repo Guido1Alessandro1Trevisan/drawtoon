@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 peeks around a dark vertical surface with wide eyes and open mouth, body tilted and leaning forward, gazing toward the right side of the panel against a stark white background, medium close-up shot with tilted framing emphasizing the peeking gesture.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0066/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.410714,
+              0.1875,
+              0.982143,
+              0.91875
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.832589,
+                0.079687,
+                0.912946,
+                0.251563
+              ],
+              "text_region_index": 0,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.805804,
+                0.63125,
+                0.915179,
+                0.746875
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0066/ctrl_img_1.png"
+    },
+    "eval_index": 66,
+    "eval_seed": 20260581,
+    "eval_stratum": "1/2plus/portrait",
+    "page_id": "117__side_00",
+    "page_root": "made-in-abyss_mangazero/117__side_00",
+    "panel_index": 2,
+    "sample_id": "made-in-abyss_mangazero/117__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/117__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/117__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/117__side_00.jpg",
+    "target_height": 640,
+    "target_panel": "/root/validation_datasets/generalist/img_0066/target.png",
+    "target_width": 448,
+    "validation_set_dir": "img_0066"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 peeks around a dark vertical surface with wide eyes and open mouth, body tilted and leaning forward, gazing toward the right side of the panel against a stark white background, medium close-up shot with tilted framing emphasizing the peeking gesture.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            170,
+            1005,
+            467,
+            1573
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/117__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.410714,
+              0.1875,
+              0.982143,
+              0.91875
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.832589,
+                0.079687,
+                0.912946,
+                0.251563
+              ],
+              "text_region_index": 0,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.805804,
+                0.63125,
+                0.915179,
+                0.746875
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "117__side_00",
+    "page_root": "made-in-abyss_mangazero/117__side_00",
+    "panel_index": 2,
+    "sample_id": "made-in-abyss_mangazero/117__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/117__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/117__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/117__side_00.jpg",
+    "target_height": 640,
+    "target_panel": {
+      "crop_box": [
+        486,
+        968,
+        933,
+        1598
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/117__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 448
+  }
+}

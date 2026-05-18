@@ -1,0 +1,25 @@
+{
+  "run_id": "lezhin_lout_public_20260517T173250Z",
+  "created_at": "2026-05-17T17:33:06Z",
+  "bucket": "drawtoon",
+  "prefix": "datasets/pages/source/lezhin",
+  "series": [
+    "lout-of-counts-family"
+  ],
+  "manifest_path": "artifacts/separata_manwa/manifests/lezhin_lout_public_20260517T173250Z_episodes.jsonl",
+  "status_path": "artifacts/separata_manwa/manifests/lezhin_lout_public_20260517T173250Z_status.jsonl",
+  "download": true,
+  "counts": {
+    "episodes": 172,
+    "accessible": 2,
+    "locked_or_unavailable": 170,
+    "written": 92,
+    "skipped": 1,
+    "failures": 0,
+    "images": 93
+  },
+  "notes": [
+    "Only official Lezhin reader pages with public embedded cut metadata and signed CDN parameters were downloaded.",
+    "LOGIN_REQUIRED, coin, and missing-reader episodes are recorded as locked_or_unavailable."
+  ]
+}

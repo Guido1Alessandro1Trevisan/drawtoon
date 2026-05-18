@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Drawtoon Haiku panel caption workflow.
+Description: Drawtoon Gemini page-level panel caption workflow.
 
 Parameters:
   DatasetBucketName:
@@ -8,17 +8,22 @@ Parameters:
     Default: drawtoon
   PythonRuntime:
     Type: String
-    Default: python3.11
-  DefaultCaptionModel:
+    Default: python3.12
+  DefaultGeminiModel:
     Type: String
-    Default: global.anthropic.claude-haiku-4-5-20251001-v1:0
+    Default: gemini-3-flash-preview
   DefaultMangaMetadataJson:
     Type: String
     Default: metadata/mangazero_manga_credits_20260511.json
+  GeminiApiKeySecretName:
+    Type: String
+    Default: drawtoon/gemini-api-key
 
 Globals:
   Function:
     Runtime: !Ref PythonRuntime
+    Architectures:
+      - arm64
     Timeout: 900
     MemorySize: 2048
     Tracing: Active
@@ -26,7 +31,8 @@ Globals:
     Environment:
       Variables:
         DATASET_BUCKET_NAME: !Ref DatasetBucketName
-        DEFAULT_CAPTION_MODEL: !Ref DefaultCaptionModel
+        DEFAULT_GEMINI_MODEL: !Ref DefaultGeminiModel
+        GEMINI_API_KEY_SECRET_NAME: !Ref GeminiApiKeySecretName
         MANGA_METADATA_JSON: !Ref DefaultMangaMetadataJson
 
 Resources:
@@ -67,8 +73,9 @@ Resources:
                 - !Sub arn:aws:s3:::${DatasetBucketName}/*
             - Effect: Allow
               Action:
-                - bedrock:InvokeModel
-              Resource: "*"
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${GeminiApiKeySecretName}-*
 
   MangaCaptionStateMachine:
     Type: AWS::Serverless::StateMachine

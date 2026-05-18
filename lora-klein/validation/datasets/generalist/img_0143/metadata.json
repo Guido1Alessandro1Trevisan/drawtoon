@@ -1,0 +1,169 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Chainsaw Man by Tatsuki Fujimoto. Character 1 walks forward through a corridor lined with open doorways, viewed from behind at medium distance, with multiple figures lying prone on the floor in the foreground and background, creating stark compositional depth and contrast against the white space.",
+    "chapter": "chainsaw-man_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0143/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.464286,
+              0.345982,
+              0.552296,
+              0.758929
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0143/ctrl_img_1.png"
+    },
+    "eval_index": 143,
+    "eval_seed": 20260658,
+    "eval_stratum": "1/0/landscape",
+    "page_id": "584__side_00",
+    "page_root": "chainsaw-man_mangazero/584__side_00",
+    "panel_index": 5,
+    "sample_id": "chainsaw-man_mangazero/584__side_00/panel_005",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/chainsaw-man_mangazero/584__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/chainsaw-man_mangazero/584__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/584__side_00.jpg",
+    "target_height": 448,
+    "target_panel": "/root/validation_datasets/generalist/img_0143/target.png",
+    "target_width": 784,
+    "validation_set_dir": "img_0143"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Chainsaw Man by Tatsuki Fujimoto. Character 1 walks forward through a corridor lined with open doorways, viewed from behind at medium distance, with multiple figures lying prone on the floor in the foreground and background, creating stark compositional depth and contrast against the white space.",
+    "chapter": "chainsaw-man_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            54,
+            336,
+            426,
+            739
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/584__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.464286,
+              0.345982,
+              0.552296,
+              0.758929
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "584__side_00",
+    "page_root": "chainsaw-man_mangazero/584__side_00",
+    "panel_index": 5,
+    "sample_id": "chainsaw-man_mangazero/584__side_00/panel_005",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/chainsaw-man_mangazero/584__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/chainsaw-man_mangazero/584__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/584__side_00.jpg",
+    "target_height": 448,
+    "target_panel": {
+      "crop_box": [
+        43,
+        753,
+        815,
+        1196
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/584__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 784
+  }
+}

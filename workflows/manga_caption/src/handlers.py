@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import datetime as dt
-import hashlib
 import io
 import json
-import math
 import os
 import random
 import re
-import time
 from pathlib import Path
 from typing import Any
 
@@ -20,21 +17,18 @@ from PIL import Image
 
 DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "us-east-1"
 DATASET_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
-DEFAULT_CAPTION_MODEL = os.environ.get(
-    "DEFAULT_CAPTION_MODEL",
-    "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-)
-DEFAULT_SOURCE_PREFIX = "datasets/pages/filtered"
+DEFAULT_GEMINI_MODEL = os.environ.get("DEFAULT_GEMINI_MODEL", "gemini-3-flash-preview")
+GEMINI_API_KEY_SECRET_NAME = os.environ.get("GEMINI_API_KEY_SECRET_NAME", "drawtoon/gemini-api-key")
+GEMINI_API_KEY_ENV = "GOOGLE_GENERATIVE_AI_API_KEY"
+DEFAULT_SOURCE_PREFIX = "datasets/pages/text_removed"
 DEFAULT_ANNOTATION_PREFIX = "datasets/annotations/magi_v3"
 DEFAULT_OUTPUT_PREFIX = "captions"
-DEFAULT_CAPTION_RUN = "haiku45_mangazero_panel_simple_v1"
+DEFAULT_CAPTION_RUN = "gemini3_flash_page_panel_v1"
 DEFAULT_MANGA_METADATA_REF = os.environ.get(
     "MANGA_METADATA_JSON",
     "metadata/mangazero_manga_credits_20260511.json",
 )
-DEFAULT_MAX_CONCURRENCY = int(os.environ.get("DEFAULT_MANGA_CAPTION_MAX_CONCURRENCY", "400"))
-BEDROCK_MAX_IMAGE_BYTES = int(os.environ.get("BEDROCK_MAX_IMAGE_BYTES", "3600000"))
-BEDROCK_MAX_IMAGE_SIDE = int(os.environ.get("BEDROCK_MAX_IMAGE_SIDE", "1800"))
+DEFAULT_MAX_CONCURRENCY = int(os.environ.get("DEFAULT_MANGA_CAPTION_MAX_CONCURRENCY", "200"))
 MAX_CHARACTERS_PER_PANEL = 5
 MAX_TEXT_REGIONS_PER_PANEL = 7
 MIN_PANEL_ENTITY_OVERLAP_RATIO = float(os.environ.get("MIN_PANEL_ENTITY_OVERLAP_RATIO", "0.05"))
@@ -43,48 +37,55 @@ WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_TEXT_BUBBLE_TYPES = ("Speech Bubble", "Narration Bubble", "Shout Bubble")
 
 _S3_CLIENT = None
-_BEDROCK_RUNTIME_CLIENTS: dict[tuple[str, int], Any] = {}
 _MANGA_METADATA_CACHE: dict[str, dict[str, Any]] = {}
 
-PANEL_CAPTION_SCHEMA = {
+PAGE_CAPTION_SCHEMA_GEMINI = {
     "type": "object",
     "properties": {
-        "text_bubble_types": {
+        "panel_count_in_page": {"type": "integer"},
+        "panels": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "text_region_index": {"type": "integer"},
-                    "type": {"type": "string", "enum": list(ALLOWED_TEXT_BUBBLE_TYPES)},
+                    "panel_index": {
+                        "type": "integer",
+                        "description": "Zero-indexed panel order (left-to-right, top-to-bottom Western reading order if the page is read that way, otherwise manga right-to-left, top-to-bottom). Must match the indices provided in the user prompt.",
+                    },
+                    "caption": {
+                        "type": "string",
+                        "description": (
+                            "Dense ~80-word caption that is descriptive not interpretive. "
+                            "For each character cover position, pose, facing direction, gaze target, mouth shape, visible action. "
+                            "Include shot size (close-up/medium/wide), camera angle (eye-level/high/low/three-quarter), "
+                            "and panel composition language (speed lines, screen tone, dark fill, tilted framing, overlapping figures, silhouettes). "
+                            "Do not mention speech/shout/narration bubbles in this field. "
+                            "Do not mention characters by name. "
+                            "Do not mention that it is a black-and-white manga panel."
+                        ),
+                    },
+                    "text_bubble_types": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "text_region_index": {"type": "integer"},
+                                "type": {
+                                    "type": "string",
+                                    "format": "enum",
+                                    "enum": list(ALLOWED_TEXT_BUBBLE_TYPES),
+                                },
+                            },
+                            "required": ["text_region_index", "type"],
+                        },
+                    },
                 },
-                "required": ["text_region_index", "type"],
-                "additionalProperties": False,
+                "required": ["panel_index", "caption", "text_bubble_types"],
             },
         },
-        "caption": {
-            "type": "string",
-            "description": "One 30-80 word panel-caption body. Do not include manga title, author, or Black and White Manga/Colored Manga prefix.",
-        },
     },
-    "required": ["text_bubble_types", "caption"],
-    "additionalProperties": False,
+    "required": ["panel_count_in_page", "panels"],
 }
-
-SYSTEM_PROMPT = """You write concise manga panel captions for image-generation training.
-
-Use the supplied entity labels exactly: Character 1, Character 2, and so on.
-Do not describe character identity, hair, clothes, accessories, age, gender, art style, or other visual features.
-The caption field must be only the panel-caption body. Do not include the manga title, author, or Black and White Manga/Colored Manga prefix; code will inject that after your response.
-Write one caption-body sentence as a medium FLUX prompt, 30-80 words. Start with the visible subject/action, then add setting/background, shot size and camera angle when visible, and useful panel composition details such as speed lines, screen tone, stark white space, dark fill, silhouettes, debris, overlap, or tilted framing.
-Be descriptive, not interpretive: do not infer story meaning, intent, mood, cause, hidden emotion, or off-panel events. Describe visible posture, gesture, gaze, mouth shape, facial tension, and panel composition instead.
-Never use interpretive words such as distress, distressed, anguish, anxious, overwhelmed, agitation, chaos, foreboding, suggesting, implying, indicating, or conveying. Replace them with visible facts like wide eyes, open mouth shape, hunched posture, speed lines, scattered papers, or tilted framing.
-Never mention character clothing or accessories, including glasses, masks, hats, coats, shirts, uniforms, or shoes. Use only Character N plus visible pose, gesture, gaze, mouth shape, and facial tension.
-Do not quote, translate, or transcribe any visible text, including signs, narration, dialogue, and standalone non-dialogue lettering; describe it only as a sign, text area, speech bubble, or narration bubble when relevant.
-Never mention SFX, sound effects, or sound-effect marks in the caption.
-If the background is blank, mostly white, mostly black, speed lines, or abstract screen tone, say that plainly.
-Classify each text region as exactly one of: Speech Bubble, Narration Bubble, Shout Bubble.
-For text areas, mention only simple bubble presence/type when relevant. Do not transcribe dialogue or infer the written words.
-Return only the structured tool output."""
 
 
 def _s3_client():
@@ -102,25 +103,6 @@ def _s3_client():
             ),
         )
     return _S3_CLIENT
-
-
-def _bedrock_runtime_client(timeout_seconds: float, *, region: str):
-    read_timeout = max(1, min(900, int(math.ceil(float(timeout_seconds or 900.0)))))
-    cache_key = (region, read_timeout)
-    client = _BEDROCK_RUNTIME_CLIENTS.get(cache_key)
-    if client is None:
-        client = boto3.client(
-            "bedrock-runtime",
-            region_name=region,
-            config=Config(
-                region_name=region,
-                retries={"mode": "standard", "total_max_attempts": 1},
-                connect_timeout=10,
-                read_timeout=read_timeout,
-            ),
-        )
-        _BEDROCK_RUNTIME_CLIENTS[cache_key] = client
-    return client
 
 
 def _json_dumps(payload: object, *, pretty: bool = False) -> str:
@@ -158,20 +140,6 @@ def _parse_s3_uri(uri: str) -> tuple[str, str]:
     if not bucket or not key:
         raise ValueError(f"Invalid S3 URI: {uri!r}")
     return bucket, key
-
-
-def _split_bedrock_model_ref(model_ref: str) -> tuple[str, str]:
-    raw = str(model_ref or "").strip()
-    if "|" in raw:
-        region, model = raw.split("|", 1)
-        region = region.strip() or DEFAULT_REGION
-        model = model.strip()
-        if not model:
-            raise ValueError(f"Invalid Bedrock model ref: {model_ref!r}")
-        return region, model
-    if not raw:
-        raise ValueError("Bedrock model must not be empty")
-    return DEFAULT_REGION, raw
 
 
 def _get_s3_bytes(bucket: str, key: str) -> bytes:
@@ -420,28 +388,20 @@ def _caption_prefix(rendering_label: str, manga_credit: dict[str, Any]) -> str:
     return " ".join(parts)
 
 
-def _enforce_prefix(caption: object, prefix: str) -> str:
-    clean_prefix = _clean_text(prefix, max_chars=420)
-    text = _clean_text(caption, max_chars=1000)
-    if not clean_prefix:
-        return text
-    if text.lower().startswith(clean_prefix.lower()):
-        rest = text[len(clean_prefix) :].strip(" -:")
-        return f"{clean_prefix} {rest}".strip() if rest else clean_prefix
-    text = re.sub(r"^(?:black\s+and\s+white|colored)\s+manga\.?\s*", "", text, flags=re.IGNORECASE).strip(" -:")
-    return f"{clean_prefix} {text}".strip() if text else clean_prefix
-
-
-def _normalize_text_bubble_type(value: object) -> str:
-    text = " ".join(str(value or "").split()).strip().lower()
-    if "narration" in text or "caption" in text:
-        return "Narration Bubble"
-    if "shout" in text or "yell" in text or "scream" in text or "burst" in text:
-        return "Shout Bubble"
-    return "Speech Bubble"
+def _compose_caption(caption: object, prefix: str) -> str:
+    """Prepend the manga prefix to the model-returned caption body. The prompt
+    already tells the model not to include the prefix; trust the output."""
+    body = str(caption or "").strip()
+    head = str(prefix or "").strip()
+    if not head:
+        return body
+    return f"{head} {body}".strip() if body else head
 
 
 def _apply_text_bubble_types(panel: dict[str, Any], typed_regions: object) -> dict[str, Any]:
+    """Merge model-returned bubble types into the panel's text_bubbles[] by
+    text_region_index. The schema enforces enum values, so we trust them
+    verbatim. Regions absent from the model output keep their existing type."""
     by_index: dict[int, str] = {}
     if isinstance(typed_regions, list):
         for item in typed_regions:
@@ -451,7 +411,9 @@ def _apply_text_bubble_types(panel: dict[str, Any], typed_regions: object) -> di
                 index = int(item.get("text_region_index"))
             except (TypeError, ValueError):
                 continue
-            by_index[index] = _normalize_text_bubble_type(item.get("type"))
+            value = item.get("type")
+            if isinstance(value, str) and value in ALLOWED_TEXT_BUBBLE_TYPES:
+                by_index[index] = value
 
     updated_bubbles: list[dict[str, Any]] = []
     for index, text_region in enumerate(panel.get("text_bubbles") or []):
@@ -461,7 +423,7 @@ def _apply_text_bubble_types(panel: dict[str, Any], typed_regions: object) -> di
         updated_bubbles.append(
             {
                 **text_region,
-                "type": by_index.get(text_region_index, _normalize_text_bubble_type(text_region.get("type"))),
+                "type": by_index.get(text_region_index, text_region.get("type")),
             }
         )
     return {**panel, "text_bubbles": updated_bubbles}
@@ -536,32 +498,6 @@ def _entity_overlaps_panel(entity_box: list[float] | None, panel_box: list[float
         return False
     area = _bbox_area(entity_box)
     return area > 0 and _bbox_area([ix0, iy0, ix1, iy1]) / area >= MIN_PANEL_ENTITY_OVERLAP_RATIO
-
-
-def _image_block_from_crop(page_image: Image.Image, panel_box: list[float]) -> tuple[dict[str, Any], dict[str, Any]]:
-    x0, y0, x1, y1 = panel_box
-    crop = page_image.crop((int(math.floor(x0)), int(math.floor(y0)), int(math.ceil(x1)), int(math.ceil(y1)))).convert("RGB")
-    original_width, original_height = crop.size
-    if max(crop.size) > BEDROCK_MAX_IMAGE_SIDE:
-        crop.thumbnail((BEDROCK_MAX_IMAGE_SIDE, BEDROCK_MAX_IMAGE_SIDE), Image.Resampling.LANCZOS)
-    for quality in (92, 84, 76, 68):
-        output = io.BytesIO()
-        crop.save(output, format="JPEG", quality=quality, optimize=True)
-        encoded = output.getvalue()
-        if len(encoded) <= BEDROCK_MAX_IMAGE_BYTES:
-            width, height = crop.size
-            return (
-                {"image": {"format": "jpeg", "source": {"bytes": encoded}}},
-                {
-                    "image_format": "jpeg",
-                    "image_bytes": len(encoded),
-                    "image_width": int(width),
-                    "image_height": int(height),
-                    "source_panel_width": int(original_width),
-                    "source_panel_height": int(original_height),
-                },
-            )
-    raise ValueError(f"Panel crop could not be encoded below {BEDROCK_MAX_IMAGE_BYTES} bytes")
 
 
 def _annotation_panels(annotation: dict[str, Any], *, width: int, height: int) -> list[dict[str, Any]]:
@@ -666,113 +602,188 @@ def _annotation_panels(annotation: dict[str, Any], *, width: int, height: int) -
     return panels
 
 
-def _bedrock_tool_input(response: dict[str, Any], *, tool_name: str) -> dict[str, Any]:
-    output = response.get("output") if isinstance(response.get("output"), dict) else {}
-    message = output.get("message") if isinstance(output.get("message"), dict) else {}
-    for block in message.get("content") or []:
-        tool_use = block.get("toolUse") if isinstance(block, dict) else None
-        if isinstance(tool_use, dict) and str(tool_use.get("name") or "") == tool_name:
-            value = tool_use.get("input")
-            if not isinstance(value, dict):
-                raise ValueError(f"Bedrock tool {tool_name!r} returned non-object input")
-            return value
-    raise ValueError(f"Bedrock response did not contain tool input for {tool_name!r}")
+# =========================================================================
+# Gemini (Google) page-level captioning
+# =========================================================================
+
+_GENAI_CLIENT: Any = None
+_GENAI_API_KEY: str | None = None
+_GEMINI_MAX_IMAGE_SIDE = int(os.environ.get("GEMINI_MAX_IMAGE_SIDE", "2048"))
+_GEMINI_MAX_IMAGE_BYTES = int(os.environ.get("GEMINI_MAX_IMAGE_BYTES", "8000000"))
+_GEMINI_TIMEOUT_MS = int(os.environ.get("GEMINI_TIMEOUT_MS", "180000"))  # 180s; Lambda timeout is the backstop.
+_GEMINI_RETRY_ATTEMPTS = int(os.environ.get("GEMINI_RETRY_ATTEMPTS", "8"))
+_GEMINI_RETRY_MAX_DELAY_S = float(os.environ.get("GEMINI_RETRY_MAX_DELAY_S", "120.0"))
 
 
-def _bedrock_usage(response: dict[str, Any]) -> dict[str, int]:
-    usage = response.get("usage") if isinstance(response.get("usage"), dict) else {}
-    return {
-        "input_tokens": int(usage.get("inputTokens") or 0),
-        "output_tokens": int(usage.get("outputTokens") or 0),
-        "total_tokens": int(usage.get("totalTokens") or 0),
-    }
-
-
-def _caption_one_panel(
-    *,
-    model: str,
-    timeout_seconds: float,
-    retries: int,
-    max_output_tokens: int,
-    image_block: dict[str, Any],
-    caption_prefix: str,
-    panel: dict[str, Any],
-    request_id: str,
-) -> tuple[str, list[dict[str, Any]], dict[str, int]]:
-    character_lines = [
-        f"- Character {idx + 1}: bbox_norm_in_panel={character.get('panel_bbox_norm')}"
-        for idx, character in enumerate(panel.get("characters") or [])
-    ]
-    text_lines = [
-        f"- Text Region index {int(text_region.get('text_region_index') or idx)}: bbox_norm_in_panel={text_region.get('panel_bbox_norm')}"
-        for idx, text_region in enumerate(panel.get("text_bubbles") or [])
-    ]
-    user_text = "\n".join(
-        [
-            "Caption this single manga panel.",
-            "A metadata prefix with manga rendering, title, and author will be injected by code after your response.",
-            "Do not include Black and White Manga/Colored Manga, manga title, or author in your caption field.",
-            "",
-            "Characters to reference:",
-            *(character_lines or ["- none"]),
-            "",
-            "Text regions:",
-            *(text_lines or ["- none"]),
-            "",
-            "Write one single 30-80 word caption-body sentence. Use Character N labels for characters.",
-            "Use this FLUX-friendly order when possible: subject/action, setting/background, shot size and camera angle, useful panel composition details.",
-            "Focus on visible actions, poses, gaze, mouth shape, facial tension, and interactions.",
-            "Do not infer story meaning, intent, mood, cause, or hidden emotion.",
-            "Avoid these words: distress, distressed, anguish, anxious, overwhelmed, agitation, chaos, foreboding, suggesting, implying, indicating, conveying.",
-            "Do not describe appearance details, clothing, accessories, hair, age, or identity; the character reference images provide identity.",
-            "Do not mention glasses, masks, hats, coats, shirts, uniforms, shoes, or other accessories.",
-            "Do not quote, translate, or transcribe visible text, signs, narration, dialogue, or standalone non-dialogue lettering.",
-            "Never mention SFX, sound effects, or sound-effect marks in the caption.",
-            "Do not mention bbox coordinates or panel positions in the caption.",
-            "For every listed text region, return its type as Speech Bubble, Narration Bubble, or Shout Bubble.",
-        ]
+def _resolve_gemini_api_key() -> str:
+    global _GENAI_API_KEY
+    if _GENAI_API_KEY:
+        return _GENAI_API_KEY
+    env_value = os.environ.get(GEMINI_API_KEY_ENV, "").strip()
+    if env_value:
+        _GENAI_API_KEY = env_value
+        return _GENAI_API_KEY
+    if GEMINI_API_KEY_SECRET_NAME:
+        try:
+            client = boto3.client("secretsmanager", region_name=DEFAULT_REGION)
+            resp = client.get_secret_value(SecretId=GEMINI_API_KEY_SECRET_NAME)
+            secret_string = resp.get("SecretString")
+            if secret_string:
+                try:
+                    parsed = json.loads(secret_string)
+                    if isinstance(parsed, dict) and parsed.get(GEMINI_API_KEY_ENV):
+                        _GENAI_API_KEY = str(parsed[GEMINI_API_KEY_ENV])
+                        return _GENAI_API_KEY
+                except json.JSONDecodeError:
+                    pass
+                _GENAI_API_KEY = secret_string.strip()
+                return _GENAI_API_KEY
+        except ClientError as exc:
+            raise RuntimeError(
+                f"Could not load Gemini API key from secret {GEMINI_API_KEY_SECRET_NAME!r}: {exc}"
+            ) from exc
+    raise RuntimeError(
+        f"Gemini API key not found. Set {GEMINI_API_KEY_ENV} env var or "
+        f"secret {GEMINI_API_KEY_SECRET_NAME!r}."
     )
 
-    region, model_id = _split_bedrock_model_ref(model)
-    last_error: Exception | None = None
-    for attempt in range(max(1, retries)):
-        try:
-            response = _bedrock_runtime_client(timeout_seconds, region=region).converse(
-                modelId=model_id,
-                system=[{"text": SYSTEM_PROMPT}],
-                messages=[{"role": "user", "content": [{"text": user_text}, image_block]}],
-                inferenceConfig={
-                    "maxTokens": max(128, int(max_output_tokens)),
-                    "temperature": 0,
-                },
-                toolConfig={
-                    "tools": [
-                        {
-                            "toolSpec": {
-                                "name": "panel_caption",
-                                "description": "Return one simple panel caption using Character N labels.",
-                                "inputSchema": {"json": PANEL_CAPTION_SCHEMA},
-                            }
-                        }
-                    ],
-                    "toolChoice": {"tool": {"name": "panel_caption"}},
-                },
-                requestMetadata={"client_request_id": request_id[:256]},
-            )
-            parsed = _bedrock_tool_input(response, tool_name="panel_caption")
-            caption = _enforce_prefix(parsed.get("caption"), caption_prefix)
-            text_bubble_types = parsed.get("text_bubble_types")
-            return (
-                caption,
-                text_bubble_types if isinstance(text_bubble_types, list) else [],
-                _bedrock_usage(response),
-            )
-        except Exception as exc:
-            last_error = exc
-            if attempt + 1 >= max(1, retries):
-                break
-            time.sleep(min(20.0, 1.5 * (2**attempt)) + random.random())
-    raise RuntimeError(f"Panel caption Bedrock call failed after {max(1, retries)} attempts: {last_error}")
+
+def _genai_client():
+    """Module-level singleton client. SDK retries on 408/429/500/502/503/504 by default;
+    we override to be more generous on rate limits (8 attempts, 120s max delay)."""
+    global _GENAI_CLIENT
+    if _GENAI_CLIENT is not None:
+        return _GENAI_CLIENT
+    try:
+        from google import genai  # type: ignore
+        from google.genai import types  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError(
+            "google-genai package not installed; add `google-genai` to the Lambda dependencies."
+        ) from exc
+    _GENAI_CLIENT = genai.Client(
+        api_key=_resolve_gemini_api_key(),
+        http_options=types.HttpOptions(
+            timeout=_GEMINI_TIMEOUT_MS,
+            retry_options=types.HttpRetryOptions(
+                attempts=_GEMINI_RETRY_ATTEMPTS,
+                max_delay=_GEMINI_RETRY_MAX_DELAY_S,
+            ),
+        ),
+    )
+    return _GENAI_CLIENT
+
+
+def _encode_page_for_gemini(page_image: Image.Image) -> tuple[bytes, str, dict[str, int]]:
+    """Re-encode a page image as PNG (lossless, manga-friendly) within Gemini limits."""
+    img = page_image
+    if max(img.size) > _GEMINI_MAX_IMAGE_SIDE:
+        img = img.copy()
+        img.thumbnail((_GEMINI_MAX_IMAGE_SIDE, _GEMINI_MAX_IMAGE_SIDE), Image.Resampling.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    encoded = buf.getvalue()
+    if len(encoded) > _GEMINI_MAX_IMAGE_BYTES:
+        # PNG too large — fall back to high-quality JPEG
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, format="JPEG", quality=90, optimize=True)
+        encoded = buf.getvalue()
+        mime = "image/jpeg"
+    else:
+        mime = "image/png"
+    width, height = img.size
+    meta = {"image_format": mime.split("/")[-1], "image_bytes": len(encoded), "image_width": int(width), "image_height": int(height)}
+    return encoded, mime, meta
+
+
+def _build_gemini_user_text(panels: list[dict[str, Any]]) -> str:
+    """Compose the per-page user prompt — verbatim from the prompt eval, plus
+    per-panel/text-region metadata blocks and the classification rule."""
+    n = len(panels)
+    # Verbatim from the eval prompt (the verbose variant that won the A/B):
+    lines: list[str] = [
+        f"This is one full manga page containing {n} panels.",
+        "For EACH panel: dense ~80-word caption that is descriptive not interpretive.",
+        "For each character cover position, pose, facing direction, gaze target, mouth shape, visible action.",
+        "Include shot size (close-up/medium/wide), camera angle (eye-level/high/low/three-quarter), "
+        "and panel composition language (speed lines, screen tone, dark fill, tilted framing, overlapping figures, silhouettes).",
+        "Do not mention speech/shout/narration bubbles.",
+        "Do not mention characters by name.",
+        "Do not mention that it is a black-and-white manga panel.",
+        "Return panels in manga reading order (right-to-left, top-to-bottom).",
+        "",
+        # Addition for text classification:
+        "In ADDITION to the caption, classify every listed text region by bubble shape only — "
+        "Speech Bubble (oval/smooth outline), Narration Bubble (rectangular/framed), or Shout Bubble (jagged/spiky outline). "
+        "Return one text_bubble_types entry per listed text region per panel (use the text_region_index given below). "
+        "Do not transcribe or interpret bubble content.",
+        "",
+        "Panel and text-region metadata (bbox_norm_in_panel coords are normalized to each panel's own bounding box; "
+        "use them only to identify which panel/region is which — do not mention positions in the caption):",
+        "",
+    ]
+    for panel in panels:
+        panel_index = int(panel.get("panel_index") or 0)
+        characters = panel.get("characters") or []
+        text_regions = panel.get("text_bubbles") or []
+        lines.append(f"Panel {panel_index}:")
+        if characters:
+            for idx, character in enumerate(characters):
+                lines.append(f"  Character {idx + 1}: bbox_norm_in_panel={character.get('panel_bbox_norm')}")
+        else:
+            lines.append("  Characters: none")
+        if text_regions:
+            for idx, text_region in enumerate(text_regions):
+                tri = int(text_region.get("text_region_index") or idx)
+                lines.append(f"  Text Region index {tri}: bbox_norm_in_panel={text_region.get('panel_bbox_norm')}")
+        else:
+            lines.append("  Text regions: none")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _caption_one_page_gemini(
+    *,
+    model: str,
+    page_image: Image.Image,
+    panels: list[dict[str, Any]],
+) -> tuple[dict[int, dict[str, Any]], dict[str, Any], dict[str, int]]:
+    """One Gemini call per page. Returns {panel_index: {caption, text_bubble_types}}.
+    The SDK handles retries (configured on the client); we trust it and don't wrap."""
+    from google.genai import types  # type: ignore
+
+    client = _genai_client()
+    page_bytes, mime, image_meta = _encode_page_for_gemini(page_image)
+    user_text = _build_gemini_user_text(panels)
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_schema=PAGE_CAPTION_SCHEMA_GEMINI,
+        media_resolution=types.MediaResolution.MEDIA_RESOLUTION_MEDIUM,
+    )
+
+    resp = client.models.generate_content(
+        model=model,
+        contents=[types.Part.from_bytes(data=page_bytes, mime_type=mime), user_text],
+        config=config,
+    )
+    payload = json.loads(resp.text or "")
+    mapping: dict[int, dict[str, Any]] = {}
+    for entry in payload.get("panels") or []:
+        if not isinstance(entry, dict):
+            continue
+        idx = int(entry.get("panel_index"))
+        mapping[idx] = {
+            "caption": entry.get("caption") or "",
+            "text_bubble_types": entry.get("text_bubble_types") or [],
+        }
+    um = getattr(resp, "usage_metadata", None)
+    usage = {
+        "input_tokens": int(getattr(um, "prompt_token_count", 0) or 0) if um else 0,
+        "output_tokens": int(getattr(um, "candidates_token_count", 0) or 0) if um else 0,
+        "reasoning_tokens": int(getattr(um, "thoughts_token_count", 0) or 0) if um else 0,
+        "total_tokens": int(getattr(um, "total_token_count", 0) or 0) if um else 0,
+    }
+    return mapping, image_meta, usage
 
 
 def _list_annotation_relatives(*, bucket: str, annotation_prefix: str) -> set[str]:
@@ -885,7 +896,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
     max_pages = max(0, int(event.get("max_pages") or 0))
     overwrite = bool(event.get("overwrite", False))
     require_annotations = bool(event.get("require_annotations", True))
-    model = str(event.get("model") or DEFAULT_CAPTION_MODEL).strip()
+    model = str(event.get("model") or DEFAULT_GEMINI_MODEL).strip()
     manga_metadata_json = str(event.get("manga_metadata_json") or DEFAULT_MANGA_METADATA_REF).strip()
 
     rows, page_stats = _list_page_rows(
@@ -917,9 +928,6 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
         "run_id": run_id,
         "model": model,
         "manga_metadata_json": manga_metadata_json,
-        "timeout_seconds": float(event.get("timeout_seconds") or 180.0),
-        "retries": max(1, int(event.get("retries") or 3)),
-        "max_output_tokens": max(128, int(event.get("max_output_tokens") or 512)),
         "overwrite": overwrite,
         "created_at": _now_utc_iso(),
         "git_sha": str(event.get("git_sha") or ""),
@@ -958,30 +966,25 @@ def caption_manga_page(event: dict[str, Any], _context: Any) -> dict[str, Any]:
 
     with Image.open(io.BytesIO(page_bytes)) as image:
         page_image = image.convert("RGB")
-        usage_total = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
-        captioned_panels: list[dict[str, Any]] = []
-        for panel in panels:
-            image_block, image_meta = _image_block_from_crop(page_image, panel["bbox"])
-            request_source = f"{config.get('run_id')}:{page.get('chapter')}:{page.get('page_id')}:{panel['panel_index']}"
-            request_id = hashlib.sha1(request_source.encode("utf-8")).hexdigest()
-            caption, text_bubble_types, usage = _caption_one_panel(
-                model=str(config["model"]),
-                timeout_seconds=float(config.get("timeout_seconds") or 180.0),
-                retries=int(config.get("retries") or 3),
-                max_output_tokens=int(config.get("max_output_tokens") or 512),
-                image_block=image_block,
-                caption_prefix=caption_prefix,
-                panel=panel,
-                request_id=request_id,
-            )
-            for key, value in usage.items():
-                usage_total[key] = int(usage_total.get(key, 0)) + int(value)
-            typed_panel = _apply_text_bubble_types(panel, text_bubble_types)
-            captioned_panels.append({**typed_panel, "caption": caption, "image": image_meta})
+        page_mapping, page_image_meta, usage_total = _caption_one_page_gemini(
+            model=str(config["model"]),
+            page_image=page_image,
+            panels=panels,
+        )
+
+    captioned_panels: list[dict[str, Any]] = []
+    for panel in panels:
+        idx = int(panel.get("panel_index") or 0)
+        entry = page_mapping.get(idx) or {}
+        captioned_panels.append({
+            **_apply_text_bubble_types(panel, entry.get("text_bubble_types") or []),
+            "caption": _compose_caption(entry.get("caption"), caption_prefix),
+            "image": page_image_meta,
+        })
 
     output = {
         "schema_version": 2,
-        "caption_type": "haiku_panel_simple_v1",
+        "caption_type": "gemini3_flash_page_panel_v1",
         "status": "ok",
         "caption_run": str(config["caption_run"]),
         "run_id": str(config["run_id"]),
@@ -999,7 +1002,7 @@ def caption_manga_page(event: dict[str, Any], _context: Any) -> dict[str, Any]:
             "page_key": str(page["page_key"]),
             "annotation_key": str(page["annotation_key"]),
         },
-        "model": {"id": str(config["model"]), "provider": "bedrock"},
+        "model": {"id": str(config["model"]), "provider": "gemini"},
         "panels": captioned_panels,
         "usage": usage_total,
     }

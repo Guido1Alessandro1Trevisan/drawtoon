@@ -1,0 +1,251 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 sits with mouth open and eyes narrowed, head tilted slightly, surrounded by multiple speech bubbles positioned around the figure. Gray-toned background with stark white space filling the panel, medium close-up shot capturing upper body and head in a conversational moment.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0171/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.315972,
+              0.020833,
+              0.855903,
+              0.955357
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.852431,
+                0.267857,
+                0.960069,
+                0.348214
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.454861,
+                0.142857,
+                0.543403,
+                0.324405
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.350694,
+                0.473214,
+                0.420139,
+                0.571429
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.020833,
+                0.553571,
+                0.177083,
+                0.77381
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 4
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0171/ctrl_img_1.png"
+    },
+    "eval_index": 171,
+    "eval_seed": 20260686,
+    "eval_stratum": "1/2plus/landscape",
+    "page_id": "860__side_00",
+    "page_root": "made-in-abyss_mangazero/860__side_00",
+    "panel_index": 1,
+    "sample_id": "made-in-abyss_mangazero/860__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/860__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/860__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_00.jpg",
+    "target_height": 336,
+    "target_panel": "/root/validation_datasets/generalist/img_0171/target.png",
+    "target_width": 576,
+    "validation_set_dir": "img_0171"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 sits with mouth open and eyes narrowed, head tilted slightly, surrounded by multiple speech bubbles positioned around the figure. Gray-toned background with stark white space filling the panel, medium close-up shot capturing upper body and head in a conversational moment.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            354,
+            29,
+            763,
+            380
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.315972,
+              0.020833,
+              0.855903,
+              0.955357
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.852431,
+                0.267857,
+                0.960069,
+                0.348214
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.454861,
+                0.142857,
+                0.543403,
+                0.324405
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.350694,
+                0.473214,
+                0.420139,
+                0.571429
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.020833,
+                0.553571,
+                0.177083,
+                0.77381
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 4
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "860__side_00",
+    "page_root": "made-in-abyss_mangazero/860__side_00",
+    "panel_index": 1,
+    "sample_id": "made-in-abyss_mangazero/860__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/860__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/860__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_00.jpg",
+    "target_height": 336,
+    "target_panel": {
+      "crop_box": [
+        204,
+        398,
+        774,
+        730
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 576
+  }
+}

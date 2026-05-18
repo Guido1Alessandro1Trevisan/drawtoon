@@ -82,6 +82,23 @@ Resources:
                 - aws-marketplace:Unsubscribe
               Resource: "*"
 
+  FinalizeMangaFilterRunFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.finalize_manga_filter_run
+      MemorySize: 1024
+      Timeout: 900
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
   FilterMangaPagesStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -90,11 +107,14 @@ Resources:
       DefinitionSubstitutions:
         PrepareMangaFilterConfigArn: !GetAtt PrepareMangaFilterConfigFunction.Arn
         FilterMangaPageBatchArn: !GetAtt FilterMangaPageBatchFunction.Arn
+        FinalizeMangaFilterRunArn: !GetAtt FinalizeMangaFilterRunFunction.Arn
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref PrepareMangaFilterConfigFunction
         - LambdaInvokePolicy:
             FunctionName: !Ref FilterMangaPageBatchFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FinalizeMangaFilterRunFunction
         - Statement:
             - Effect: Allow
               Action:

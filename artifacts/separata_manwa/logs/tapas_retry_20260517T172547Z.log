@@ -1,0 +1,15 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=tapas_retry_20260517T172547Z series=3 network_mode=direct proxy_configured=False download=True episode_workers=3 image_workers=2
+discover: series=a-returners-magic-should-be-special episodes=269 public_or_unlocked_hint=4
+discover: series=the-archmage-returns-after-4000-years episodes=237 public_or_unlocked_hint=5
+discover: series=lout-of-counts-family episodes=172 public_or_unlocked_hint=4
+manifest: path=artifacts/separata_manwa/manifests/tapas_retry_20260517T172547Z_episodes.jsonl episodes=678
+progress: episodes=1/678 accessible=1 locked_or_unavailable=0 images=61 written=14 skipped=47 failures=0 episode_rate=0.09/s eta=123.7m
+progress: episodes=268/678 accessible=3 locked_or_unavailable=265 images=196 written=58 skipped=138 failures=0 episode_rate=16.46/s eta=0.4m
+progress: episodes=270/678 accessible=5 locked_or_unavailable=265 images=303 written=97 skipped=206 failures=0 episode_rate=9.11/s eta=0.7m
+progress: episodes=506/678 accessible=9 locked_or_unavailable=497 images=437 written=142 skipped=295 failures=0 episode_rate=12.37/s eta=0.2m
+progress: episodes=508/678 accessible=11 locked_or_unavailable=497 images=547 written=182 skipped=365 failures=0 episode_rate=10.44/s eta=0.3m
+progress: episodes=678/678 accessible=13 locked_or_unavailable=665 images=664 written=263 skipped=401 failures=0 episode_rate=12.40/s eta=0.0m
+summary: {"run_id": "tapas_retry_20260517T172547Z", "created_at": "2026-05-17T17:27:01Z", "network_mode": "direct", "bucket": "drawtoon", "prefix": "datasets/pages/source/tapas", "series": ["a-returners-magic-should-be-special", "the-archmage-returns-after-4000-years", "lout-of-counts-family"], "manifest_path": "artifacts/separata_manwa/manifests/tapas_retry_20260517T172547Z_episodes.jsonl", "status_path": "artifacts/separata_manwa/manifests/tapas_retry_20260517T172547Z_status.jsonl", "download": true, "counts": {"episodes": 678, "accessible": 13, "locked_or_unavailable": 665, "written": 263, "skipped": 401, "failures": 0, "images": 664}, "notes": ["Only official Tapas public/free episode images exposed in HTML were downloaded.", "WUF/Ink/login/locked episodes are recorded as locked_or_unavailable and require an authorized export path."]}
+uploaded_manifest: s3://drawtoon/datasets/pages/source/tapas/_manifests/tapas_retry_20260517T172547Z/

@@ -1,0 +1,10 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=lezhin_lout_public_20260517T173250Z episodes=172 download=True
+manifest: path=artifacts/separata_manwa/manifests/lezhin_lout_public_20260517T173250Z_episodes.jsonl episodes=172
+progress: episodes=23/172 accessible=0 locked_or_unavailable=23 images=0 written=0 skipped=0 failures=0 episode_rate=6.44/s eta=0.4m
+progress: episodes=72/172 accessible=0 locked_or_unavailable=72 images=0 written=0 skipped=0 failures=0 episode_rate=8.26/s eta=0.2m
+progress: episodes=144/172 accessible=2 locked_or_unavailable=142 images=93 written=92 skipped=1 failures=0 episode_rate=10.46/s eta=0.0m
+progress: episodes=172/172 accessible=2 locked_or_unavailable=170 images=93 written=92 skipped=1 failures=0 episode_rate=11.21/s eta=0.0m
+summary: {"run_id": "lezhin_lout_public_20260517T173250Z", "created_at": "2026-05-17T17:33:06Z", "bucket": "drawtoon", "prefix": "datasets/pages/source/lezhin", "series": ["lout-of-counts-family"], "manifest_path": "artifacts/separata_manwa/manifests/lezhin_lout_public_20260517T173250Z_episodes.jsonl", "status_path": "artifacts/separata_manwa/manifests/lezhin_lout_public_20260517T173250Z_status.jsonl", "download": true, "counts": {"episodes": 172, "accessible": 2, "locked_or_unavailable": 170, "written": 92, "skipped": 1, "failures": 0, "images": 93}, "notes": ["Only official Lezhin reader pages with public embedded cut metadata and signed CDN parameters were downloaded.", "LOGIN_REQUIRED, coin, and missing-reader episodes are recorded as locked_or_unavailable."]}
+uploaded_manifest: s3://drawtoon/datasets/pages/source/lezhin/_manifests/lezhin_lout_public_20260517T173250Z/

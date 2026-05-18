@@ -1,0 +1,311 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Detective Conan by Gosho Aoyama. Character 1 sits in lower right with mouth open and eyes wide, gazing upward at a complex diagram of connected objects and labeled boxes filling the center and left of the panel. Multiple speech bubbles and narration bubbles surround the diagram against a hatched background with stark white space on the right side.",
+    "chapter": "detective-conan_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0099/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.621394,
+              0.548469,
+              0.93149,
+              0.968112
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 7,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.739183,
+                0.295918,
+                0.935096,
+                0.524235
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.567308,
+                0.225765,
+                0.694712,
+                0.288265
+              ],
+              "text_region_index": 1,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.396635,
+                0.215561,
+                0.480769,
+                0.274235
+              ],
+              "text_region_index": 2,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.322115,
+                0.385204,
+                0.5,
+                0.446429
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.342548,
+                0.399235,
+                0.490385,
+                0.471939
+              ],
+              "text_region_index": 4,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.361779,
+                0.244898,
+                0.455529,
+                0.306122
+              ],
+              "text_region_index": 5,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.319712,
+                0.302296,
+                0.408654,
+                0.364796
+              ],
+              "text_region_index": 6,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 4,
+            "Shout Bubble": 0,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0099/ctrl_img_1.png"
+    },
+    "eval_index": 99,
+    "eval_seed": 20260614,
+    "eval_stratum": "1/2plus/square",
+    "page_id": "823__side_01",
+    "page_root": "detective-conan_mangazero/823__side_01",
+    "panel_index": 1,
+    "sample_id": "detective-conan_mangazero/823__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/detective-conan_mangazero/823__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/detective-conan_mangazero/823__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/detective-conan_mangazero/823__side_01.jpg",
+    "target_height": 784,
+    "target_panel": "/root/validation_datasets/generalist/img_0099/target.png",
+    "target_width": 832,
+    "validation_set_dir": "img_0099"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Detective Conan by Gosho Aoyama. Character 1 sits in lower right with mouth open and eyes wide, gazing upward at a complex diagram of connected objects and labeled boxes filling the center and left of the panel. Multiple speech bubbles and narration bubbles surround the diagram against a hatched background with stark white space on the right side.",
+    "chapter": "detective-conan_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            833,
+            537,
+            965,
+            760
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/detective-conan_mangazero/823__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.621394,
+              0.548469,
+              0.93149,
+              0.968112
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 7,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.739183,
+                0.295918,
+                0.935096,
+                0.524235
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.567308,
+                0.225765,
+                0.694712,
+                0.288265
+              ],
+              "text_region_index": 1,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.396635,
+                0.215561,
+                0.480769,
+                0.274235
+              ],
+              "text_region_index": 2,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.322115,
+                0.385204,
+                0.5,
+                0.446429
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.342548,
+                0.399235,
+                0.490385,
+                0.471939
+              ],
+              "text_region_index": 4,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.361779,
+                0.244898,
+                0.455529,
+                0.306122
+              ],
+              "text_region_index": 5,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.319712,
+                0.302296,
+                0.408654,
+                0.364796
+              ],
+              "text_region_index": 6,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 4,
+            "Shout Bubble": 0,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "823__side_01",
+    "page_root": "detective-conan_mangazero/823__side_01",
+    "panel_index": 1,
+    "sample_id": "detective-conan_mangazero/823__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/detective-conan_mangazero/823__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/detective-conan_mangazero/823__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/detective-conan_mangazero/823__side_01.jpg",
+    "target_height": 784,
+    "target_panel": {
+      "crop_box": [
+        0,
+        0,
+        824,
+        779
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/detective-conan_mangazero/823__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 832
+  }
+}

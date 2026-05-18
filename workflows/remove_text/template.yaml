@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon manga text removal workflow using Qwen Image Edit 2511 through fal.ai.
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.12
+  FalSecretName:
+    Type: String
+    Default: drawtoon-fal-key
+  DefaultFalEndpoint:
+    Type: String
+    Default: fal-ai/qwen-image-edit-2511
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Timeout: 900
+    MemorySize: 1536
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+        FAL_SECRET_NAME: !Ref FalSecretName
+        DEFAULT_FAL_ENDPOINT: !Ref DefaultFalEndpoint
+
+Resources:
+  PrepareRemoveTextConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.prepare_remove_text_config
+      MemorySize: 1024
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${FalSecretName}*
+
+  RemoveTextPageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.remove_text_page
+      MemorySize: 2048
+      Timeout: 900
+      EphemeralStorage:
+        Size: 2048
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${FalSecretName}*
+
+  RemoveTextPagesStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/remove_text_pages.asl.json
+      DefinitionSubstitutions:
+        PrepareRemoveTextConfigArn: !GetAtt PrepareRemoveTextConfigFunction.Arn
+        RemoveTextPageArn: !GetAtt RemoveTextPageFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PrepareRemoveTextConfigFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref RemoveTextPageFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}
+
+Outputs:
+  RemoveTextPagesStateMachineArn:
+    Value: !Ref RemoveTextPagesStateMachine

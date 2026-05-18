@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Helck by Nanaki Nanao. Character 1 runs forward with mouth open and arms raised, legs in mid-stride against a light background with speed lines and scattered debris, medium shot from a low angle with tilted framing emphasizing forward motion.",
+    "chapter": "helck_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0047/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.10625,
+              0.067935,
+              0.525,
+              0.831522
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.660417,
+                0.30163,
+                0.833333,
+                0.391304
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.8125,
+                0.51087,
+                0.960417,
+                0.741848
+              ],
+              "text_region_index": 1,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 1,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0047/ctrl_img_1.png"
+    },
+    "eval_index": 47,
+    "eval_seed": 20260562,
+    "eval_stratum": "1/2plus/landscape",
+    "page_id": "122__side_00",
+    "page_root": "helck_mangazero/122__side_00",
+    "panel_index": 1,
+    "sample_id": "helck_mangazero/122__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/helck_mangazero/122__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/helck_mangazero/122__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/122__side_00.jpg",
+    "target_height": 368,
+    "target_panel": "/root/validation_datasets/generalist/img_0047/target.png",
+    "target_width": 480,
+    "validation_set_dir": "img_0047"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Helck by Nanaki Nanao. Character 1 runs forward with mouth open and arms raised, legs in mid-stride against a light background with speed lines and scattered debris, medium shot from a low angle with tilted framing emphasizing forward motion.",
+    "chapter": "helck_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            677,
+            726,
+            817,
+            893
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/122__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.10625,
+              0.067935,
+              0.525,
+              0.831522
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.660417,
+                0.30163,
+                0.833333,
+                0.391304
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.8125,
+                0.51087,
+                0.960417,
+                0.741848
+              ],
+              "text_region_index": 1,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 1,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "122__side_00",
+    "page_root": "helck_mangazero/122__side_00",
+    "panel_index": 1,
+    "sample_id": "helck_mangazero/122__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/helck_mangazero/122__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/helck_mangazero/122__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/122__side_00.jpg",
+    "target_height": 368,
+    "target_panel": {
+      "crop_box": [
+        87,
+        88,
+        556,
+        456
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/122__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 480
+  }
+}

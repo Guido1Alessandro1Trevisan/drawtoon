@@ -1,0 +1,36 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=auth_reader_lout_20260517T211223Z sites=1 prefix=s3://drawtoon/datasets/pages/single download=True chapter_workers=12 image_workers=3
+discover: site=lout series=lout-of-counts-family_manwa chapters=175
+manifest: path=artifacts/separata_manwa/manifests/auth_reader_lout_20260517T211223Z_chapters.jsonl chapters=175
+progress: chapters=123/175 accessible=0 no_images=123 images=0 written=0 skipped=0 failures=0 chapter_rate=4.26/s eta=0.2m
+progress: chapters=143/175 accessible=0 no_images=143 images=0 written=0 skipped=0 failures=0 chapter_rate=2.25/s eta=0.2m
+progress: chapters=144/175 accessible=0 no_images=143 images=11 written=10 skipped=0 failures=1 chapter_rate=0.30/s eta=1.7m
+progress: chapters=147/175 accessible=0 no_images=143 images=42 written=31 skipped=0 failures=11 chapter_rate=0.27/s eta=1.7m
+progress: chapters=149/175 accessible=0 no_images=143 images=63 written=43 skipped=0 failures=20 chapter_rate=0.25/s eta=1.7m
+progress: chapters=154/175 accessible=0 no_images=143 images=110 written=60 skipped=0 failures=50 chapter_rate=0.25/s eta=1.4m
+progress: chapters=155/175 accessible=0 no_images=143 images=121 written=64 skipped=0 failures=57 chapter_rate=0.23/s eta=1.5m
+progress: chapters=156/175 accessible=0 no_images=143 images=131 written=68 skipped=0 failures=63 chapter_rate=0.20/s eta=1.6m
+progress: chapters=159/175 accessible=0 no_images=143 images=157 written=73 skipped=0 failures=84 chapter_rate=0.19/s eta=1.4m
+progress: chapters=160/175 accessible=0 no_images=143 images=166 written=74 skipped=0 failures=92 chapter_rate=0.19/s eta=1.3m
+progress: chapters=163/175 accessible=0 no_images=143 images=194 written=76 skipped=0 failures=118 chapter_rate=0.18/s eta=1.1m
+progress: chapters=164/175 accessible=0 no_images=143 images=205 written=77 skipped=0 failures=128 chapter_rate=0.17/s eta=1.1m
+progress: chapters=165/175 accessible=0 no_images=143 images=214 written=78 skipped=0 failures=136 chapter_rate=0.16/s eta=1.0m
+progress: chapters=167/175 accessible=0 no_images=143 images=235 written=83 skipped=0 failures=152 chapter_rate=0.16/s eta=0.8m
+progress: chapters=169/175 accessible=0 no_images=143 images=251 written=84 skipped=0 failures=167 chapter_rate=0.15/s eta=0.7m
+progress: chapters=172/175 accessible=0 no_images=143 images=282 written=88 skipped=0 failures=194 chapter_rate=0.15/s eta=0.3m
+progress: chapters=174/175 accessible=0 no_images=143 images=303 written=92 skipped=0 failures=211 chapter_rate=0.14/s eta=0.1m
+progress: chapters=175/175 accessible=0 no_images=143 images=313 written=96 skipped=0 failures=217 chapter_rate=0.14/s eta=0.0m
+summary: {"run_id": "auth_reader_lout_20260517T211223Z", "created_at": "2026-05-17T21:32:51Z", "bucket": "drawtoon", "prefix": "datasets/pages/single", "series": ["lout-of-counts-family_manwa"], "manifest_path": "artifacts/separata_manwa/manifests/auth_reader_lout_20260517T211223Z_chapters.jsonl", "status_path": "artifacts/separata_manwa/manifests/auth_reader_lout_20260517T211223Z_status.jsonl", "download": true, "counts": {"chapters": 175, "accessible": 0, "no_images": 143, "written": 96, "skipped": 0, "failures": 217, "images": 313}, "discovery_failures": [], "notes": ["User represented these source domains as authorized for this ingestion.", "Output goes directly under datasets/pages/single/<series>_manwa/."]}
+Traceback (most recent call last):
+  File "artifacts/separata_manwa/adapters/authorized_reader_downloader.py", line 757, in <module>
+    main()
+  File "artifacts/separata_manwa/adapters/authorized_reader_downloader.py", line 750, in main
+    upload_file(client, bucket=args.bucket, key=f"{manifest_prefix}/chapters.jsonl", path=manifest_path, content_type="application/x-jsonlines")
+  File "artifacts/separata_manwa/adapters/authorized_reader_downloader.py", line 609, in upload_file
+    client.put_object(Bucket=bucket, Key=key, Body=path.read_bytes(), ContentType=content_type)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/botocore/client.py", line 553, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+  File "/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/botocore/client.py", line 1009, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.exceptions.ClientError: An error occurred (RequestTimeout) when calling the PutObject operation: Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.

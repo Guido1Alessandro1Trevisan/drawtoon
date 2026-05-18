@@ -15,7 +15,7 @@ from urllib.parse import unquote, urlparse
 
 import boto3
 import torch
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 from PIL.ImageOps import exif_transpose
 from safetensors.torch import load_file, save_file
 from torch.utils.data import Dataset
@@ -28,6 +28,14 @@ from toolkit.distributed_cache import run_once_with_filelock
 from toolkit.distributed_logging import rank_tqdm
 from toolkit.metadata import get_meta_for_safetensors, load_metadata_from_safetensors
 from toolkit.print import print_acc
+
+
+LAYOUT_BACKGROUND_COLOR = (0, 0, 0)
+LAYOUT_TEXT_COLORS = {
+    "Speech Bubble": (0, 96, 255),
+    "Narration Bubble": (255, 128, 0),
+    "Shout Bubble": (128, 0, 255),
+}
 
 
 class ManifestDataset(BucketsMixin, Dataset):
@@ -581,7 +589,18 @@ class ManifestDataset(BucketsMixin, Dataset):
             image = image.crop((x0, y0, x1, y1))
 
         pad_multiple = int(source_ref.get("pad_multiple") or 0)
-        if pad_multiple > 1:
+        border_width = int(source_ref.get("border_width") or 0)
+        border_rgb = source_ref.get("border_rgb")
+        if border_width > 0 and isinstance(border_rgb, (list, tuple)) and len(border_rgb) == 3:
+            if pad_multiple > 1:
+                inner_width = int(math.ceil((image.width + border_width * 2) / pad_multiple) * pad_multiple) - border_width * 2
+                inner_height = int(math.ceil((image.height + border_width * 2) / pad_multiple) * pad_multiple) - border_width * 2
+                if inner_width != image.width or inner_height != image.height:
+                    padded = Image.new("RGB", (max(image.width, inner_width), max(image.height, inner_height)), (255, 255, 255))
+                    padded.paste(image, (0, 0))
+                    image = padded
+            image = ImageOps.expand(image, border=border_width, fill=tuple(int(value) for value in border_rgb))
+        elif pad_multiple > 1:
             padded_width = int(math.ceil(image.width / pad_multiple) * pad_multiple)
             padded_height = int(math.ceil(image.height / pad_multiple) * pad_multiple)
             if (padded_width, padded_height) != image.size:
@@ -610,11 +629,18 @@ class ManifestDataset(BucketsMixin, Dataset):
         return x0, y0, x1, y1
 
     @staticmethod
-    def _draw_metadata_box(draw: ImageDraw.ImageDraw, box_norm: list[float], width: int, height: int, color) -> bool:
+    def _draw_metadata_box(
+        draw: ImageDraw.ImageDraw,
+        box_norm: list[float],
+        width: int,
+        height: int,
+        color,
+        line_width: int = 6,
+    ) -> bool:
         pixel_box = ManifestDataset._norm_box_to_pixel_box(box_norm, width, height)
         if pixel_box is None:
             return False
-        draw.rectangle(pixel_box, fill=tuple(int(value) for value in color))
+        draw.rectangle(pixel_box, outline=tuple(int(value) for value in color), width=max(1, int(line_width)))
         return True
 
     @staticmethod
@@ -625,29 +651,20 @@ class ManifestDataset(BucketsMixin, Dataset):
         height: int,
         text_bubble_type: str,
     ) -> bool:
+        normalized = " ".join(str(text_bubble_type or "").split()).strip()
+        if normalized.lower() in {"", "none", "null"}:
+            return False
         pixel_box = ManifestDataset._norm_box_to_pixel_box(box_norm, width, height)
         if pixel_box is None:
             return False
-        x0, y0, x1, y1 = pixel_box
-        blue = (0, 96, 255)
-        black = (0, 0, 0)
-        draw.rectangle((x0, y0, x1, y1), fill=blue)
-
-        def band_edges(start: int, end: int, bands: int = 17) -> list[int]:
-            return [int(round(start + ((end - start) * index / bands))) for index in range(bands + 1)]
-
-        if text_bubble_type == "Narration Bubble":
-            edges = band_edges(x0, x1)
-            for band_index in range(1, 17, 2):
-                draw.rectangle((edges[band_index], y0, edges[band_index + 1], y1), fill=black)
-        elif text_bubble_type == "Shout Bubble":
-            edges = band_edges(y0, y1)
-            for band_index in range(1, 17, 2):
-                draw.rectangle((x0, edges[band_index], x1, edges[band_index + 1]), fill=black)
+        text_color = LAYOUT_TEXT_COLORS.get(normalized)
+        if text_color is None:
+            return False
+        draw.rectangle(pixel_box, fill=text_color)
         return True
 
     def _layout_control_from_metadata(self, layout_metadata: dict[str, Any], width: int, height: int) -> Image.Image:
-        image = Image.new("RGB", (width, height), (255, 255, 255))
+        image = Image.new("RGB", (width, height), LAYOUT_BACKGROUND_COLOR)
         draw = ImageDraw.Draw(image)
         for character in layout_metadata.get("characters") or []:
             if not isinstance(character, dict):
@@ -655,7 +672,14 @@ class ManifestDataset(BucketsMixin, Dataset):
             box_norm = character.get("bbox_norm")
             rgb = character.get("rgb")
             if isinstance(box_norm, list) and isinstance(rgb, list):
-                self._draw_metadata_box(draw, box_norm, width, height, rgb)
+                self._draw_metadata_box(
+                    draw,
+                    box_norm,
+                    width,
+                    height,
+                    rgb,
+                    line_width=int(character.get("line_width") or 6),
+                )
         text_payload = layout_metadata.get("text") if isinstance(layout_metadata.get("text"), dict) else {}
         for region in text_payload.get("regions") or []:
             if not isinstance(region, dict):

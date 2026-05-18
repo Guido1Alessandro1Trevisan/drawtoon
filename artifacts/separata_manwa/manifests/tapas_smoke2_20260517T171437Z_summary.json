@@ -1,0 +1,26 @@
+{
+  "run_id": "tapas_smoke2_20260517T171437Z",
+  "created_at": "2026-05-17T17:14:44Z",
+  "network_mode": "direct",
+  "bucket": "drawtoon",
+  "prefix": "datasets/pages/source/tapas",
+  "series": [
+    "solo-leveling-comic"
+  ],
+  "manifest_path": "artifacts/separata_manwa/manifests/tapas_smoke2_20260517T171437Z_episodes.jsonl",
+  "status_path": "artifacts/separata_manwa/manifests/tapas_smoke2_20260517T171437Z_status.jsonl",
+  "download": true,
+  "counts": {
+    "episodes": 1,
+    "accessible": 1,
+    "locked_or_unavailable": 0,
+    "written": 1,
+    "skipped": 0,
+    "failures": 0,
+    "images": 1
+  },
+  "notes": [
+    "Only official Tapas public/free episode images exposed in HTML were downloaded.",
+    "WUF/Ink/login/locked episodes are recorded as locked_or_unavailable and require an authorized export path."
+  ]
+}

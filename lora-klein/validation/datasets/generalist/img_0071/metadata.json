@@ -1,0 +1,234 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Crayon Shin-chan by Yoshito Usui. Character 1 stands holding a rope with eyes closed and mouth open, while Character 2 stands to the right with a dashed line connecting them, medium shot with white background and simple line art composition.",
+    "chapter": "crayon-shin-chan_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0071/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0071/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.004808,
+              0.048295,
+              0.389423,
+              0.954545
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.399038,
+              0.653409,
+              0.598558,
+              0.954545
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.629808,
+                0.244318,
+                0.817308,
+                0.369318
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0071/ctrl_img_1.png"
+    },
+    "eval_index": 71,
+    "eval_seed": 20260586,
+    "eval_stratum": "2/1/square",
+    "page_id": "001__side_00",
+    "page_root": "crayon-shin-chan_mangazero/001__side_00",
+    "panel_index": 5,
+    "sample_id": "crayon-shin-chan_mangazero/001__side_00/panel_005",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/crayon-shin-chan_mangazero/001__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/crayon-shin-chan_mangazero/001__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/crayon-shin-chan_mangazero/001__side_00.jpg",
+    "target_height": 352,
+    "target_panel": "/root/validation_datasets/generalist/img_0071/target.png",
+    "target_width": 416,
+    "validation_set_dir": "img_0071"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Crayon Shin-chan by Yoshito Usui. Character 1 stands holding a rope with eyes closed and mouth open, while Character 2 stands to the right with a dashed line connecting them, medium shot with white background and simple line art composition.",
+    "chapter": "crayon-shin-chan_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            87,
+            168,
+            177,
+            388
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/crayon-shin-chan_mangazero/001__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            558,
+            256,
+            651,
+            386
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/crayon-shin-chan_mangazero/001__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.004808,
+              0.048295,
+              0.389423,
+              0.954545
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.399038,
+              0.653409,
+              0.598558,
+              0.954545
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.629808,
+                0.244318,
+                0.817308,
+                0.369318
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "001__side_00",
+    "page_root": "crayon-shin-chan_mangazero/001__side_00",
+    "panel_index": 5,
+    "sample_id": "crayon-shin-chan_mangazero/001__side_00/panel_005",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/crayon-shin-chan_mangazero/001__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/crayon-shin-chan_mangazero/001__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/crayon-shin-chan_mangazero/001__side_00.jpg",
+    "target_height": 352,
+    "target_panel": {
+      "crop_box": [
+        595,
+        756,
+        999,
+        1099
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/crayon-shin-chan_mangazero/001__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 416
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Claymore by Norihiro Yagi. Character 1 turns their head toward the viewer with wide eyes and slightly parted mouth, shown in close-up profile-to-frontal angle against a white background with scattered dots and screen tone shading on the face and shoulder.",
+    "chapter": "claymore_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0138/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.10119,
+              0.102273,
+              0.979167,
+              0.96875
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0138/ctrl_img_1.png"
+    },
+    "eval_index": 138,
+    "eval_seed": 20260653,
+    "eval_stratum": "1/0/square",
+    "page_id": "224__side_01",
+    "page_root": "claymore_mangazero/224__side_01",
+    "panel_index": 1,
+    "sample_id": "claymore_mangazero/224__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/claymore_mangazero/224__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/claymore_mangazero/224__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/224__side_01.jpg",
+    "target_height": 352,
+    "target_panel": "/root/validation_datasets/generalist/img_0138/target.png",
+    "target_width": 336,
+    "validation_set_dir": "img_0138"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Claymore by Norihiro Yagi. Character 1 turns their head toward the viewer with wide eyes and slightly parted mouth, shown in close-up profile-to-frontal angle against a white background with scattered dots and screen tone shading on the face and shoulder.",
+    "chapter": "claymore_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            416,
+            496,
+            711,
+            801
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/224__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.10119,
+              0.102273,
+              0.979167,
+              0.96875
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "224__side_01",
+    "page_root": "claymore_mangazero/224__side_01",
+    "panel_index": 1,
+    "sample_id": "claymore_mangazero/224__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/claymore_mangazero/224__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/claymore_mangazero/224__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/224__side_01.jpg",
+    "target_height": 352,
+    "target_panel": {
+      "crop_box": [
+        382,
+        460,
+        713,
+        808
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/224__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 336
+  }
+}

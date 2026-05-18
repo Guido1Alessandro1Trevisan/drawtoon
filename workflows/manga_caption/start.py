@@ -28,14 +28,11 @@ load_dotenv(Path.cwd() / ".env")
 
 DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_S3_REGION") or "us-east-1"
 DEFAULT_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
-DEFAULT_SOURCE_PREFIX = "datasets/pages/filtered"
+DEFAULT_SOURCE_PREFIX = "datasets/pages/text_removed"
 DEFAULT_ANNOTATION_PREFIX = "datasets/annotations/magi_v3"
 DEFAULT_OUTPUT_PREFIX = "captions"
-DEFAULT_CAPTION_RUN = "haiku45_mangazero_panel_simple_v1"
-DEFAULT_CAPTION_MODEL = os.environ.get(
-    "DEFAULT_CAPTION_MODEL",
-    "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-)
+DEFAULT_CAPTION_RUN = "gemini3_flash_page_panel_v1"
+DEFAULT_CAPTION_MODEL = os.environ.get("DEFAULT_CAPTION_MODEL", "gemini-3-flash-preview")
 DEFAULT_MANGA_METADATA_JSON = os.environ.get(
     "MANGA_METADATA_JSON",
     "metadata/mangazero_manga_credits_20260511.json",
@@ -95,9 +92,6 @@ def main() -> None:
     caption_cmd.add_argument("--caption-run", default=DEFAULT_CAPTION_RUN)
     caption_cmd.add_argument("--model", default=DEFAULT_CAPTION_MODEL)
     caption_cmd.add_argument("--manga-metadata-json", default=DEFAULT_MANGA_METADATA_JSON)
-    caption_cmd.add_argument("--timeout-seconds", type=float, default=180.0)
-    caption_cmd.add_argument("--retries", type=int, default=3)
-    caption_cmd.add_argument("--max-output-tokens", type=int, default=512)
     caption_cmd.add_argument("--include-chapter-regex", default="")
     caption_cmd.add_argument("--max-pages", type=int, default=0)
     caption_cmd.add_argument("--run-id", default="")
@@ -122,9 +116,6 @@ def main() -> None:
         "caption_run": str(args.caption_run or "").strip(),
         "model": str(args.model).strip(),
         "manga_metadata_json": str(args.manga_metadata_json or "").strip(),
-        "timeout_seconds": float(args.timeout_seconds),
-        "retries": int(args.retries),
-        "max_output_tokens": int(args.max_output_tokens),
         "include_chapter_regex": str(args.include_chapter_regex or "").strip(),
         "max_pages": max(0, int(args.max_pages)),
         "require_annotations": not bool(args.allow_missing_annotations),

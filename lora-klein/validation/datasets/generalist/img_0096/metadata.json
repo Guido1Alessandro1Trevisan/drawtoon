@@ -1,0 +1,363 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Pretty Guardian Sailor Moon by Naoko Takeuchi. Character 2 stands at left edge with head tilted upward, mouth open in speech. Character 3 stands nearby with gaze directed toward Character 2. Character 4 and Character 5 occupy center-right positions with neutral posture. Character 1 stands at right with mouth closed, facing the group. Urban cityscape with buildings visible in background. Wide establishing shot with multiple figures arranged across panel. Speech bubble present above Character 1.",
+    "chapter": "pretty-guardian-sailor-moon_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0096/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0096/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0096/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0096/ctrl_img_5.png",
+        "/root/validation_datasets/generalist/img_0096/ctrl_img_6.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.533245,
+              0.465909,
+              0.648936,
+              0.869318
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.0,
+              0.039773,
+              0.1875,
+              0.892045
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.18883,
+              0.232955,
+              0.291223,
+              0.886364
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.295213,
+              0.460227,
+              0.343085,
+              0.75
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.345745,
+              0.579545,
+              0.382979,
+              0.823864
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.566489,
+                0.147727,
+                0.724734,
+                0.306818
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0096/ctrl_img_1.png"
+    },
+    "eval_index": 96,
+    "eval_seed": 20260611,
+    "eval_stratum": "3plus/1/landscape",
+    "page_id": "523__side_01",
+    "page_root": "pretty-guardian-sailor-moon_mangazero/523__side_01",
+    "panel_index": 1,
+    "sample_id": "pretty-guardian-sailor-moon_mangazero/523__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/pretty-guardian-sailor-moon_mangazero/523__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/pretty-guardian-sailor-moon_mangazero/523__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+    "target_height": 176,
+    "target_panel": "/root/validation_datasets/generalist/img_0096/target.png",
+    "target_width": 752,
+    "validation_set_dir": "img_0096"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Pretty Guardian Sailor Moon by Naoko Takeuchi. Character 2 stands at left edge with head tilted upward, mouth open in speech. Character 3 stands nearby with gaze directed toward Character 2. Character 4 and Character 5 occupy center-right positions with neutral posture. Character 1 stands at right with mouth closed, facing the group. Urban cityscape with buildings visible in background. Wide establishing shot with multiple figures arranged across panel. Speech bubble present above Character 1.",
+    "chapter": "pretty-guardian-sailor-moon_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            420,
+            536,
+            507,
+            607
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            15,
+            461,
+            160,
+            611
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            161,
+            495,
+            238,
+            610
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            241,
+            535,
+            277,
+            586
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            279,
+            556,
+            307,
+            599
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.533245,
+              0.465909,
+              0.648936,
+              0.869318
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.0,
+              0.039773,
+              0.1875,
+              0.892045
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.18883,
+              0.232955,
+              0.291223,
+              0.886364
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.295213,
+              0.460227,
+              0.343085,
+              0.75
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.345745,
+              0.579545,
+              0.382979,
+              0.823864
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.566489,
+                0.147727,
+                0.724734,
+                0.306818
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "523__side_01",
+    "page_root": "pretty-guardian-sailor-moon_mangazero/523__side_01",
+    "panel_index": 1,
+    "sample_id": "pretty-guardian-sailor-moon_mangazero/523__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/pretty-guardian-sailor-moon_mangazero/523__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/pretty-guardian-sailor-moon_mangazero/523__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+    "target_height": 176,
+    "target_panel": {
+      "crop_box": [
+        19,
+        454,
+        762,
+        615
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/523__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 752
+  }
+}

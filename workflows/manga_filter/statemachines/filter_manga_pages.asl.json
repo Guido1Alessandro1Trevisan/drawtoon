@@ -98,6 +98,45 @@
         }
       },
       "ResultPath": "$.map_result",
+      "Next": "MaybeFinalizeRun"
+    },
+    "MaybeFinalizeRun": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.run.mode",
+          "StringEquals": "manhwa",
+          "Next": "FinalizeRun"
+        }
+      ],
+      "Default": "Done"
+    },
+    "FinalizeRun": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${FinalizeMangaFilterRunArn}",
+        "Payload.$": "$"
+      },
+      "ResultPath": "$.finalized",
+      "OutputPath": "$.finalized.Payload",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.TooManyRequestsException",
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "End": true
+    },
+    "Done": {
+      "Type": "Pass",
       "End": true
     }
   }

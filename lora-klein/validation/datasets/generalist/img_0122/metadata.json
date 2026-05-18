@@ -1,0 +1,191 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Isekai Ojisan by Hotondoshindeiru. Character 1 turns their head sharply to the side, mouth open in mid-speech, against a light background that fades to dark shadow on the right. Medium close-up shot with the figure occupying most of the frame, tilted composition emphasizing the turned posture. A speech bubble appears on the left side.",
+    "chapter": "isekai-ojisan_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0122/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.276786,
+              0.077652,
+              0.983929,
+              0.982955
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.046429,
+                0.598485,
+                0.183929,
+                0.683712
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0122/ctrl_img_1.png"
+    },
+    "eval_index": 122,
+    "eval_seed": 20260637,
+    "eval_stratum": "1/1/square",
+    "page_id": "368__side_01",
+    "page_root": "isekai-ojisan_mangazero/368__side_01",
+    "panel_index": 1,
+    "sample_id": "isekai-ojisan_mangazero/368__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/isekai-ojisan_mangazero/368__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/isekai-ojisan_mangazero/368__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/368__side_01.jpg",
+    "target_height": 528,
+    "target_panel": "/root/validation_datasets/generalist/img_0122/target.png",
+    "target_width": 560,
+    "validation_set_dir": "img_0122"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Isekai Ojisan by Hotondoshindeiru. Character 1 turns their head sharply to the side, mouth open in mid-speech, against a light background that fades to dark shadow on the right. Medium close-up shot with the figure occupying most of the frame, tilted composition emphasizing the turned posture. A speech bubble appears on the left side.",
+    "chapter": "isekai-ojisan_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            825,
+            66,
+            1073,
+            488
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/368__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.276786,
+              0.077652,
+              0.983929,
+              0.982955
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.046429,
+                0.598485,
+                0.183929,
+                0.683712
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "368__side_01",
+    "page_root": "isekai-ojisan_mangazero/368__side_01",
+    "panel_index": 1,
+    "sample_id": "isekai-ojisan_mangazero/368__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/isekai-ojisan_mangazero/368__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/isekai-ojisan_mangazero/368__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/368__side_01.jpg",
+    "target_height": 528,
+    "target_panel": {
+      "crop_box": [
+        524,
+        763,
+        1079,
+        1282
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/368__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 560
+  }
+}

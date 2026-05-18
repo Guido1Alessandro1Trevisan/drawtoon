@@ -1,0 +1,403 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Isekai Ojisan by Hotondoshindeiru. Character 1 stands at left with head tilted, mouth forming a small shape, while Character 4 holds an object and grins widely at center, Character 3 beside them with neutral expression, and Character 2 at right looking toward the group. Interior setting with crosshatched background and screen tone, medium shot with multiple characters in frame.",
+    "chapter": "isekai-ojisan_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0017/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0017/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0017/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0017/ctrl_img_5.png",
+        "/root/validation_datasets/generalist/img_0017/ctrl_img_6.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.088315,
+              0.473958,
+              0.308424,
+              0.975694
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.701087,
+              0.440972,
+              0.972826,
+              0.980903
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.532609,
+              0.154514,
+              0.771739,
+              0.928819
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.330163,
+              0.300347,
+              0.540761,
+              0.939236
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.319293,
+              0.305556,
+              0.521739,
+              0.939236
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.783967,
+                0.09375,
+                0.942935,
+                0.328125
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.262228,
+                0.112847,
+                0.338315,
+                0.289931
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.0,
+                0.470486,
+                0.195652,
+                0.642361
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0017/ctrl_img_1.png"
+    },
+    "eval_index": 17,
+    "eval_seed": 20260532,
+    "eval_stratum": "3plus/2plus/landscape",
+    "page_id": "332__side_01",
+    "page_root": "isekai-ojisan_mangazero/332__side_01",
+    "panel_index": 2,
+    "sample_id": "isekai-ojisan_mangazero/332__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/isekai-ojisan_mangazero/332__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/isekai-ojisan_mangazero/332__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+    "target_height": 576,
+    "target_panel": "/root/validation_datasets/generalist/img_0017/target.png",
+    "target_width": 736,
+    "validation_set_dir": "img_0017"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Isekai Ojisan by Hotondoshindeiru. Character 1 stands at left with head tilted, mouth forming a small shape, while Character 4 holds an object and grins widely at center, Character 3 beside them with neutral expression, and Character 2 at right looking toward the group. Interior setting with crosshatched background and screen tone, medium shot with multiple characters in frame.",
+    "chapter": "isekai-ojisan_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            373,
+            2005,
+            559,
+            2327
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            605,
+            1427,
+            803,
+            1732
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            1097,
+            1816,
+            1416,
+            2338
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            597,
+            1876,
+            854,
+            2338
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            597,
+            1876,
+            854,
+            2338
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.088315,
+              0.473958,
+              0.308424,
+              0.975694
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.701087,
+              0.440972,
+              0.972826,
+              0.980903
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.532609,
+              0.154514,
+              0.771739,
+              0.928819
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.330163,
+              0.300347,
+              0.540761,
+              0.939236
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.319293,
+              0.305556,
+              0.521739,
+              0.939236
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.783967,
+                0.09375,
+                0.942935,
+                0.328125
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.262228,
+                0.112847,
+                0.338315,
+                0.289931
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.0,
+                0.470486,
+                0.195652,
+                0.642361
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "332__side_01",
+    "page_root": "isekai-ojisan_mangazero/332__side_01",
+    "panel_index": 2,
+    "sample_id": "isekai-ojisan_mangazero/332__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/isekai-ojisan_mangazero/332__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/isekai-ojisan_mangazero/332__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+    "target_height": 576,
+    "target_panel": {
+      "crop_box": [
+        816,
+        1173,
+        1541,
+        1738
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/isekai-ojisan_mangazero/332__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 736
+  }
+}

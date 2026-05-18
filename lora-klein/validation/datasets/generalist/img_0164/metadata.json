@@ -1,0 +1,397 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Slam Dunk by Takehiko Inoue. Character 1 stands with mouth open, speaking in a large speech bubble while Character 2 and Character 3 react below with wide eyes and open mouths. Multiple speech bubbles and narration areas fill the panel against a white background with interior setting visible through a window frame.",
+    "chapter": "slam-dunk_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0164/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0164/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0164/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.612873,
+              0.358631,
+              0.88153,
+              0.931548
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.0,
+              0.732143,
+              0.224813,
+              0.994048
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.142724,
+              0.78869,
+              0.609142,
+              0.994048
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 7,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.86847,
+                0.31994,
+                0.987873,
+                0.494048
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.580224,
+                0.485119,
+                0.79291,
+                0.888393
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.421642,
+                0.236607,
+                0.622201,
+                0.611607
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.515858,
+                0.604167,
+                0.643657,
+                0.794643
+              ],
+              "text_region_index": 3,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.0,
+                0.318452,
+                0.194963,
+                0.674107
+              ],
+              "text_region_index": 4,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.421642,
+                0.236607,
+                0.622201,
+                0.611607
+              ],
+              "text_region_index": 5,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.0,
+                0.318452,
+                0.194963,
+                0.674107
+              ],
+              "text_region_index": 6,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 3,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0164/ctrl_img_1.png"
+    },
+    "eval_index": 164,
+    "eval_seed": 20260679,
+    "eval_stratum": "3plus/2plus/landscape",
+    "page_id": "007__side_01",
+    "page_root": "slam-dunk_mangazero/007__side_01",
+    "panel_index": 1,
+    "sample_id": "slam-dunk_mangazero/007__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/slam-dunk_mangazero/007__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/slam-dunk_mangazero/007__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/007__side_01.jpg",
+    "target_height": 672,
+    "target_panel": "/root/validation_datasets/generalist/img_0164/target.png",
+    "target_width": 1072,
+    "validation_set_dir": "img_0164"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Slam Dunk by Takehiko Inoue. Character 1 stands with mouth open, speaking in a large speech bubble while Character 2 and Character 3 react below with wide eyes and open mouths. Multiple speech bubbles and narration areas fill the panel against a white background with interior setting visible through a window frame.",
+    "chapter": "slam-dunk_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            1501,
+            2014,
+            1624,
+            2198
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/007__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            1564,
+            805,
+            1846,
+            1203
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/007__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            219,
+            1289,
+            1104,
+            1785
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/007__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.612873,
+              0.358631,
+              0.88153,
+              0.931548
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.0,
+              0.732143,
+              0.224813,
+              0.994048
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.142724,
+              0.78869,
+              0.609142,
+              0.994048
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 7,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.86847,
+                0.31994,
+                0.987873,
+                0.494048
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.580224,
+                0.485119,
+                0.79291,
+                0.888393
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.421642,
+                0.236607,
+                0.622201,
+                0.611607
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.515858,
+                0.604167,
+                0.643657,
+                0.794643
+              ],
+              "text_region_index": 3,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.0,
+                0.318452,
+                0.194963,
+                0.674107
+              ],
+              "text_region_index": 4,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.421642,
+                0.236607,
+                0.622201,
+                0.611607
+              ],
+              "text_region_index": 5,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.0,
+                0.318452,
+                0.194963,
+                0.674107
+              ],
+              "text_region_index": 6,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 3,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "007__side_01",
+    "page_root": "slam-dunk_mangazero/007__side_01",
+    "panel_index": 1,
+    "sample_id": "slam-dunk_mangazero/007__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/slam-dunk_mangazero/007__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/slam-dunk_mangazero/007__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/007__side_01.jpg",
+    "target_height": 672,
+    "target_panel": {
+      "crop_box": [
+        36,
+        59,
+        1095,
+        727
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/slam-dunk_mangazero/007__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 1072
+  }
+}

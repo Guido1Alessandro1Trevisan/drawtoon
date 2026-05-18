@@ -1,0 +1,212 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. JoJo's Bizarre Adventure Part 7: Steel Ball Run by Hirohiko Araki. Character 2 positioned above, mouth open with tense facial expression and gaze directed downward, while Character 1 below crouches with arms raised defensively, both figures surrounded by dense speed lines and dark screen tone creating dynamic motion across the panel.",
+    "chapter": "jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0188/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0188/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.126953,
+              0.604403,
+              0.941406,
+              0.963778
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.095703,
+              0.142756,
+              0.986328,
+              0.534801
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0188/ctrl_img_1.png"
+    },
+    "eval_index": 188,
+    "eval_seed": 20260703,
+    "eval_stratum": "2/0/portrait",
+    "page_id": "601__side_00",
+    "page_root": "jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00",
+    "panel_index": 0,
+    "sample_id": "jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jpg",
+    "target_height": 1408,
+    "target_panel": "/root/validation_datasets/generalist/img_0188/target.png",
+    "target_width": 512,
+    "validation_set_dir": "img_0188"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. JoJo's Bizarre Adventure Part 7: Steel Ball Run by Hirohiko Araki. Character 2 positioned above, mouth open with tense facial expression and gaze directed downward, while Character 1 below crouches with arms raised defensively, both figures surrounded by dense speed lines and dark screen tone creating dynamic motion across the panel.",
+    "chapter": "jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            227,
+            899,
+            464,
+            1384
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            8,
+            9,
+            444,
+            832
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.126953,
+              0.604403,
+              0.941406,
+              0.963778
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.095703,
+              0.142756,
+              0.986328,
+              0.534801
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "601__side_00",
+    "page_root": "jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00",
+    "panel_index": 0,
+    "sample_id": "jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jpg",
+    "target_height": 1408,
+    "target_panel": {
+      "crop_box": [
+        1274,
+        0,
+        1781,
+        1396
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/jojo-s-bizarre-adventure-part-7-steel-ball-run_mangazero/601__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 512
+  }
+}

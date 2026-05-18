@@ -1,0 +1,234 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Natsume Yuujinchou by Yuki Midorikawa. Character 1 stands with head tilted upward, mouth slightly open, gazing toward the upper left where foliage and sky are visible. Character 2 appears in the lower left corner. Mostly white background with screen tone texture and tree branches at top. Vertical panel composition with tall negative space.",
+    "chapter": "natsume-yuujinchou_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0160/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0160/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.554167,
+              0.666159,
+              0.95,
+              0.993902
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.0,
+              0.385671,
+              0.070833,
+              0.993902
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.2,
+                0.091463,
+                0.629167,
+                0.199695
+              ],
+              "text_region_index": 0,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0160/ctrl_img_1.png"
+    },
+    "eval_index": 160,
+    "eval_seed": 20260675,
+    "eval_stratum": "2/1/portrait",
+    "page_id": "527__side_00",
+    "page_root": "natsume-yuujinchou_mangazero/527__side_00",
+    "panel_index": 4,
+    "sample_id": "natsume-yuujinchou_mangazero/527__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/natsume-yuujinchou_mangazero/527__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/natsume-yuujinchou_mangazero/527__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/natsume-yuujinchou_mangazero/527__side_00.jpg",
+    "target_height": 656,
+    "target_panel": "/root/validation_datasets/generalist/img_0160/target.png",
+    "target_width": 240,
+    "validation_set_dir": "img_0160"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Natsume Yuujinchou by Yuki Midorikawa. Character 1 stands with head tilted upward, mouth slightly open, gazing toward the upper left where foliage and sky are visible. Character 2 appears in the lower left corner. Mostly white background with screen tone texture and tree branches at top. Vertical panel composition with tall negative space.",
+    "chapter": "natsume-yuujinchou_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            601,
+            80,
+            679,
+            180
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/natsume-yuujinchou_mangazero/527__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            687,
+            3,
+            848,
+            141
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/natsume-yuujinchou_mangazero/527__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.554167,
+              0.666159,
+              0.95,
+              0.993902
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.0,
+              0.385671,
+              0.070833,
+              0.993902
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.2,
+                0.091463,
+                0.629167,
+                0.199695
+              ],
+              "text_region_index": 0,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 1,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "527__side_00",
+    "page_root": "natsume-yuujinchou_mangazero/527__side_00",
+    "panel_index": 4,
+    "sample_id": "natsume-yuujinchou_mangazero/527__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/natsume-yuujinchou_mangazero/527__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/natsume-yuujinchou_mangazero/527__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/natsume-yuujinchou_mangazero/527__side_00.jpg",
+    "target_height": 656,
+    "target_panel": {
+      "crop_box": [
+        255,
+        744,
+        490,
+        1396
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/natsume-yuujinchou_mangazero/527__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 240
+  }
+}

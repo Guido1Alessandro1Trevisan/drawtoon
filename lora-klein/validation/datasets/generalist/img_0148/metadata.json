@@ -1,0 +1,231 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Gekkan Shoujo Nozaki-kun by Izumi Tsubaki. Character 1 shown in profile with mouth open and eyes narrowed, head tilted slightly, positioned on the left side of the panel with halftone shading and speed lines; right side shows an interior setting with vertical line background screen tone and two speech bubbles.",
+    "chapter": "gekkan-shoujo-nozaki-kun_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0148/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.001563,
+              0.015625,
+              0.476562,
+              0.975
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.878125,
+                0.19375,
+                0.95,
+                0.2875
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.809375,
+                0.55625,
+                0.91875,
+                0.6375
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.385937,
+                0.68125,
+                0.45625,
+                0.86875
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0148/ctrl_img_1.png"
+    },
+    "eval_index": 148,
+    "eval_seed": 20260663,
+    "eval_stratum": "1/2plus/landscape",
+    "page_id": "958__side_01",
+    "page_root": "gekkan-shoujo-nozaki-kun_mangazero/958__side_01",
+    "panel_index": 2,
+    "sample_id": "gekkan-shoujo-nozaki-kun_mangazero/958__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.jpg",
+    "target_height": 320,
+    "target_panel": "/root/validation_datasets/generalist/img_0148/target.png",
+    "target_width": 640,
+    "validation_set_dir": "img_0148"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Gekkan Shoujo Nozaki-kun by Izumi Tsubaki. Character 1 shown in profile with mouth open and eyes narrowed, head tilted slightly, positioned on the left side of the panel with halftone shading and speed lines; right side shows an interior setting with vertical line background screen tone and two speech bubbles.",
+    "chapter": "gekkan-shoujo-nozaki-kun_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            188,
+            688,
+            616,
+            988
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.001563,
+              0.015625,
+              0.476562,
+              0.975
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.878125,
+                0.19375,
+                0.95,
+                0.2875
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.809375,
+                0.55625,
+                0.91875,
+                0.6375
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.385937,
+                0.68125,
+                0.45625,
+                0.86875
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 3
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "958__side_01",
+    "page_root": "gekkan-shoujo-nozaki-kun_mangazero/958__side_01",
+    "panel_index": 2,
+    "sample_id": "gekkan-shoujo-nozaki-kun_mangazero/958__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.jpg",
+    "target_height": 320,
+    "target_panel": {
+      "crop_box": [
+        76,
+        358,
+        707,
+        674
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/gekkan-shoujo-nozaki-kun_mangazero/958__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 640
+  }
+}

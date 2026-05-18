@@ -1,0 +1,13 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=auth_reader_second_retry_20260517T213513Z sites=1 prefix=s3://drawtoon/datasets/pages/single download=True chapter_workers=8 image_workers=2
+discover: site=second series=second-life-ranker_manwa chapters=224
+manifest: path=artifacts/separata_manwa/manifests/auth_reader_second_retry_20260517T213513Z_chapters.jsonl chapters=224
+progress: chapters=7/224 accessible=0 no_images=0 images=52 written=0 skipped=43 failures=9 chapter_rate=0.15/s eta=23.5m
+progress: chapters=19/224 accessible=6 no_images=0 images=189 written=0 skipped=161 failures=28 chapter_rate=0.25/s eta=13.6m
+progress: chapters=35/224 accessible=18 no_images=0 images=326 written=0 skipped=287 failures=39 chapter_rate=0.26/s eta=12.3m
+progress: chapters=41/224 accessible=20 no_images=0 images=398 written=0 skipped=333 failures=65 chapter_rate=0.23/s eta=13.2m
+progress: chapters=48/224 accessible=20 no_images=0 images=463 written=0 skipped=357 failures=106 chapter_rate=0.21/s eta=13.8m
+progress: chapters=55/224 accessible=20 no_images=0 images=527 written=0 skipped=377 failures=150 chapter_rate=0.19/s eta=15.1m
+progress: chapters=60/224 accessible=20 no_images=0 images=565 written=0 skipped=380 failures=185 chapter_rate=0.18/s eta=15.3m
+progress: chapters=63/224 accessible=20 no_images=0 images=588 written=0 skipped=380 failures=208 chapter_rate=0.17/s eta=16.3m

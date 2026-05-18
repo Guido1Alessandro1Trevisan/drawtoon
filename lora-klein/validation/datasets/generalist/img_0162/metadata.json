@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Pretty Guardian Sailor Moon by Naoko Takeuchi. Character 1 faces forward with mouth open in speech, head tilted slightly, eyes focused ahead. Large speech bubble dominates upper panel area with narration bubble below left. White background with halftone screen tone on left edge, close-up shot framing character from shoulders up.",
+    "chapter": "pretty-guardian-sailor-moon_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0162/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.389423,
+              0.402174,
+              0.942308,
+              0.953804
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.307692,
+                0.11413,
+                0.932692,
+                0.355978
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.009615,
+                0.497283,
+                0.485577,
+                0.807065
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0162/ctrl_img_1.png"
+    },
+    "eval_index": 162,
+    "eval_seed": 20260677,
+    "eval_stratum": "1/2plus/portrait",
+    "page_id": "060__side_00",
+    "page_root": "pretty-guardian-sailor-moon_mangazero/060__side_00",
+    "panel_index": 1,
+    "sample_id": "pretty-guardian-sailor-moon_mangazero/060__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/pretty-guardian-sailor-moon_mangazero/060__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/pretty-guardian-sailor-moon_mangazero/060__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/060__side_00.jpg",
+    "target_height": 368,
+    "target_panel": "/root/validation_datasets/generalist/img_0162/target.png",
+    "target_width": 208,
+    "validation_set_dir": "img_0162"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Pretty Guardian Sailor Moon by Naoko Takeuchi. Character 1 faces forward with mouth open in speech, head tilted slightly, eyes focused ahead. Large speech bubble dominates upper panel area with narration bubble below left. White background with halftone screen tone on left edge, close-up shot framing character from shoulders up.",
+    "chapter": "pretty-guardian-sailor-moon_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            320,
+            257,
+            408,
+            411
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/060__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.389423,
+              0.402174,
+              0.942308,
+              0.953804
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.307692,
+                0.11413,
+                0.932692,
+                0.355978
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.009615,
+                0.497283,
+                0.485577,
+                0.807065
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "060__side_00",
+    "page_root": "pretty-guardian-sailor-moon_mangazero/060__side_00",
+    "panel_index": 1,
+    "sample_id": "pretty-guardian-sailor-moon_mangazero/060__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/pretty-guardian-sailor-moon_mangazero/060__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/pretty-guardian-sailor-moon_mangazero/060__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/060__side_00.jpg",
+    "target_height": 368,
+    "target_panel": {
+      "crop_box": [
+        112,
+        68,
+        312,
+        422
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/pretty-guardian-sailor-moon_mangazero/060__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 208
+  }
+}

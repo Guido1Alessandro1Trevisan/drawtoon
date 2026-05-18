@@ -1,0 +1,210 @@
+{
+  "base": false,
+  "caption": "Black and White Manga. Attack on Titan by Hajime Isayama. Attack on Titan style. Character 1 stands in the left foreground holding a document, head tilted downward with mouth open in speech. Character 2 faces Character 1 from the midground center, leaning slightly forward with an engaged expression. Character 3 appears in the right background, gazing toward the other characters. A brick wall fills the background. Multiple speech bubbles contain dialogue between the characters.",
+  "eval_id": "aot_lora_r64_20260515_170929",
+  "generated_uri": "s3://drawtoon/validation/flux2_klein_panel_eval/aot_lora_r64_20260515_170929/finetuned/samples/0156_attack-on-titan_mangazero_639__side_00_panel_001/generated.png",
+  "guidance_scale": 4.0,
+  "height": 480,
+  "layout_uri": "s3://drawtoon/validation/flux2_klein_panel_eval/aot_lora_r64_20260515_170929/finetuned/samples/0156_attack-on-titan_mangazero_639__side_00_panel_001/ctrl_img_1.png",
+  "load_stats": {
+    "base_model": "black-forest-labs/FLUX.2-klein-base-9B",
+    "checkpoint_format": "ai_toolkit_lora",
+    "checkpoint_path": "/root/validation_cache/checkpoints/2d/mangazero_flux2_klein9b_attack_on_titan_panel_prediction_same_page_refs_native_pad16_haiku45_lor_2dc3d9a17d56ae7924.safetensors",
+    "checkpoint_tensors": 224,
+    "checkpoint_uri": "s3://drawtoon/models/mangazero_flux2_klein9b_attack_on_titan_panel_prediction_same_page_refs_native_pad16_haiku45_lora_r64_lr5e5_ga1_h200/checkpoints/mangazero_flux2_klein9b_attack_on_titan_panel_prediction_same_page_refs_native_pad16_haiku45_lora_r64_lr5e5_ga1_h200.safetensors",
+    "examples": [
+      {
+        "rank": 64,
+        "shape": [
+          4096,
+          4096
+        ],
+        "target_key": "double_blocks.0.img_attn.proj.weight"
+      },
+      {
+        "rank": 64,
+        "shape": [
+          12288,
+          4096
+        ],
+        "target_key": "double_blocks.0.img_attn.qkv.weight"
+      },
+      {
+        "rank": 64,
+        "shape": [
+          24576,
+          4096
+        ],
+        "target_key": "double_blocks.0.img_mlp.0.weight"
+      },
+      {
+        "rank": 64,
+        "shape": [
+          4096,
+          12288
+        ],
+        "target_key": "double_blocks.0.img_mlp.2.weight"
+      },
+      {
+        "rank": 64,
+        "shape": [
+          4096,
+          4096
+        ],
+        "target_key": "double_blocks.0.txt_attn.proj.weight"
+      }
+    ],
+    "loaded_lora_modules": 112,
+    "lora_a_tensors": 112,
+    "ranks": [
+      64
+    ],
+    "scale": 1.0,
+    "skipped_missing_b": 0,
+    "skipped_missing_target": 0,
+    "skipped_shape": 0
+  },
+  "model": "finetuned",
+  "ref_uris": [
+    "s3://drawtoon/validation/flux2_klein_panel_eval/aot_lora_r64_20260515_170929/finetuned/samples/0156_attack-on-titan_mangazero_639__side_00_panel_001/ctrl_img_2.png",
+    "s3://drawtoon/validation/flux2_klein_panel_eval/aot_lora_r64_20260515_170929/finetuned/samples/0156_attack-on-titan_mangazero_639__side_00_panel_001/ctrl_img_3.png",
+    "s3://drawtoon/validation/flux2_klein_panel_eval/aot_lora_r64_20260515_170929/finetuned/samples/0156_attack-on-titan_mangazero_639__side_00_panel_001/ctrl_img_4.png"
+  ],
+  "row": {
+    "caption": "Black and White Manga. Attack on Titan by Hajime Isayama. Attack on Titan style. Character 1 stands in the left foreground holding a document, head tilted downward with mouth open in speech. Character 2 faces Character 1 from the midground center, leaning slightly forward with an engaged expression. Character 3 appears in the right background, gazing toward the other characters. A brick wall fills the background. Multiple speech bubbles contain dialogue between the characters.",
+    "chapter": "attack-on-titan_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/attack_on_titan/img_0156/ctrl_img_2.png",
+        "/root/validation_datasets/attack_on_titan/img_0156/ctrl_img_3.png",
+        "/root/validation_datasets/attack_on_titan/img_0156/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.024194,
+              0.00625,
+              0.655242,
+              0.995833
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.659274,
+              0.172917,
+              0.83871,
+              0.760417
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.854839,
+              0.34375,
+              0.989919,
+              0.995833
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.844758,
+                0.189583,
+                0.975806,
+                0.383333
+              ],
+              "masked": true,
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.076613,
+                0.09375,
+                0.288306,
+                0.44375
+              ],
+              "masked": true,
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "None": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "solid blue rectangle",
+            "None": "no mask",
+            "Shout Bubble": "solid blue rectangle with blue spiky protrusions outside the bbox",
+            "Speech Bubble": "solid blue rectangle with blue oval protrusion outside the bbox"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/attack_on_titan/img_0156/ctrl_img_1.png"
+    },
+    "eval_index": 156,
+    "eval_seed": 20260671,
+    "eval_stratum": "3plus/2plus/square",
+    "page_id": "639__side_00",
+    "page_root": "attack-on-titan_mangazero/639__side_00",
+    "panel_index": 1,
+    "sample_id": "attack-on-titan_mangazero/639__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/attack-on-titan_mangazero/639__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku45_mangazero_page_panel_v1/attack-on-titan_mangazero/639__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/attack-on-titan_mangazero/639__side_00.jpg",
+    "target_height": 480,
+    "target_panel": "/root/validation_datasets/attack_on_titan/img_0156/target.png",
+    "target_width": 496,
+    "validation_set_dir": "img_0156"
+  },
+  "sample_id": "attack-on-titan_mangazero/639__side_00/panel_001",
+  "sample_index": 156,
+  "seconds": 11.193,
+  "seed": 20260671,
+  "steps": 50,
+  "target_uri": "s3://drawtoon/validation/flux2_klein_panel_eval/aot_lora_r64_20260515_170929/finetuned/samples/0156_attack-on-titan_mangazero_639__side_00_panel_001/target.png",
+  "width": 496
+}

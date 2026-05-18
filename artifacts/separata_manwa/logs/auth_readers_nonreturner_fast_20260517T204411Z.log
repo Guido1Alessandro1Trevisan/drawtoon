@@ -1,0 +1,47 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=auth_readers_nonreturner_fast_20260517T204411Z sites=5 prefix=s3://drawtoon/datasets/pages/single download=True chapter_workers=32 image_workers=4
+discover: site=solo series=solo-leveling_manwa chapters=213
+discover: site=sss series=sss-class-suicide-hunter_manwa chapters=148
+discover: site=second series=second-life-ranker_manwa chapters=224
+discover: site=great series=the-great-mage-returns-after-4000-years_manwa chapters=257
+discover: site=lout series=lout-of-counts-family_manwa chapters=175
+manifest: path=artifacts/separata_manwa/manifests/auth_readers_nonreturner_fast_20260517T204411Z_chapters.jsonl chapters=1017
+progress: chapters=34/1017 accessible=34 no_images=0 images=1012 written=14 skipped=998 failures=0 chapter_rate=0.71/s eta=23.2m
+progress: chapters=35/1017 accessible=35 no_images=0 images=1039 written=26 skipped=1013 failures=0 chapter_rate=0.38/s eta=42.7m
+progress: chapters=37/1017 accessible=37 no_images=0 images=1103 written=54 skipped=1049 failures=0 chapter_rate=0.30/s eta=54.5m
+progress: chapters=38/1017 accessible=38 no_images=0 images=1129 written=71 skipped=1058 failures=0 chapter_rate=0.23/s eta=70.6m
+progress: chapters=40/1017 accessible=40 no_images=0 images=1176 written=113 skipped=1063 failures=0 chapter_rate=0.19/s eta=87.0m
+progress: chapters=44/1017 accessible=44 no_images=0 images=1284 written=207 skipped=1077 failures=0 chapter_rate=0.18/s eta=90.0m
+progress: chapters=50/1017 accessible=50 no_images=0 images=1456 written=366 skipped=1090 failures=0 chapter_rate=0.18/s eta=91.4m
+progress: chapters=53/1017 accessible=53 no_images=0 images=1541 written=451 skipped=1090 failures=0 chapter_rate=0.15/s eta=104.4m
+progress: chapters=57/1017 accessible=57 no_images=0 images=1663 written=573 skipped=1090 failures=0 chapter_rate=0.15/s eta=105.1m
+progress: chapters=64/1017 accessible=64 no_images=0 images=1910 written=820 skipped=1090 failures=0 chapter_rate=0.16/s eta=101.4m
+progress: chapters=65/1017 accessible=65 no_images=0 images=1943 written=853 skipped=1090 failures=0 chapter_rate=0.14/s eta=114.1m
+progress: chapters=69/1017 accessible=69 no_images=0 images=2093 written=1003 skipped=1090 failures=0 chapter_rate=0.13/s eta=117.5m
+progress: chapters=71/1017 accessible=71 no_images=0 images=2154 written=1064 skipped=1090 failures=0 chapter_rate=0.13/s eta=123.5m
+progress: chapters=74/1017 accessible=74 no_images=0 images=2265 written=1175 skipped=1090 failures=0 chapter_rate=0.13/s eta=125.6m
+progress: chapters=79/1017 accessible=79 no_images=0 images=2401 written=1311 skipped=1090 failures=0 chapter_rate=0.13/s eta=123.3m
+progress: chapters=86/1017 accessible=86 no_images=0 images=2629 written=1539 skipped=1090 failures=0 chapter_rate=0.13/s eta=118.1m
+progress: chapters=90/1017 accessible=90 no_images=0 images=2738 written=1648 skipped=1090 failures=0 chapter_rate=0.13/s eta=118.2m
+progress: chapters=93/1017 accessible=93 no_images=0 images=2839 written=1749 skipped=1090 failures=0 chapter_rate=0.13/s eta=120.4m
+progress: chapters=100/1017 accessible=100 no_images=0 images=3114 written=2024 skipped=1090 failures=0 chapter_rate=0.13/s eta=116.3m
+progress: chapters=108/1017 accessible=108 no_images=0 images=3353 written=2263 skipped=1090 failures=0 chapter_rate=0.14/s eta=111.5m
+progress: chapters=113/1017 accessible=113 no_images=0 images=3489 written=2399 skipped=1090 failures=0 chapter_rate=0.13/s eta=113.0m
+progress: chapters=118/1017 accessible=118 no_images=0 images=3571 written=2481 skipped=1090 failures=0 chapter_rate=0.13/s eta=111.8m
+progress: chapters=121/1017 accessible=121 no_images=0 images=3605 written=2515 skipped=1090 failures=0 chapter_rate=0.13/s eta=113.4m
+progress: chapters=124/1017 accessible=124 no_images=0 images=3674 written=2584 skipped=1090 failures=0 chapter_rate=0.13/s eta=114.9m
+progress: chapters=127/1017 accessible=127 no_images=0 images=3808 written=2718 skipped=1090 failures=0 chapter_rate=0.12/s eta=119.9m
+progress: chapters=128/1017 accessible=128 no_images=0 images=3824 written=2734 skipped=1090 failures=0 chapter_rate=0.12/s eta=126.8m
+progress: chapters=129/1017 accessible=129 no_images=0 images=3841 written=2751 skipped=1090 failures=0 chapter_rate=0.11/s eta=130.6m
+progress: chapters=133/1017 accessible=133 no_images=0 images=3889 written=2799 skipped=1090 failures=0 chapter_rate=0.11/s eta=129.7m
+progress: chapters=135/1017 accessible=135 no_images=0 images=3926 written=2836 skipped=1090 failures=0 chapter_rate=0.11/s eta=131.1m
+progress: chapters=152/1017 accessible=152 no_images=0 images=4316 written=3226 skipped=1090 failures=0 chapter_rate=0.12/s eta=117.4m
+progress: chapters=154/1017 accessible=154 no_images=0 images=4393 written=3303 skipped=1090 failures=0 chapter_rate=0.12/s eta=120.6m
+progress: chapters=159/1017 accessible=159 no_images=0 images=4563 written=3473 skipped=1090 failures=0 chapter_rate=0.12/s eta=123.5m
+progress: chapters=162/1017 accessible=162 no_images=0 images=4644 written=3554 skipped=1090 failures=0 chapter_rate=0.12/s eta=123.8m
+progress: chapters=163/1017 accessible=163 no_images=0 images=4666 written=3576 skipped=1090 failures=0 chapter_rate=0.11/s eta=128.1m
+progress: chapters=166/1017 accessible=166 no_images=0 images=4839 written=3749 skipped=1090 failures=0 chapter_rate=0.11/s eta=128.2m
+progress: chapters=170/1017 accessible=170 no_images=0 images=5094 written=4004 skipped=1090 failures=0 chapter_rate=0.11/s eta=128.3m
+progress: chapters=172/1017 accessible=172 no_images=0 images=5174 written=4084 skipped=1090 failures=0 chapter_rate=0.11/s eta=131.3m
+progress: chapters=175/1017 accessible=175 no_images=0 images=5426 written=4336 skipped=1090 failures=0 chapter_rate=0.11/s eta=131.5m

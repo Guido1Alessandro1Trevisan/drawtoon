@@ -23,7 +23,7 @@ import boto3
 import modal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, field_validator, model_validator
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 # Define volumes for persistent storage
 model_volume = modal.Volume.from_name("flux-lora-models", create_if_missing=True)
@@ -52,9 +52,14 @@ DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_panel_v1"
 MAX_CONTROL_IMAGE_SLOTS = 7
 MAX_LAYOUT_CHARACTER_REFS = 5
 MAX_LAYOUT_TEXT_REGIONS = 7
-LAYOUT_TEXT_COLOR = (0, 96, 255)
-LAYOUT_STRIPE_COLOR = (0, 0, 0)
-LAYOUT_TEXT_BUBBLE_TYPES = ("Speech Bubble", "Narration Bubble", "Shout Bubble")
+LAYOUT_TEXT_BUBBLE_TYPES = ("Speech Bubble", "Narration Bubble", "Shout Bubble", "None")
+LAYOUT_TEXT_COLORS = {
+    "Speech Bubble": (0, 96, 255),
+    "Narration Bubble": (255, 128, 0),
+    "Shout Bubble": (128, 0, 255),
+}
+LAYOUT_TEXT_COLOR = LAYOUT_TEXT_COLORS["Speech Bubble"]
+LAYOUT_BACKGROUND_COLOR = (0, 0, 0)
 LAYOUT_CHARACTER_COLORS = [
     (255, 0, 0),
     (0, 180, 0),
@@ -63,6 +68,8 @@ LAYOUT_CHARACTER_COLORS = [
     (0, 220, 255),
 ]
 LAYOUT_CHARACTER_COLOR_NAMES = ["red", "green", "yellow", "magenta", "cyan"]
+LAYOUT_CHARACTER_OUTLINE_WIDTHS = [12, 10, 8, 6, 4]
+CHARACTER_REF_BORDER_WIDTH = 3
 
 
 class LaunchArgs(BaseModel):
@@ -75,6 +82,7 @@ class LaunchArgs(BaseModel):
     target_epochs: int = Field(default=3, ge=1)
     ddp_world_size: int = Field(default=1)
     max_train_steps: int = Field(default=0, ge=0)
+    sample_every: int = Field(default=0, ge=0)
 
     @field_validator("preset", mode="before")
     @classmethod
@@ -458,15 +466,20 @@ def _materialize_manifest_validation_asset(manifest_path: Path, asset_ref: Any) 
         if crop_box is not None:
             image = image.crop(crop_box)
         pad_multiple = int(asset_ref.get("pad_multiple") or 0)
-        if pad_multiple > 1:
-            image = _pad_image_to_multiple(image, multiple=pad_multiple)
+        border_width = int(asset_ref.get("border_width") or 0)
+        image = _apply_ref_border_and_padding(
+            image,
+            border_width=border_width,
+            border_rgb=asset_ref.get("border_rgb"),
+            multiple=pad_multiple,
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         image.save(output_path, format="JPEG", quality=95, optimize=True)
     return output_path
 
 
 def _layout_control_image_from_metadata(layout_metadata: dict[str, Any], width: int, height: int) -> Image.Image:
-    layout = Image.new("RGB", (width, height), "white")
+    layout = Image.new("RGB", (width, height), LAYOUT_BACKGROUND_COLOR)
     draw = ImageDraw.Draw(layout)
     for character in layout_metadata.get("characters") or []:
         if not isinstance(character, dict):
@@ -480,6 +493,7 @@ def _layout_control_image_from_metadata(layout_metadata: dict[str, Any], width: 
                 width=width,
                 height=height,
                 color=tuple(int(value) for value in rgb),
+                line_width=int(character.get("line_width") or 6),
             )
     text_payload = layout_metadata.get("text") if isinstance(layout_metadata.get("text"), dict) else {}
     for region in text_payload.get("regions") or []:
@@ -491,6 +505,7 @@ def _layout_control_image_from_metadata(layout_metadata: dict[str, Any], width: 
             width=width,
             height=height,
             text_bubble_type=str(region.get("type") or "Speech Bubble"),
+            line_width=int(region.get("line_width") or 0),
         )
     return layout
 
@@ -1405,6 +1420,26 @@ def parse_gradient_accumulation_steps(raw: Any, default: int = 1) -> int:
     return value
 
 
+def resolve_training_steps(
+    process_config: dict,
+    *,
+    steps_per_epoch: int,
+    target_epochs: int,
+    max_train_steps: int = 0,
+) -> int:
+    train_config = process_config.get("train", {})
+    fixed_steps = int(train_config.get("fixed_steps") or 0)
+    if fixed_steps > 0:
+        if max_train_steps > 0:
+            return min(fixed_steps, max_train_steps)
+        return fixed_steps
+
+    total_steps = steps_per_epoch * max(1, target_epochs)
+    if max_train_steps > 0:
+        total_steps = min(total_steps, max_train_steps)
+    return total_steps
+
+
 def resolve_gradient_accumulation_steps(process_config: dict) -> int:
     train_config = process_config.get("train", {})
     if "gradient_accumulation" in train_config:
@@ -1664,6 +1699,12 @@ def _drawtoon_config_from_parsed(
     caption_run = str(drawtoon.get("caption_run") or DEFAULT_DRAWTOON_CAPTION_RUN).strip()
     if not caption_run:
         raise ValueError("drawtoon.caption_run is required")
+    caption_field = str(drawtoon.get("caption_field") or "caption").strip()
+    caption_format = str(drawtoon.get("caption_format") or "text").strip().lower()
+    if caption_format not in {"text", "compact_json"}:
+        raise ValueError(
+            f"Unsupported drawtoon.caption_format={caption_format!r}; expected text or compact_json"
+        )
     return {
         "bucket": str(drawtoon.get("bucket") or S3_BUCKET).strip(),
         "pages_prefix": str(drawtoon.get("pages_prefix") or DEFAULT_DRAWTOON_PAGES_PREFIX).strip().strip("/"),
@@ -1672,9 +1713,12 @@ def _drawtoon_config_from_parsed(
         ).strip().strip("/"),
         "captions_prefix": str(drawtoon.get("captions_prefix") or DEFAULT_DRAWTOON_CAPTIONS_PREFIX).strip().strip("/"),
         "caption_run": caption_run,
+        "caption_field": caption_field,
+        "caption_format": caption_format,
         "include_chapter_regex": str(drawtoon.get("include_chapter_regex") or "").strip(),
         "max_pages": max(0, int(drawtoon.get("max_pages") or 0)),
         "target_multiple": max(1, int(drawtoon.get("target_multiple") or 16)),
+        "exclude_sample_ids_path": str(drawtoon.get("exclude_sample_ids_path") or "").strip(),
     }
 
 
@@ -1692,10 +1736,13 @@ def _drawtoon_cache_key(drawtoon: dict[str, Any]) -> str:
         "annotations_prefix": drawtoon["annotations_prefix"],
         "captions_prefix": drawtoon["captions_prefix"],
         "caption_run": drawtoon["caption_run"],
+        "caption_field": drawtoon.get("caption_field", "caption"),
+        "caption_format": drawtoon.get("caption_format", "text"),
         "include_chapter_regex": drawtoon["include_chapter_regex"],
         "max_pages": int(drawtoon["max_pages"]),
         "target_multiple": int(drawtoon["target_multiple"]),
-        "schema": "drawtoon_panel_cache_v6_lazy_page_crops_white_mask_text_stripes_max5_character_refs",
+        "exclude_sample_ids_path": drawtoon.get("exclude_sample_ids_path", ""),
+        "schema": "drawtoon_panel_cache_v8_lazy_page_crops_white_mask_text_shapes_none_skip_max5_character_refs",
     }
     digest = hashlib.sha1(json.dumps(fingerprint_payload, sort_keys=True).encode("utf-8")).hexdigest()[:16]
     run_label = sanitize_filename(str(drawtoon["caption_run"]), fallback="caption_run")
@@ -1721,6 +1768,56 @@ def _jsonl_write(path: Path, rows: list[dict[str, Any]]) -> None:
     with path.open("w", encoding="utf-8") as handle:
         for row in rows:
             handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def _drawtoon_sample_identity(row: dict[str, Any]) -> str:
+    sample_id = str(row.get("sample_id") or "").strip()
+    if sample_id:
+        return sample_id
+    return json.dumps(row.get("target_panel") or row, sort_keys=True, ensure_ascii=False)
+
+
+def load_drawtoon_excluded_sample_ids(path_value: str) -> set[str]:
+    if not path_value:
+        return set()
+    path = Path(path_value)
+    if not path.exists():
+        raise FileNotFoundError(f"Drawtoon exclude_sample_ids_path does not exist: {path}")
+    return {
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+
+def write_resolved_drawtoon_cache_config(
+    *,
+    parsed_config: dict[str, Any],
+    manifest_path: Path,
+    cache_root: Path,
+    row_count: int,
+    output_path: Path,
+) -> None:
+    process_config = _process_config(parsed_config)
+    manifest_datasets = [
+        dataset
+        for dataset in process_config.get("datasets", []) or []
+        if isinstance(dataset, dict) and dataset.get("type") == "manifest"
+    ]
+    if not manifest_datasets:
+        raise RuntimeError("No manifest dataset found to receive the Drawtoon cache manifest_path")
+    for dataset in manifest_datasets:
+        dataset["manifest_path"] = str(manifest_path)
+        dataset["dataset_s3_path"] = str(cache_root)
+        dataset["local_cache_dir"] = f"/tmp/drawtoon_panel_sample_cache/{cache_root.name}"
+        dataset["layout"] = "manifest"
+        dataset["_prepared_row_count"] = int(row_count)
+
+    sample_config = process_config.setdefault("sample", {})
+    sample_config["dynamic_validation_manifest_paths"] = [str(manifest_path)]
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(yaml.safe_dump(parsed_config, sort_keys=False), encoding="utf-8")
 
 
 def _box_area(box: tuple[float, float, float, float]) -> float:
@@ -1792,6 +1889,27 @@ def _pad_image_to_multiple(image: Image.Image, multiple: int = 16) -> Image.Imag
     return padded
 
 
+def _apply_ref_border_and_padding(
+    image: Image.Image,
+    *,
+    border_width: int,
+    border_rgb: Any,
+    multiple: int,
+) -> Image.Image:
+    if border_width > 0 and isinstance(border_rgb, (list, tuple)) and len(border_rgb) == 3:
+        if multiple > 1:
+            inner_width = int(math.ceil((image.width + border_width * 2) / multiple) * multiple) - border_width * 2
+            inner_height = int(math.ceil((image.height + border_width * 2) / multiple) * multiple) - border_width * 2
+            if inner_width != image.width or inner_height != image.height:
+                padded = Image.new("RGB", (max(image.width, inner_width), max(image.height, inner_height)), "white")
+                padded.paste(image, (0, 0))
+                image = padded
+        return ImageOps.expand(image, border=border_width, fill=tuple(int(value) for value in border_rgb))
+    if multiple > 1:
+        return _pad_image_to_multiple(image, multiple=multiple)
+    return image
+
+
 def _panel_text_regions(panel: dict[str, Any]) -> list[Any]:
     for field_name in ("text_bubbles", "speech_bubbles", "text_regions", "texts", "bubbles"):
         regions = panel.get(field_name)
@@ -1824,22 +1942,29 @@ def _draw_layout_blob(
     width: int,
     height: int,
     color: tuple[int, int, int],
+    line_width: int = 6,
 ) -> bool:
     pixel_box = _norm_box_to_pixel_box(box_norm, width=width, height=height)
     if pixel_box is None:
         return False
     x0, y0, x1, y1 = pixel_box
-    draw.rectangle((x0, y0, x1, y1), fill=color)
+    draw.rectangle((x0, y0, x1, y1), outline=color, width=max(1, int(line_width)))
     return True
 
 
 def _normalize_layout_text_bubble_type(value: object) -> str:
     text = " ".join(str(value or "").split()).strip().lower()
+    if text in {"", "none", "null", "no", "not a bubble"}:
+        return "None"
+    if "free" in text or "floating" in text or "standalone" in text or "sign" in text or "sfx" in text:
+        return "None"
     if "narration" in text or "caption" in text:
         return "Narration Bubble"
     if "shout" in text or "yell" in text or "scream" in text or "burst" in text:
         return "Shout Bubble"
-    return "Speech Bubble"
+    if "speech" in text or "dialogue" in text or "dialog" in text or "bubble" in text:
+        return "Speech Bubble"
+    return "None"
 
 
 def _draw_text_layout_region(
@@ -1849,24 +1974,18 @@ def _draw_text_layout_region(
     width: int,
     height: int,
     text_bubble_type: str,
+    line_width: int = 0,
 ) -> bool:
+    normalized_type = " ".join(str(text_bubble_type or "").split()).strip().lower()
+    if normalized_type in {"", "none", "null"}:
+        return False
+    text_color = LAYOUT_TEXT_COLORS.get(text_bubble_type)
+    if text_color is None:
+        return False
     pixel_box = _norm_box_to_pixel_box(box_norm, width=width, height=height)
     if pixel_box is None:
         return False
-    x0, y0, x1, y1 = pixel_box
-    draw.rectangle((x0, y0, x1, y1), fill=LAYOUT_TEXT_COLOR)
-
-    def band_edges(start: int, end: int, bands: int = 17) -> list[int]:
-        return [int(round(start + ((end - start) * index / bands))) for index in range(bands + 1)]
-
-    if text_bubble_type == "Narration Bubble":
-        edges = band_edges(x0, x1)
-        for band_index in range(1, 17, 2):
-            draw.rectangle((edges[band_index], y0, edges[band_index + 1], y1), fill=LAYOUT_STRIPE_COLOR)
-    elif text_bubble_type == "Shout Bubble":
-        edges = band_edges(y0, y1)
-        for band_index in range(1, 17, 2):
-            draw.rectangle((x0, edges[band_index], x1, edges[band_index + 1]), fill=LAYOUT_STRIPE_COLOR)
+    draw.rectangle(pixel_box, fill=text_color)
     return True
 
 
@@ -1880,7 +1999,7 @@ def _build_panel_layout_control(
     padded_height: int,
     character_layout_items: list[dict[str, Any]],
 ) -> tuple[Image.Image, dict[str, Any]]:
-    layout = Image.new("RGB", (padded_width, padded_height), "white")
+    layout = Image.new("RGB", (padded_width, padded_height), LAYOUT_BACKGROUND_COLOR)
     draw = ImageDraw.Draw(layout)
     drawn_characters: list[dict[str, Any]] = []
     for item in character_layout_items[:MAX_LAYOUT_CHARACTER_REFS]:
@@ -1888,12 +2007,14 @@ def _build_panel_layout_control(
         color = item.get("rgb")
         if not isinstance(box_norm, list) or not isinstance(color, tuple):
             continue
+        line_width = int(item.get("line_width") or 6)
         if _draw_layout_blob(
             draw,
             box_norm,
             width=padded_width,
             height=padded_height,
             color=color,
+            line_width=line_width,
         ):
             drawn_characters.append(
                 {
@@ -1901,6 +2022,8 @@ def _build_panel_layout_control(
                     "control_slot": item.get("control_slot"),
                     "color": item.get("color"),
                     "rgb": list(color),
+                    "line_width": line_width,
+                    "ref_border_width": CHARACTER_REF_BORDER_WIDTH,
                     "bbox_norm": box_norm,
                 }
             )
@@ -1927,6 +2050,17 @@ def _build_panel_layout_control(
         if text_box_norm is None:
             continue
         text_bubble_type = _normalize_layout_text_bubble_type(text_region.get("type"))
+        if text_bubble_type == "None":
+            text_type_counts["None"] = int(text_type_counts.get("None", 0)) + 1
+            drawn_text_regions.append(
+                {
+                    "text_region_index": text_region.get("text_region_index"),
+                    "type": text_bubble_type,
+                    "bbox_norm": text_box_norm,
+                    "masked": False,
+                }
+            )
+            continue
         if _draw_text_layout_region(
             draw,
             text_box_norm,
@@ -1940,6 +2074,9 @@ def _build_panel_layout_control(
                     "text_region_index": text_region.get("text_region_index"),
                     "type": text_bubble_type,
                     "bbox_norm": text_box_norm,
+                    "masked": True,
+                    "shape": "filled_rectangle",
+                    "preserve_text": False,
                 }
             )
             text_count += 1
@@ -1947,16 +2084,16 @@ def _build_panel_layout_control(
     metadata = {
         "control_slot": 1,
         "text": {
-            "color": "blue",
+            "color": "type_color",
             "rgb": list(LAYOUT_TEXT_COLOR),
-            "stripe_color": "black",
-            "stripe_rgb": list(LAYOUT_STRIPE_COLOR),
+            "colors": {text_type: list(rgb) for text_type, rgb in LAYOUT_TEXT_COLORS.items()},
             "count": text_count,
             "type_counts": text_type_counts,
             "types": {
-                "Speech Bubble": "solid blue rectangle",
-                "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
-                "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+                "Speech Bubble": "solid blue filled rectangle",
+                "Narration Bubble": "solid orange filled rectangle",
+                "Shout Bubble": "solid violet filled rectangle",
+                "None": "no mask",
             },
             "regions": drawn_text_regions,
         },
@@ -1968,13 +2105,15 @@ def _build_panel_layout_control(
 def _caption_page_key(caption_payload: dict[str, Any], drawtoon: dict[str, Any]) -> str:
     sources = caption_payload.get("sources") if isinstance(caption_payload.get("sources"), dict) else {}
     page_key = str(sources.get("page_key") or "").strip()
-    if page_key:
-        return page_key
     chapter = str(caption_payload.get("chapter") or "").strip()
     page_id = str(caption_payload.get("page_id") or "").strip()
     if not chapter or not page_id:
         raise ValueError("Caption payload is missing sources.page_key and chapter/page_id fallback fields")
-    return f"{drawtoon['pages_prefix'].rstrip('/')}/{chapter}/{page_id}.jpg"
+    pages_prefix = str(drawtoon["pages_prefix"]).strip().strip("/")
+    if page_key and page_key.startswith(f"{pages_prefix}/"):
+        return page_key
+    extension = ".png" if "text_removed" in pages_prefix.split("/") else (Path(page_key).suffix or ".jpg")
+    return f"{pages_prefix}/{chapter}/{page_id}{extension}"
 
 
 def _panel_character_contexts(
@@ -2053,8 +2192,26 @@ def _caption_page_size(caption_payload: dict[str, Any]) -> tuple[int, int] | Non
     return width, height
 
 
-def _panel_caption(panel: dict[str, Any]) -> str:
-    return str(panel.get("caption") or "").strip()
+def _panel_caption(
+    panel: dict[str, Any],
+    *,
+    caption_field: str = "caption",
+    caption_format: str = "text",
+) -> str:
+    value = panel.get(caption_field)
+    if value is None:
+        return ""
+    if caption_format == "compact_json":
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return ""
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                return value
+        return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    return str(value).strip()
 
 
 def _iter_panel_rows_for_caption(
@@ -2085,6 +2242,8 @@ def _iter_panel_rows_for_caption(
     else:
         page_width, page_height = page_size
     target_multiple = int(drawtoon.get("target_multiple") or 16)
+    caption_field = str(drawtoon.get("caption_field") or "caption").strip()
+    caption_format = str(drawtoon.get("caption_format") or "text").strip().lower()
     panel_contexts = _panel_character_contexts(panels, page_width=page_width, page_height=page_height)
     rows: list[dict[str, Any]] = []
     stats = {
@@ -2102,7 +2261,7 @@ def _iter_panel_rows_for_caption(
         panel_box = _coerce_pixel_box(panel.get("bbox"), width=page_width, height=page_height)
         if panel_box is None:
             panel_box = _coerce_pixel_box(panel.get("bbox_norm"), width=page_width, height=page_height)
-        caption = _panel_caption(panel)
+        caption = _panel_caption(panel, caption_field=caption_field, caption_format=caption_format)
         if panel_box is None or not caption:
             stats["skipped_panels"] += 1
             continue
@@ -2151,6 +2310,8 @@ def _iter_panel_rows_for_caption(
                         int(math.ceil(ry1)),
                     ],
                     "pad_multiple": target_multiple,
+                    "border_rgb": list(LAYOUT_CHARACTER_COLORS[character_index]),
+                    "border_width": CHARACTER_REF_BORDER_WIDTH,
                 }
             )
             character_layout_items.append(
@@ -2160,6 +2321,7 @@ def _iter_panel_rows_for_caption(
                     "bbox_norm": char_box_norm,
                     "color": LAYOUT_CHARACTER_COLOR_NAMES[character_index],
                     "rgb": LAYOUT_CHARACTER_COLORS[character_index],
+                    "line_width": LAYOUT_CHARACTER_OUTLINE_WIDTHS[character_index],
                     "source_character_id": str(character.get("source_character_id") or ""),
                     "ref_policy": ref_policy,
                 }
@@ -2220,7 +2382,7 @@ def _iter_panel_rows_for_caption(
     image=image_4b,
     volumes={DATASET_CACHE_ROOT: dataset_cache_volume},
     secrets=[aws_secret],
-    timeout=60 * 60,
+    timeout=24 * 60 * 60,
     cpu=2,
     memory=8192,
 )
@@ -2280,6 +2442,15 @@ def plan_drawtoon_panel_cache(
             and int(summary.get("caption_key_count") or 0) == len(caption_keys)
             and int(summary.get("row_count") or 0) > 0
         ):
+            row_count = int(summary.get("row_count") or 0)
+            write_resolved_drawtoon_cache_config(
+                parsed_config=parsed_config,
+                manifest_path=manifest_path,
+                cache_root=cache_root,
+                row_count=row_count,
+                output_path=resolved_config_path,
+            )
+            dataset_cache_volume.commit()
             return {
                 "enabled": True,
                 "ready": True,
@@ -2288,7 +2459,7 @@ def plan_drawtoon_panel_cache(
                 "manifest_path": str(manifest_path),
                 "resolved_config_path": str(resolved_config_path),
                 "summary": summary,
-                "row_count": int(summary.get("row_count") or 0),
+                "row_count": row_count,
             }
         shutil.rmtree(cache_root)
 
@@ -2401,7 +2572,7 @@ def build_drawtoon_panel_cache_shard(spec: dict[str, Any]) -> dict[str, Any]:
     image=image_4b,
     volumes={DATASET_CACHE_ROOT: dataset_cache_volume},
     secrets=[aws_secret],
-    timeout=60 * 60,
+    timeout=24 * 60 * 60,
     cpu=2,
     memory=8192,
 )
@@ -2422,17 +2593,35 @@ def finalize_drawtoon_panel_cache(config_path: str, plan: dict[str, Any]) -> dic
     if not part_paths:
         raise RuntimeError(f"No Drawtoon cache shards found under {cache_root / '_work'}")
 
-    row_count = 0
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    with manifest_path.open("w", encoding="utf-8") as output:
-        for part_path in part_paths:
-            with part_path.open("r", encoding="utf-8") as handle:
-                for line in handle:
-                    if line.strip():
-                        output.write(line)
-                        row_count += 1
-    if row_count <= 0:
+    rows: list[dict[str, Any]] = []
+    for part_path in part_paths:
+        with part_path.open("r", encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if line:
+                    rows.append(json.loads(line))
+
+    raw_row_count = len(rows)
+    if raw_row_count <= 0:
         raise RuntimeError(f"Drawtoon cache built zero manifest rows at {manifest_path}")
+
+    drawtoon = plan.get("drawtoon") or {}
+    excluded_sample_ids = load_drawtoon_excluded_sample_ids(
+        str(drawtoon.get("exclude_sample_ids_path") or "")
+    )
+    if excluded_sample_ids:
+        rows = [
+            row for row in rows
+            if _drawtoon_sample_identity(row) not in excluded_sample_ids
+        ]
+    excluded_match_count = raw_row_count - len(rows)
+
+    row_count = len(rows)
+    if row_count <= 0:
+        raise RuntimeError(f"Drawtoon exclude list removed all training rows at {manifest_path}")
+
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    _jsonl_write(manifest_path, rows)
 
     shard_stats = []
     totals: dict[str, int] = {}
@@ -2442,31 +2631,23 @@ def finalize_drawtoon_panel_cache(config_path: str, plan: dict[str, Any]) -> dic
         for key, value in (payload.get("stats") or {}).items():
             totals[key] = int(totals.get(key, 0)) + int(value)
 
-    process_config = _process_config(parsed_config)
-    manifest_datasets = [
-        dataset
-        for dataset in process_config.get("datasets", []) or []
-        if isinstance(dataset, dict) and dataset.get("type") == "manifest"
-    ]
-    if not manifest_datasets:
-        raise RuntimeError("No manifest dataset found to receive the Drawtoon cache manifest_path")
-    for dataset in manifest_datasets:
-        dataset["manifest_path"] = str(manifest_path)
-        dataset["dataset_s3_path"] = str(cache_root)
-        dataset["local_cache_dir"] = f"/tmp/drawtoon_panel_sample_cache/{cache_root.name}"
-        dataset["layout"] = "manifest"
-        dataset["_prepared_row_count"] = row_count
-
-    sample_config = process_config.setdefault("sample", {})
-    sample_config["dynamic_validation_manifest_paths"] = [str(manifest_path)]
-
     parsed_config["drawtoon_cache"] = {
         "cache_root": str(cache_root),
         "manifest_path": str(manifest_path),
+        "raw_row_count": raw_row_count,
         "row_count": row_count,
-        "source": plan.get("drawtoon") or {},
+        "exclude_sample_ids_path": str(drawtoon.get("exclude_sample_ids_path") or ""),
+        "excluded_sample_id_count": len(excluded_sample_ids),
+        "excluded_manifest_match_count": excluded_match_count,
+        "source": drawtoon,
     }
-    resolved_config_path.write_text(yaml.safe_dump(parsed_config, sort_keys=False), encoding="utf-8")
+    write_resolved_drawtoon_cache_config(
+        parsed_config=parsed_config,
+        manifest_path=manifest_path,
+        cache_root=cache_root,
+        row_count=row_count,
+        output_path=resolved_config_path,
+    )
 
     summary = {
         "schema_version": 1,
@@ -2474,9 +2655,13 @@ def finalize_drawtoon_panel_cache(config_path: str, plan: dict[str, Any]) -> dic
         "cache_root": str(cache_root),
         "manifest_path": str(manifest_path),
         "resolved_config_path": str(resolved_config_path),
+        "raw_row_count": raw_row_count,
         "row_count": row_count,
+        "exclude_sample_ids_path": str(drawtoon.get("exclude_sample_ids_path") or ""),
+        "excluded_sample_id_count": len(excluded_sample_ids),
+        "excluded_manifest_match_count": excluded_match_count,
         "caption_key_count": int(plan.get("caption_key_count") or 0),
-        "source": plan.get("drawtoon") or {},
+        "source": drawtoon,
         "totals": totals,
         "shard_count": len(part_paths),
         "shards": shard_stats,
@@ -2533,7 +2718,7 @@ def prepare_drawtoon_panel_cache_for_launch(
 @app.cls(
     image=image_4b,
     gpu=MODAL_SINGLE_GPU,
-    timeout=60 * 60,
+    timeout=24 * 60 * 60,
     volumes={
         MOUNT_DIR: model_volume,
         DATASET_CACHE_ROOT: dataset_cache_volume,
@@ -2755,6 +2940,7 @@ class FluxTrainer:
         model_id: str | None = None,
         target_epochs: int = 3,
         max_train_steps: int = 0,
+        sample_every: int = 0,
         staged_dataset_dir: str | None = None,
         image_count: int | None = None,
         caption_count: int | None = None,
@@ -2854,9 +3040,12 @@ class FluxTrainer:
                 process_config=process_config,
                 world_size=1,
             )
-        total_steps = steps_per_epoch * max(1, target_epochs)
-        if max_train_steps > 0:
-            total_steps = min(total_steps, max_train_steps)
+        total_steps = resolve_training_steps(
+            process_config,
+            steps_per_epoch=steps_per_epoch,
+            target_epochs=target_epochs,
+            max_train_steps=max_train_steps,
+        )
         process_config.setdefault("train", {})
         process_config["train"]["steps"] = total_steps
         process_config["train"]["force_first_sample"] = False
@@ -2870,6 +3059,8 @@ class FluxTrainer:
         if not manifest_training:
             sample_config["sample_every"] = 31
             sample_config["prompts"] = dataset_sample_prompts(str(staged_dataset_dir), limit=10)
+        if sample_every > 0:
+            sample_config["sample_every"] = int(sample_every)
         ai_toolkit_config.write_text(yaml.safe_dump(parsed_config, sort_keys=False))
         parsed_config = yaml.safe_load(ai_toolkit_config.read_text())
 
@@ -2990,6 +3181,7 @@ def train_flux_lora_ddp8(
     target_epochs: int = 3,
     ddp_smoke: bool = False,
     max_train_steps: int = 0,
+    sample_every: int = 0,
     staged_dataset_dir: str | None = None,
     image_count: int | None = None,
     caption_count: int | None = None,
@@ -3091,9 +3283,12 @@ def train_flux_lora_ddp8(
             process_config=process_config,
             world_size=DDP_WORLD_SIZE_8,
         )
-    total_steps = steps_per_epoch * max(1, target_epochs)
-    if max_train_steps > 0:
-        total_steps = min(total_steps, max_train_steps)
+    total_steps = resolve_training_steps(
+        process_config,
+        steps_per_epoch=steps_per_epoch,
+        target_epochs=target_epochs,
+        max_train_steps=max_train_steps,
+    )
     process_config.setdefault("train", {})
     process_config["train"]["steps"] = total_steps
     process_config["train"]["force_first_sample"] = False
@@ -3107,6 +3302,8 @@ def train_flux_lora_ddp8(
     if not manifest_training:
         sample_config["sample_every"] = 31
         sample_config["prompts"] = dataset_sample_prompts(str(staged_dataset_dir), limit=10)
+    if sample_every > 0:
+        sample_config["sample_every"] = int(sample_every)
     ai_toolkit_config.write_text(yaml.safe_dump(parsed_config, sort_keys=False))
     parsed_config = yaml.safe_load(ai_toolkit_config.read_text())
 
@@ -3278,6 +3475,7 @@ def run_drawtoon_cache_then_train(
     ddp_world_size: int,
     ddp_smoke: bool,
     max_train_steps: int,
+    sample_every: int,
     drawtoon_bucket: str,
     drawtoon_caption_run: str,
     drawtoon_pages_prefix: str,
@@ -3294,6 +3492,8 @@ def run_drawtoon_cache_then_train(
     print(f"🌐 DDP world size: {ddp_world_size}", flush=True)
     if max_train_steps > 0:
         print(f"🧪 Max train steps: {max_train_steps}", flush=True)
+    if sample_every > 0:
+        print(f"🖼️  Validation interval override: {sample_every}", flush=True)
 
     cache_result = prepare_drawtoon_panel_cache_for_launch(
         config_path=config_path,
@@ -3325,6 +3525,7 @@ def run_drawtoon_cache_then_train(
             target_epochs=target_epochs,
             ddp_smoke=ddp_smoke,
             max_train_steps=max_train_steps,
+            sample_every=sample_every,
         )
     elif ddp_world_size == 1:
         trainer = FluxTrainer()
@@ -3334,6 +3535,7 @@ def run_drawtoon_cache_then_train(
             model_id=model_id or None,
             target_epochs=target_epochs,
             max_train_steps=max_train_steps,
+            sample_every=sample_every,
         )
     else:
         raise ValueError(f"Unsupported ddp_world_size={ddp_world_size}")
@@ -3353,6 +3555,7 @@ def main(
     ddp_world_size: int = 1,
     ddp_smoke: bool = False,
     max_train_steps: int = 0,
+    sample_every: int = 0,
     drawtoon_bucket: str = S3_BUCKET,
     drawtoon_caption_run: str = "",
     drawtoon_pages_prefix: str = DEFAULT_DRAWTOON_PAGES_PREFIX,
@@ -3371,6 +3574,7 @@ def main(
         target_epochs=target_epochs,
         ddp_world_size=ddp_world_size,
         max_train_steps=max_train_steps,
+        sample_every=sample_every,
     )
     config_path = launch_args.resolved_config_path()
     dataset_subpath = launch_args.dataset_subpath
@@ -3379,6 +3583,7 @@ def main(
     target_epochs = launch_args.target_epochs
     ddp_world_size = launch_args.ddp_world_size
     max_train_steps = launch_args.max_train_steps
+    sample_every = launch_args.sample_every
     print("🚀 Starting AI-toolkit training")
     print("🔧 Optimized with memory snapshots for fast cold starts")
     print("=" * 60)
@@ -3393,6 +3598,8 @@ def main(
     print(f"🌐 DDP world size: {ddp_world_size}")
     if max_train_steps > 0:
         print(f"🧪 Max train steps: {max_train_steps}")
+    if sample_every > 0:
+        print(f"🖼️  Validation interval override: {sample_every}")
     if ddp_smoke:
         print("🧪 DDP smoke logging enabled")
 
@@ -3404,6 +3611,7 @@ def main(
         ddp_world_size=ddp_world_size,
         ddp_smoke=ddp_smoke,
         max_train_steps=max_train_steps,
+        sample_every=sample_every,
         drawtoon_bucket=drawtoon_bucket,
         drawtoon_caption_run=drawtoon_caption_run,
         drawtoon_pages_prefix=drawtoon_pages_prefix,

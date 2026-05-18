@@ -1,0 +1,169 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Frieren: Beyond Journey's End by Kanehito Yamada / Tsukasa Abe. Character 1 stands in mid-air against a tall building wall, holding a long weapon horizontally across the body with both hands, gaze directed upward, mouth open in a shout. Explosive debris and speed lines fill the upper portion of the panel, creating dynamic motion. Worm's-eye view angle emphasizes the character's elevated position against the architectural background with linear screen tone.",
+    "chapter": "sousou-no-frieren_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0038/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.494318,
+              0.393008,
+              0.760417,
+              0.860169
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0038/ctrl_img_1.png"
+    },
+    "eval_index": 38,
+    "eval_seed": 20260553,
+    "eval_stratum": "1/0/square",
+    "page_id": "789__side_00",
+    "page_root": "sousou-no-frieren_mangazero/789__side_00",
+    "panel_index": 0,
+    "sample_id": "sousou-no-frieren_mangazero/789__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/sousou-no-frieren_mangazero/789__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/sousou-no-frieren_mangazero/789__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/789__side_00.jpg",
+    "target_height": 944,
+    "target_panel": "/root/validation_datasets/generalist/img_0038/target.png",
+    "target_width": 1056,
+    "validation_set_dir": "img_0038"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Frieren: Beyond Journey's End by Kanehito Yamada / Tsukasa Abe. Character 1 stands in mid-air against a tall building wall, holding a long weapon horizontally across the body with both hands, gaze directed upward, mouth open in a shout. Explosive debris and speed lines fill the upper portion of the panel, creating dynamic motion. Worm's-eye view angle emphasizes the character's elevated position against the architectural background with linear screen tone.",
+    "chapter": "sousou-no-frieren_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            153,
+            103,
+            604,
+            930
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/789__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.494318,
+              0.393008,
+              0.760417,
+              0.860169
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "789__side_00",
+    "page_root": "sousou-no-frieren_mangazero/789__side_00",
+    "panel_index": 0,
+    "sample_id": "sousou-no-frieren_mangazero/789__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/sousou-no-frieren_mangazero/789__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/sousou-no-frieren_mangazero/789__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/789__side_00.jpg",
+    "target_height": 944,
+    "target_panel": {
+      "crop_box": [
+        620,
+        2,
+        1671,
+        933
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/789__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 1056
+  }
+}

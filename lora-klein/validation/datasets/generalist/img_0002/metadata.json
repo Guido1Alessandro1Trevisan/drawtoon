@@ -1,0 +1,234 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Helck by Nanaki Nanao. Character 1 stands with mouth open and wide eyes, gazing downward at Character 2 positioned below, who displays a pointed head and open mouth with visible teeth. A speech bubble floats between them against a light gray background, medium shot with slight downward camera angle.",
+    "chapter": "helck_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0002/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0002/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.100962,
+              0.332386,
+              0.567308,
+              0.963068
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.004808,
+              0.0,
+              0.1875,
+              0.434659
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.53125,
+                0.167614,
+                0.841346,
+                0.579545
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0002/ctrl_img_1.png"
+    },
+    "eval_index": 2,
+    "eval_seed": 20260517,
+    "eval_stratum": "2/1/square",
+    "page_id": "494__side_00",
+    "page_root": "helck_mangazero/494__side_00",
+    "panel_index": 0,
+    "sample_id": "helck_mangazero/494__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/helck_mangazero/494__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/helck_mangazero/494__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/494__side_00.jpg",
+    "target_height": 352,
+    "target_panel": "/root/validation_datasets/generalist/img_0002/target.png",
+    "target_width": 416,
+    "validation_set_dir": "img_0002"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Helck by Nanaki Nanao. Character 1 stands with mouth open and wide eyes, gazing downward at Character 2 positioned below, who displays a pointed head and open mouth with visible teeth. A speech bubble floats between them against a light gray background, medium shot with slight downward camera angle.",
+    "chapter": "helck_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            591,
+            1219,
+            695,
+            1322
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/494__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            508,
+            85,
+            584,
+            238
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/494__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.100962,
+              0.332386,
+              0.567308,
+              0.963068
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.004808,
+              0.0,
+              0.1875,
+              0.434659
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.53125,
+                0.167614,
+                0.841346,
+                0.579545
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "494__side_00",
+    "page_root": "helck_mangazero/494__side_00",
+    "panel_index": 0,
+    "sample_id": "helck_mangazero/494__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/helck_mangazero/494__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/helck_mangazero/494__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/494__side_00.jpg",
+    "target_height": 352,
+    "target_panel": {
+      "crop_box": [
+        506,
+        85,
+        910,
+        424
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/494__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 416
+  }
+}

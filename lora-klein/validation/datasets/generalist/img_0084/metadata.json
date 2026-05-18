@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Claymore by Norihiro Yagi. Character 1 faces forward with mouth open and eyes wide, head tilted slightly, rendered in crosshatched black and white ink with halftone screen tone. Speech bubbles appear in upper right and lower left. Close-up shot with stark white background and scattered ink marks.",
+    "chapter": "claymore_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0084/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.003906,
+              0.060484,
+              0.941406,
+              0.961694
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.621094,
+                0.129032,
+                0.914062,
+                0.205645
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.027344,
+                0.707661,
+                0.40625,
+                0.824597
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0084/ctrl_img_1.png"
+    },
+    "eval_index": 84,
+    "eval_seed": 20260599,
+    "eval_stratum": "1/2plus/portrait",
+    "page_id": "802__side_00",
+    "page_root": "claymore_mangazero/802__side_00",
+    "panel_index": 2,
+    "sample_id": "claymore_mangazero/802__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/claymore_mangazero/802__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/claymore_mangazero/802__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/802__side_00.jpg",
+    "target_height": 496,
+    "target_panel": "/root/validation_datasets/generalist/img_0084/target.png",
+    "target_width": 256,
+    "validation_set_dir": "img_0084"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Claymore by Norihiro Yagi. Character 1 faces forward with mouth open and eyes wide, head tilted slightly, rendered in crosshatched black and white ink with halftone screen tone. Speech bubbles appear in upper right and lower left. Close-up shot with stark white background and scattered ink marks.",
+    "chapter": "claymore_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            273,
+            745,
+            516,
+            1192
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/802__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.003906,
+              0.060484,
+              0.941406,
+              0.961694
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.621094,
+                0.129032,
+                0.914062,
+                0.205645
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.027344,
+                0.707661,
+                0.40625,
+                0.824597
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "802__side_00",
+    "page_root": "claymore_mangazero/802__side_00",
+    "panel_index": 2,
+    "sample_id": "claymore_mangazero/802__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/claymore_mangazero/802__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/claymore_mangazero/802__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/802__side_00.jpg",
+    "target_height": 496,
+    "target_panel": {
+      "crop_box": [
+        272,
+        715,
+        513,
+        1198
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/claymore_mangazero/802__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 256
+  }
+}

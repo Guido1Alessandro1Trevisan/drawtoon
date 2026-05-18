@@ -1,0 +1,32 @@
+{
+  "run_id": "tapas_public_20260517T171501Z",
+  "created_at": "2026-05-17T17:25:13Z",
+  "network_mode": "direct",
+  "bucket": "drawtoon",
+  "prefix": "datasets/pages/source/tapas",
+  "series": [
+    "solo-leveling-comic",
+    "second-life-ranker",
+    "sss-class-revival-hunter",
+    "overgeared",
+    "a-returners-magic-should-be-special",
+    "the-archmage-returns-after-4000-years",
+    "lout-of-counts-family"
+  ],
+  "manifest_path": "artifacts/separata_manwa/manifests/tapas_public_20260517T171501Z_episodes.jsonl",
+  "status_path": "artifacts/separata_manwa/manifests/tapas_public_20260517T171501Z_status.jsonl",
+  "download": true,
+  "counts": {
+    "episodes": 1541,
+    "accessible": 21,
+    "locked_or_unavailable": 1508,
+    "written": 1403,
+    "skipped": 1,
+    "failures": 264,
+    "images": 1668
+  },
+  "notes": [
+    "Only official Tapas public/free episode images exposed in HTML were downloaded.",
+    "WUF/Ink/login/locked episodes are recorded as locked_or_unavailable and require an authorized export path."
+  ]
+}

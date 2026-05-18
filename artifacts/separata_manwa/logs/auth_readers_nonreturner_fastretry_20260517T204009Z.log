@@ -1,0 +1,13 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=auth_readers_nonreturner_fastretry_20260517T204009Z sites=5 prefix=s3://drawtoon/datasets/pages/single download=True chapter_workers=14 image_workers=3
+discover: site=solo series=solo-leveling_manwa chapters=213
+discover: site=sss series=sss-class-suicide-hunter_manwa chapters=148
+discover: site=second series=second-life-ranker_manwa chapters=224
+discover: site=great series=the-great-mage-returns-after-4000-years_manwa chapters=257
+discover: site=lout series=lout-of-counts-family_manwa chapters=175
+manifest: path=artifacts/separata_manwa/manifests/auth_readers_nonreturner_fastretry_20260517T204009Z_chapters.jsonl chapters=1017
+progress: chapters=17/1017 accessible=17 no_images=0 images=454 written=8 skipped=446 failures=0 chapter_rate=0.18/s eta=93.4m
+progress: chapters=19/1017 accessible=19 no_images=0 images=525 written=24 skipped=501 failures=0 chapter_rate=0.15/s eta=112.6m
+progress: chapters=23/1017 accessible=23 no_images=0 images=654 written=93 skipped=561 failures=0 chapter_rate=0.14/s eta=115.0m
+progress: chapters=27/1017 accessible=27 no_images=0 images=790 written=214 skipped=576 failures=0 chapter_rate=0.13/s eta=128.5m

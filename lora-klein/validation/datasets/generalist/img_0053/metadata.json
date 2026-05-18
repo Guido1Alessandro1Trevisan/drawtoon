@@ -1,0 +1,357 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Chainsaw Man by Tatsuki Fujimoto. Character 1, Character 3, and Character 2 stand side by side in an urban setting with buildings behind them, gazes directed forward with neutral to tense facial expressions, mouths closed or slightly parted, medium shot framing three figures across the panel width with a large speech bubble centered below.",
+    "chapter": "chainsaw-man_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0053/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0053/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0053/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.0,
+              0.135045,
+              0.33801,
+              0.921875
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.649235,
+              0.016741,
+              0.977041,
+              0.988839
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.353316,
+              0.092634,
+              0.655612,
+              0.984375
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 5,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.307398,
+                0.026786,
+                0.372449,
+                0.094866
+              ],
+              "text_region_index": 0,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.010204,
+                0.594866,
+                0.19898,
+                0.856027
+              ],
+              "text_region_index": 1,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.368622,
+                0.717634,
+                0.622449,
+                0.78683
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.434949,
+                0.924107,
+                0.531888,
+                0.984375
+              ],
+              "text_region_index": 3,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.191327,
+                0.927455,
+                0.413265,
+                0.977679
+              ],
+              "text_region_index": 4,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 4,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0053/ctrl_img_1.png"
+    },
+    "eval_index": 53,
+    "eval_seed": 20260568,
+    "eval_stratum": "3plus/2plus/square",
+    "page_id": "500__side_01",
+    "page_root": "chainsaw-man_mangazero/500__side_01",
+    "panel_index": 1,
+    "sample_id": "chainsaw-man_mangazero/500__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/chainsaw-man_mangazero/500__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/chainsaw-man_mangazero/500__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/500__side_01.jpg",
+    "target_height": 896,
+    "target_panel": "/root/validation_datasets/generalist/img_0053/target.png",
+    "target_width": 784,
+    "validation_set_dir": "img_0053"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Chainsaw Man by Tatsuki Fujimoto. Character 1, Character 3, and Character 2 stand side by side in an urban setting with buildings behind them, gazes directed forward with neutral to tense facial expressions, mouths closed or slightly parted, medium shot framing three figures across the panel width with a large speech bubble centered below.",
+    "chapter": "chainsaw-man_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            0,
+            432,
+            265,
+            1137
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/500__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            509,
+            326,
+            766,
+            1197
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/500__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            277,
+            394,
+            514,
+            1193
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/500__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.0,
+              0.135045,
+              0.33801,
+              0.921875
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.649235,
+              0.016741,
+              0.977041,
+              0.988839
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.353316,
+              0.092634,
+              0.655612,
+              0.984375
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 5,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.307398,
+                0.026786,
+                0.372449,
+                0.094866
+              ],
+              "text_region_index": 0,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.010204,
+                0.594866,
+                0.19898,
+                0.856027
+              ],
+              "text_region_index": 1,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.368622,
+                0.717634,
+                0.622449,
+                0.78683
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.434949,
+                0.924107,
+                0.531888,
+                0.984375
+              ],
+              "text_region_index": 3,
+              "type": "Narration Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.191327,
+                0.927455,
+                0.413265,
+                0.977679
+              ],
+              "text_region_index": 4,
+              "type": "Narration Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 4,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "500__side_01",
+    "page_root": "chainsaw-man_mangazero/500__side_01",
+    "panel_index": 1,
+    "sample_id": "chainsaw-man_mangazero/500__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/chainsaw-man_mangazero/500__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/chainsaw-man_mangazero/500__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/500__side_01.jpg",
+    "target_height": 896,
+    "target_panel": {
+      "crop_box": [
+        0,
+        311,
+        773,
+        1197
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/chainsaw-man_mangazero/500__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 784
+  }
+}

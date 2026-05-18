@@ -1,0 +1,423 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 and Character 2 stand in foreground with heads turned toward Character 3 and Character 4 in middle distance, who gesture and face forward; Character 5 visible at lower left; multiple speech bubbles present; wide establishing shot with gray-toned background and scattered figures throughout the scene.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0172/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0172/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0172/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0172/ctrl_img_5.png",
+        "/root/validation_datasets/generalist/img_0172/ctrl_img_6.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.017857,
+              0.0,
+              0.234694,
+              0.083333
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.234694,
+              0.0,
+              0.415816,
+              0.033854
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.548469,
+              0.125,
+              0.755102,
+              0.565104
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.556122,
+              0.588542,
+              0.716837,
+              1.0
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.406888,
+              0.661458,
+              0.517857,
+              1.0
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.769133,
+                0.520833,
+                0.927296,
+                0.770833
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.702806,
+                0.518229,
+                0.785714,
+                0.710938
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.436224,
+                0.052083,
+                0.538265,
+                0.192708
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.51148,
+                0.580729,
+                0.585459,
+                0.71875
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 4
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0172/ctrl_img_1.png"
+    },
+    "eval_index": 172,
+    "eval_seed": 20260687,
+    "eval_stratum": "3plus/2plus/landscape",
+    "page_id": "860__side_01",
+    "page_root": "made-in-abyss_mangazero/860__side_01",
+    "panel_index": 2,
+    "sample_id": "made-in-abyss_mangazero/860__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/860__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/860__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+    "target_height": 384,
+    "target_panel": "/root/validation_datasets/generalist/img_0172/target.png",
+    "target_width": 784,
+    "validation_set_dir": "img_0172"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Made in Abyss by Akihito Tsukushi. Character 1 and Character 2 stand in foreground with heads turned toward Character 3 and Character 4 in middle distance, who gesture and face forward; Character 5 visible at lower left; multiple speech bubbles present; wide establishing shot with gray-toned background and scattered figures throughout the scene.",
+    "chapter": "made-in-abyss_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            79,
+            527,
+            249,
+            847
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            249,
+            604,
+            391,
+            828
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            291,
+            9,
+            845,
+            464
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            79,
+            527,
+            249,
+            847
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            79,
+            527,
+            249,
+            847
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.017857,
+              0.0,
+              0.234694,
+              0.083333
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.234694,
+              0.0,
+              0.415816,
+              0.033854
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.548469,
+              0.125,
+              0.755102,
+              0.565104
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.556122,
+              0.588542,
+              0.716837,
+              1.0
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.406888,
+              0.661458,
+              0.517857,
+              1.0
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 4,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.769133,
+                0.520833,
+                0.927296,
+                0.770833
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.702806,
+                0.518229,
+                0.785714,
+                0.710938
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.436224,
+                0.052083,
+                0.538265,
+                0.192708
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.51148,
+                0.580729,
+                0.585459,
+                0.71875
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 4
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "860__side_01",
+    "page_root": "made-in-abyss_mangazero/860__side_01",
+    "panel_index": 2,
+    "sample_id": "made-in-abyss_mangazero/860__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/made-in-abyss_mangazero/860__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/made-in-abyss_mangazero/860__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+    "target_height": 384,
+    "target_panel": {
+      "crop_box": [
+        65,
+        815,
+        841,
+        1199
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/made-in-abyss_mangazero/860__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 784
+  }
+}

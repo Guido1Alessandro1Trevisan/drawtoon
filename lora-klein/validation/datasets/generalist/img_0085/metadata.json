@@ -1,0 +1,169 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. 20th Century Boys by Naoki Urasawa. Character 1 gazes directly forward with wide eyes and raised eyebrows, mouth slightly open in a neutral expression. Close-up shot of the face fills the entire panel against a stark white background with minimal line work, emphasizing the direct eye contact and facial tension.",
+    "chapter": "20th-century-boys_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0085/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.019531,
+              0.0,
+              0.976562,
+              0.985577
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0085/ctrl_img_1.png"
+    },
+    "eval_index": 85,
+    "eval_seed": 20260600,
+    "eval_stratum": "1/0/portrait",
+    "page_id": "684__side_01",
+    "page_root": "20th-century-boys_mangazero/684__side_01",
+    "panel_index": 7,
+    "sample_id": "20th-century-boys_mangazero/684__side_01/panel_007",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/20th-century-boys_mangazero/684__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/20th-century-boys_mangazero/684__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/684__side_01.jpg",
+    "target_height": 416,
+    "target_panel": "/root/validation_datasets/generalist/img_0085/target.png",
+    "target_width": 256,
+    "validation_set_dir": "img_0085"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. 20th Century Boys by Naoki Urasawa. Character 1 gazes directly forward with wide eyes and raised eyebrows, mouth slightly open in a neutral expression. Close-up shot of the face fills the entire panel against a stark white background with minimal line work, emphasizing the direct eye contact and facial tension.",
+    "chapter": "20th-century-boys_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            328,
+            357,
+            486,
+            671
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/684__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.019531,
+              0.0,
+              0.976562,
+              0.985577
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "684__side_01",
+    "page_root": "20th-century-boys_mangazero/684__side_01",
+    "panel_index": 7,
+    "sample_id": "20th-century-boys_mangazero/684__side_01/panel_007",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/20th-century-boys_mangazero/684__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/20th-century-boys_mangazero/684__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/684__side_01.jpg",
+    "target_height": 416,
+    "target_panel": {
+      "crop_box": [
+        196,
+        688,
+        447,
+        1098
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/20th-century-boys_mangazero/684__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 256
+  }
+}

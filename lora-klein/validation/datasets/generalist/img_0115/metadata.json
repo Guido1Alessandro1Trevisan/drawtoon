@@ -1,0 +1,383 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Gintama by Hideaki Sorachi. Character 2 stands at left with mouth open, gazing toward Character 1 in center-right profile view. Character 4 and Character 5 stand between them, while Character 3 appears at far right. Interior setting with vertical bars or railings in background, medium shot with characters arranged in a line across the panel.",
+    "chapter": "gintama_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0115/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0115/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0115/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0115/ctrl_img_5.png",
+        "/root/validation_datasets/generalist/img_0115/ctrl_img_6.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.598558,
+              0.102273,
+              0.783654,
+              0.917614
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.076923,
+              0.167614,
+              0.341346,
+              0.923295
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.84976,
+              0.386364,
+              0.986779,
+              0.903409
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.348558,
+              0.366477,
+              0.453125,
+              0.903409
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.486779,
+              0.446023,
+              0.579327,
+              0.909091
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.877404,
+                0.136364,
+                0.930288,
+                0.275568
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.106971,
+                0.528409,
+                0.198317,
+                0.619318
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0115/ctrl_img_1.png"
+    },
+    "eval_index": 115,
+    "eval_seed": 20260630,
+    "eval_stratum": "3plus/2plus/landscape",
+    "page_id": "622__side_01",
+    "page_root": "gintama_mangazero/622__side_01",
+    "panel_index": 1,
+    "sample_id": "gintama_mangazero/622__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/gintama_mangazero/622__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/gintama_mangazero/622__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+    "target_height": 352,
+    "target_panel": "/root/validation_datasets/generalist/img_0115/target.png",
+    "target_width": 832,
+    "validation_set_dir": "img_0115"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Gintama by Hideaki Sorachi. Character 2 stands at left with mouth open, gazing toward Character 1 in center-right profile view. Character 4 and Character 5 stand between them, while Character 3 appears at far right. Interior setting with vertical bars or railings in background, medium shot with characters arranged in a line across the panel.",
+    "chapter": "gintama_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            566,
+            435,
+            720,
+            722
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            66,
+            773,
+            178,
+            1014
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            418,
+            761,
+            602,
+            1015
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            389,
+            1069,
+            489,
+            1375
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            239,
+            1082,
+            304,
+            1330
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.598558,
+              0.102273,
+              0.783654,
+              0.917614
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.076923,
+              0.167614,
+              0.341346,
+              0.923295
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.84976,
+              0.386364,
+              0.986779,
+              0.903409
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.348558,
+              0.366477,
+              0.453125,
+              0.903409
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.486779,
+              0.446023,
+              0.579327,
+              0.909091
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.877404,
+                0.136364,
+                0.930288,
+                0.275568
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.106971,
+                0.528409,
+                0.198317,
+                0.619318
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "622__side_01",
+    "page_root": "gintama_mangazero/622__side_01",
+    "panel_index": 1,
+    "sample_id": "gintama_mangazero/622__side_01/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/gintama_mangazero/622__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/gintama_mangazero/622__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+    "target_height": 352,
+    "target_panel": {
+      "crop_box": [
+        68,
+        399,
+        889,
+        738
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/622__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 832
+  }
+}

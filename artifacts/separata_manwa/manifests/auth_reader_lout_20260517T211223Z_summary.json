@@ -1,0 +1,26 @@
+{
+  "run_id": "auth_reader_lout_20260517T211223Z",
+  "created_at": "2026-05-17T21:32:51Z",
+  "bucket": "drawtoon",
+  "prefix": "datasets/pages/single",
+  "series": [
+    "lout-of-counts-family_manwa"
+  ],
+  "manifest_path": "artifacts/separata_manwa/manifests/auth_reader_lout_20260517T211223Z_chapters.jsonl",
+  "status_path": "artifacts/separata_manwa/manifests/auth_reader_lout_20260517T211223Z_status.jsonl",
+  "download": true,
+  "counts": {
+    "chapters": 175,
+    "accessible": 0,
+    "no_images": 143,
+    "written": 96,
+    "skipped": 0,
+    "failures": 217,
+    "images": 313
+  },
+  "discovery_failures": [],
+  "notes": [
+    "User represented these source domains as authorized for this ingestion.",
+    "Output goes directly under datasets/pages/single/<series>_manwa/."
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Demon Slayer: Kimetsu no Yaiba by Koyoharu Gotouge. Character 1 displays wide eyes and open mouth with head tilted, intense facial tension visible in close-up shot. Dramatic speed lines and heavy black ink fill the background, creating stark contrast with white space around the character's face and speech bubbles.",
+    "chapter": "kimetsu-no-yaiba_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0059/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.217672,
+              0.381944,
+              0.75431,
+              0.953704
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.627155,
+                0.215278,
+                0.818966,
+                0.284722
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.086207,
+                0.162037,
+                0.334052,
+                0.465278
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0059/ctrl_img_1.png"
+    },
+    "eval_index": 59,
+    "eval_seed": 20260574,
+    "eval_stratum": "1/2plus/square",
+    "page_id": "551__side_00",
+    "page_root": "kimetsu-no-yaiba_mangazero/551__side_00",
+    "panel_index": 1,
+    "sample_id": "kimetsu-no-yaiba_mangazero/551__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/kimetsu-no-yaiba_mangazero/551__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/kimetsu-no-yaiba_mangazero/551__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/kimetsu-no-yaiba_mangazero/551__side_00.jpg",
+    "target_height": 432,
+    "target_panel": "/root/validation_datasets/generalist/img_0059/target.png",
+    "target_width": 464,
+    "validation_set_dir": "img_0059"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Demon Slayer: Kimetsu no Yaiba by Koyoharu Gotouge. Character 1 displays wide eyes and open mouth with head tilted, intense facial tension visible in close-up shot. Dramatic speed lines and heavy black ink fill the background, creating stark contrast with white space around the character's face and speech bubbles.",
+    "chapter": "kimetsu-no-yaiba_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            110,
+            467,
+            448,
+            763
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/kimetsu-no-yaiba_mangazero/551__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.217672,
+              0.381944,
+              0.75431,
+              0.953704
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.627155,
+                0.215278,
+                0.818966,
+                0.284722
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.086207,
+                0.162037,
+                0.334052,
+                0.465278
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "551__side_00",
+    "page_root": "kimetsu-no-yaiba_mangazero/551__side_00",
+    "panel_index": 1,
+    "sample_id": "kimetsu-no-yaiba_mangazero/551__side_00/panel_001",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/kimetsu-no-yaiba_mangazero/551__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/kimetsu-no-yaiba_mangazero/551__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/kimetsu-no-yaiba_mangazero/551__side_00.jpg",
+    "target_height": 432,
+    "target_panel": {
+      "crop_box": [
+        441,
+        869,
+        890,
+        1297
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/kimetsu-no-yaiba_mangazero/551__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 464
+  }
+}

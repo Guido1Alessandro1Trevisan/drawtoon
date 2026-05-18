@@ -1,6 +1,7 @@
 import os
 import random
 from collections import OrderedDict
+from contextlib import ExitStack, nullcontext
 from typing import Union, Literal, List, Optional
 
 import numpy as np
@@ -114,6 +115,24 @@ class SDTrainer(BaseSDTrainProcess):
         if loss_scale != 1.0:
             loss = loss * loss_scale
         self.accelerator.backward(loss)
+
+    def _manual_ddp_no_sync_context(self, enabled: bool):
+        if not enabled or getattr(self.accelerator, "num_processes", 1) <= 1:
+            return nullcontext()
+        if not hasattr(self.accelerator, "no_sync"):
+            return nullcontext()
+
+        stack = ExitStack()
+        entered = False
+        for module in self.modules_being_trained:
+            if module is None:
+                continue
+            stack.enter_context(self.accelerator.no_sync(module))
+            entered = True
+        if not entered:
+            stack.close()
+            return nullcontext()
+        return stack
 
     def _microbatch_effective_items(self, batch) -> int:
         if isinstance(batch, DataLoaderBatchDTO) and batch.file_items is not None:
@@ -2067,7 +2086,15 @@ class SDTrainer(BaseSDTrainProcess):
                             if self.current_boundary_index in self.sd.trainable_multistage_boundaries:
                                 # if this boundary is trainable, we can stop looking
                                 break
-                loss = self.train_single_accumulation(batch)
+                manual_ddp_no_sync_ready = bool(
+                    getattr(self, "_manual_ddp_no_sync_ready", False)
+                )
+                should_no_sync = (
+                    manual_ddp_no_sync_ready
+                    and batch_index < len(batch_list) - 1
+                )
+                with self._manual_ddp_no_sync_context(should_no_sync):
+                    loss = self.train_single_accumulation(batch)
                 loss_for_log = loss * self._gradient_accumulation_loss_scale
                 self.steps_this_boundary += 1
                 if total_loss is None:
@@ -2118,6 +2145,8 @@ class SDTrainer(BaseSDTrainProcess):
         loss_dict = OrderedDict(
             {'loss': total_loss.item()}
         )
+
+        self._manual_ddp_no_sync_ready = True
 
         self.end_of_training_loop()
 

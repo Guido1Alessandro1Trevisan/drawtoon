@@ -1,0 +1,357 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Munou na Nana by Looseboy / Iori Furuya. Character 1 stands facing forward with head tilted back and mouth open, surrounded by multiple smaller figures in an indoor setting with geometric ceiling panels visible above, medium shot with Character 1 dominating the frame center, speech bubbles positioned around the composition.",
+    "chapter": "munou-na-nana_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0189/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0189/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0189/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.310345,
+              0.327083,
+              0.69181,
+              0.997917
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.717672,
+              0.552083,
+              0.920259,
+              0.910417
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.088362,
+              0.54375,
+              0.247845,
+              0.735417
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 5,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.674569,
+                0.277083,
+                0.894397,
+                0.445833
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.116379,
+                0.1875,
+                0.491379,
+                0.35
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.025862,
+                0.375,
+                0.239224,
+                0.533333
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.474138,
+                0.916667,
+                0.590517,
+                0.997917
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.071121,
+                0.75625,
+                0.178879,
+                0.841667
+              ],
+              "text_region_index": 4,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 5
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0189/ctrl_img_1.png"
+    },
+    "eval_index": 189,
+    "eval_seed": 20260704,
+    "eval_stratum": "3plus/2plus/square",
+    "page_id": "005__side_00",
+    "page_root": "munou-na-nana_mangazero/005__side_00",
+    "panel_index": 4,
+    "sample_id": "munou-na-nana_mangazero/005__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/munou-na-nana_mangazero/005__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/munou-na-nana_mangazero/005__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/munou-na-nana_mangazero/005__side_00.jpg",
+    "target_height": 480,
+    "target_panel": "/root/validation_datasets/generalist/img_0189/target.png",
+    "target_width": 464,
+    "validation_set_dir": "img_0189"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Munou na Nana by Looseboy / Iori Furuya. Character 1 stands facing forward with head tilted back and mouth open, surrounded by multiple smaller figures in an indoor setting with geometric ceiling panels visible above, medium shot with Character 1 dominating the frame center, speech bubbles positioned around the composition.",
+    "chapter": "munou-na-nana_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            254,
+            657,
+            311,
+            755
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/munou-na-nana_mangazero/005__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            415,
+            1059,
+            509,
+            1231
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/munou-na-nana_mangazero/005__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            123,
+            1055,
+            197,
+            1147
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/munou-na-nana_mangazero/005__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.310345,
+              0.327083,
+              0.69181,
+              0.997917
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.717672,
+              0.552083,
+              0.920259,
+              0.910417
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.088362,
+              0.54375,
+              0.247845,
+              0.735417
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 5,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.674569,
+                0.277083,
+                0.894397,
+                0.445833
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.116379,
+                0.1875,
+                0.491379,
+                0.35
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.025862,
+                0.375,
+                0.239224,
+                0.533333
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.474138,
+                0.916667,
+                0.590517,
+                0.997917
+              ],
+              "text_region_index": 3,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.071121,
+                0.75625,
+                0.178879,
+                0.841667
+              ],
+              "text_region_index": 4,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 5
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "005__side_00",
+    "page_root": "munou-na-nana_mangazero/005__side_00",
+    "panel_index": 4,
+    "sample_id": "munou-na-nana_mangazero/005__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/munou-na-nana_mangazero/005__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/munou-na-nana_mangazero/005__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/munou-na-nana_mangazero/005__side_00.jpg",
+    "target_height": 480,
+    "target_panel": {
+      "crop_box": [
+        82,
+        794,
+        533,
+        1273
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/munou-na-nana_mangazero/005__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 464
+  }
+}

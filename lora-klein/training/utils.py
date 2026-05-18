@@ -21,7 +21,7 @@ from typing import Any
 
 import boto3
 import yaml
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
 S3_BUCKET = os.environ.get("DRAWTOON_S3_BUCKET") or os.environ.get("S3_BUCKET") or "drawtoon"
@@ -33,6 +33,15 @@ DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX = "datasets/annotations/magi_v3"
 DEFAULT_DRAWTOON_CAPTIONS_PREFIX = "captions"
 DEFAULT_DRAWTOON_CAPTION_RUN = "haiku45_mangazero_page_panel_v1"
 MAX_CONTROL_IMAGE_SLOTS = 7
+LAYOUT_TEXT_COLORS = {
+    "Speech Bubble": (0, 96, 255),
+    "Narration Bubble": (255, 128, 0),
+    "Shout Bubble": (128, 0, 255),
+}
+LAYOUT_TEXT_COLOR = LAYOUT_TEXT_COLORS["Speech Bubble"]
+LAYOUT_BACKGROUND_COLOR = (0, 0, 0)
+LAYOUT_CHARACTER_OUTLINE_WIDTHS = [12, 10, 8, 6, 4]
+CHARACTER_REF_BORDER_WIDTH = 3
 REVIEW_CHARACTER_COLORS = [
     ("Character 1", (255, 0, 0)),
     ("Character 2", (0, 180, 0)),
@@ -104,13 +113,87 @@ def cache_path_for_s3_asset(asset_s3: str, root: Path) -> Path:
     return root / digest[:2] / f"{name}_{digest}{suffix}"
 
 
+def cache_path_for_structured_asset(asset_ref: dict[str, Any], root: Path, suffix: str = ".png") -> Path:
+    digest = hashlib.sha1(json.dumps(asset_ref, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
+    return root / digest[:2] / f"{digest}{suffix}"
+
+
+def pad_image_to_multiple(image: Image.Image, *, multiple: int) -> Image.Image:
+    if multiple <= 1:
+        return image
+    padded_width = int(math.ceil(image.width / multiple) * multiple)
+    padded_height = int(math.ceil(image.height / multiple) * multiple)
+    if padded_width == image.width and padded_height == image.height:
+        return image
+    padded = Image.new(image.mode, (padded_width, padded_height), "white")
+    padded.paste(image, (0, 0))
+    return padded
+
+
+def apply_ref_border_and_padding(
+    image: Image.Image,
+    *,
+    border_width: int,
+    border_rgb: Any,
+    multiple: int,
+) -> Image.Image:
+    if border_width > 0 and isinstance(border_rgb, (list, tuple)) and len(border_rgb) == 3:
+        if multiple > 1:
+            inner_width = int(math.ceil((image.width + border_width * 2) / multiple) * multiple) - border_width * 2
+            inner_height = int(math.ceil((image.height + border_width * 2) / multiple) * multiple) - border_width * 2
+            if inner_width != image.width or inner_height != image.height:
+                padded = Image.new("RGB", (max(image.width, inner_width), max(image.height, inner_height)), "white")
+                padded.paste(image, (0, 0))
+                image = padded
+        return ImageOps.expand(image, border=border_width, fill=tuple(int(value) for value in border_rgb))
+    return pad_image_to_multiple(image, multiple=multiple)
+
+
+def coerce_crop_box(asset_ref: dict[str, Any]) -> tuple[int, int, int, int] | None:
+    crop_box = asset_ref.get("crop_box") or asset_ref.get("bbox")
+    if not isinstance(crop_box, (list, tuple)) or len(crop_box) != 4:
+        return None
+    x0, y0, x1, y1 = [float(value) for value in crop_box]
+    return int(math.floor(x0)), int(math.floor(y0)), int(math.ceil(x1)), int(math.ceil(y1))
+
+
 def materialize_asset(
     s3_client,
-    asset_ref: str,
+    asset_ref: Any,
     *,
     asset_root: Path,
     dataset_s3_path: str,
 ) -> Path:
+    if isinstance(asset_ref, dict):
+        image_ref = asset_ref.get("image") or asset_ref.get("path")
+        if not image_ref:
+            raise ValueError(f"Structured validation asset is missing image/path: {asset_ref}")
+        output_path = cache_path_for_structured_asset(asset_ref, asset_root)
+        if output_path.exists():
+            return output_path
+        source_path = materialize_asset(
+            s3_client,
+            image_ref,
+            asset_root=asset_root,
+            dataset_s3_path=dataset_s3_path,
+        )
+        with Image.open(source_path) as image:
+            image = image.convert("RGB")
+            crop_box = coerce_crop_box(asset_ref)
+            if crop_box is not None:
+                image = image.crop(crop_box)
+            pad_multiple = int(asset_ref.get("pad_multiple") or 0)
+            border_width = int(asset_ref.get("border_width") or 0)
+            image = apply_ref_border_and_padding(
+                image,
+                border_width=border_width,
+                border_rgb=asset_ref.get("border_rgb"),
+                multiple=pad_multiple,
+            )
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            image.save(output_path, format="PNG", optimize=True)
+        return output_path
+
     raw = str(asset_ref).strip()
     if not raw:
         raise ValueError("Empty validation asset reference")
@@ -126,6 +209,106 @@ def materialize_asset(
         asset_root=asset_root,
         dataset_s3_path=dataset_s3_path,
     )
+
+
+def norm_box_to_pixel_box(
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+) -> tuple[int, int, int, int] | None:
+    if not isinstance(box_norm, (list, tuple)) or len(box_norm) != 4:
+        return None
+    x0 = int(round(max(0.0, min(1.0, float(box_norm[0]))) * width))
+    y0 = int(round(max(0.0, min(1.0, float(box_norm[1]))) * height))
+    x1 = int(round(max(0.0, min(1.0, float(box_norm[2]))) * width))
+    y1 = int(round(max(0.0, min(1.0, float(box_norm[3]))) * height))
+    if x1 <= x0 or y1 <= y0:
+        return None
+    return x0, y0, x1, y1
+
+
+def draw_layout_blob(
+    draw: ImageDraw.ImageDraw,
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+    color: tuple[int, int, int],
+    line_width: int = 6,
+) -> bool:
+    pixel_box = norm_box_to_pixel_box(box_norm, width=width, height=height)
+    if pixel_box is None:
+        return False
+    draw.rectangle(pixel_box, outline=color, width=max(1, int(line_width)))
+    return True
+
+
+def draw_text_layout_region(
+    draw: ImageDraw.ImageDraw,
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+    text_bubble_type: str,
+    line_width: int = 0,
+) -> bool:
+    normalized_type = " ".join(str(text_bubble_type or "").split()).strip().lower()
+    if normalized_type in {"", "none", "null"}:
+        return False
+    text_color = LAYOUT_TEXT_COLORS.get(text_bubble_type)
+    if text_color is None:
+        return False
+    pixel_box = norm_box_to_pixel_box(box_norm, width=width, height=height)
+    if pixel_box is None:
+        return False
+    draw.rectangle(pixel_box, fill=text_color)
+    return True
+
+
+def materialize_layout_control(
+    layout_metadata: dict[str, Any],
+    *,
+    asset_root: Path,
+    sample_id: str,
+    width: int,
+    height: int,
+) -> Path:
+    payload = {"sample_id": sample_id, "layout_control": layout_metadata, "width": width, "height": height}
+    output_path = cache_path_for_structured_asset(payload, asset_root, suffix=".png")
+    if output_path.exists():
+        return output_path
+    layout = Image.new("RGB", (width, height), LAYOUT_BACKGROUND_COLOR)
+    draw = ImageDraw.Draw(layout)
+    for character in layout_metadata.get("characters") or []:
+        if not isinstance(character, dict):
+            continue
+        box_norm = character.get("bbox_norm")
+        rgb = character.get("rgb")
+        if isinstance(box_norm, list) and isinstance(rgb, list):
+            draw_layout_blob(
+                draw,
+                box_norm,
+                width=width,
+                height=height,
+                color=tuple(int(value) for value in rgb),
+                line_width=int(character.get("line_width") or 6),
+            )
+    text_payload = layout_metadata.get("text") if isinstance(layout_metadata.get("text"), dict) else {}
+    for region in text_payload.get("regions") or []:
+        if not isinstance(region, dict):
+            continue
+        draw_text_layout_region(
+            draw,
+            region.get("bbox_norm"),
+            width=width,
+            height=height,
+            text_bubble_type=str(region.get("type") or "Speech Bubble"),
+            line_width=int(region.get("line_width") or 0),
+        )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    layout.save(output_path, format="PNG", optimize=True)
+    return output_path
 
 
 def build_static_validation_samples(
@@ -144,7 +327,7 @@ def build_static_validation_samples(
             continue
         target_path = materialize_asset(
             s3_client,
-            str(row["target_panel"]),
+            row["target_panel"],
             asset_root=asset_root,
             dataset_s3_path=dataset_s3_path,
         )
@@ -164,9 +347,18 @@ def build_static_validation_samples(
         if layout_control:
             local_layout = materialize_asset(
                 s3_client,
-                str(layout_control),
+                layout_control,
                 asset_root=asset_root,
                 dataset_s3_path=dataset_s3_path,
+            )
+            control_paths.append(str(local_layout))
+        elif isinstance(controls.get("layout_control"), dict):
+            local_layout = materialize_layout_control(
+                controls["layout_control"],
+                asset_root=asset_root,
+                sample_id=str(row.get("sample_id") or len(samples)),
+                width=int(width),
+                height=int(height),
             )
             control_paths.append(str(local_layout))
 
@@ -175,7 +367,7 @@ def build_static_validation_samples(
                 break
             local_ref = materialize_asset(
                 s3_client,
-                str(ref_path),
+                ref_path,
                 asset_root=asset_root,
                 dataset_s3_path=dataset_s3_path,
             )
@@ -275,33 +467,50 @@ def prepare_ec2_ai_toolkit_config(argv: list[str] | None = None) -> None:
     save_config = process_config.setdefault("save", {})
     save_every = int(save_config.get("save_every", 0) or 0)
     if save_every <= 0:
-        save_config["save_every"] = steps_per_epoch
+        save_config["save_every"] = total_steps if args.max_train_steps > 0 else steps_per_epoch
     save_config.setdefault("max_step_saves_to_keep", 5)
 
-    validation_samples = build_static_validation_samples(
-        s3_client,
-        manifest_path=local_manifest,
-        dataset_s3_path=dataset_s3_path,
-        output_root=output_root,
-        sample_count=max(1, args.validation_samples),
-        max_character_refs=max_character_refs,
-    )
     sample_config = process_config.setdefault("sample", {})
     sample_config.pop("prompts", None)
-    sample_config["samples"] = validation_samples
-    if args.world_size > 1:
-        sample_config["distributed_sampling"] = True
-        sample_config["distributed_sample_total"] = len(validation_samples)
-        sample_config["distributed_samples_per_rank"] = max(1, math.ceil(len(validation_samples) / args.world_size))
-        sample_config["distributed_sample_strategy"] = "round_robin"
-    sample_config["dynamic_validation_enabled"] = True
-    sample_config["dynamic_validation_manifest_paths"] = [str(local_manifest)]
-    sample_config["dynamic_validation_bucket_tolerance"] = int(dataset.get("bucket_tolerance") or 16)
-    sample_config["dynamic_validation_character_panel_count"] = len(validation_samples)
-    sample_config["dynamic_validation_character_panel_fixed_count"] = max(
-        0,
-        min(int(args.world_size), len(validation_samples)),
-    )
+    validation_samples: list[dict[str, Any]] = []
+    if args.validation_samples > 0:
+        validation_samples = build_static_validation_samples(
+            s3_client,
+            manifest_path=local_manifest,
+            dataset_s3_path=dataset_s3_path,
+            output_root=output_root,
+            sample_count=args.validation_samples,
+            max_character_refs=max_character_refs,
+        )
+        sample_config["samples"] = validation_samples
+        if args.world_size > 1:
+            sample_config["distributed_sampling"] = True
+            sample_config["distributed_sample_total"] = len(validation_samples)
+            sample_config["distributed_samples_per_rank"] = max(
+                1,
+                math.ceil(len(validation_samples) / args.world_size),
+            )
+            sample_config["distributed_sample_strategy"] = "round_robin"
+        sample_config["dynamic_validation_enabled"] = True
+        sample_config["dynamic_validation_manifest_paths"] = [str(local_manifest)]
+        sample_config["dynamic_validation_bucket_tolerance"] = int(dataset.get("bucket_tolerance") or 16)
+        sample_config["dynamic_validation_character_panel_count"] = len(validation_samples)
+        sample_config["dynamic_validation_character_panel_fixed_count"] = max(
+            0,
+            min(int(args.world_size), len(validation_samples)),
+        )
+    else:
+        sample_config["sample_every"] = 0
+        sample_config["samples"] = []
+        sample_config["distributed_sampling"] = False
+        sample_config["distributed_sample_total"] = 0
+        sample_config["distributed_samples_per_rank"] = 0
+        sample_config["distributed_sample_strategy"] = "none"
+        sample_config["dynamic_validation_enabled"] = False
+        sample_config["dynamic_validation_manifest_paths"] = []
+        sample_config["dynamic_validation_bucket_tolerance"] = int(dataset.get("bucket_tolerance") or 16)
+        sample_config["dynamic_validation_character_panel_count"] = 0
+        sample_config["dynamic_validation_character_panel_fixed_count"] = 0
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(yaml.safe_dump(parsed_config, sort_keys=False), encoding="utf-8")
@@ -430,29 +639,57 @@ def _load_training_module_for_ec2(cache_root: str):
 def build_drawtoon_panel_cache(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Build the temporary Drawtoon panel cache directly on EC2.")
     parser.add_argument("--config", required=True)
-    parser.add_argument("--bucket", default=S3_BUCKET)
-    parser.add_argument("--caption-run", default=DEFAULT_DRAWTOON_CAPTION_RUN)
-    parser.add_argument("--pages-prefix", default=DEFAULT_DRAWTOON_PAGES_PREFIX)
-    parser.add_argument("--annotations-prefix", default=DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX)
-    parser.add_argument("--captions-prefix", default=DEFAULT_DRAWTOON_CAPTIONS_PREFIX)
-    parser.add_argument("--include-chapter-regex", default="_mangazero$")
-    parser.add_argument("--max-pages", type=int, default=0)
+    parser.add_argument("--bucket", default=None)
+    parser.add_argument("--caption-run", default=None)
+    parser.add_argument("--pages-prefix", default=None)
+    parser.add_argument("--annotations-prefix", default=None)
+    parser.add_argument("--captions-prefix", default=None)
+    parser.add_argument("--include-chapter-regex", default=None)
+    parser.add_argument("--max-pages", type=int, default=None)
+    parser.add_argument("--caption-field", default=None)
+    parser.add_argument("--caption-format", default=None, choices=["text", "compact_json"])
     parser.add_argument("--shard-count", type=int, default=0)
     parser.add_argument("--workers", type=int, default=96)
     parser.add_argument("--cache-root", default=DEFAULT_DATASET_CACHE_ROOT)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args(argv)
 
+    config_path = Path(args.config).resolve()
+    parsed_config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    drawtoon_config = parsed_config.get("drawtoon", {}) if isinstance(parsed_config, dict) else {}
+    local_exclude_path = ""
+    raw_exclude_path = ""
+    if isinstance(drawtoon_config, dict):
+        raw_exclude_path = str(drawtoon_config.get("exclude_sample_ids_path") or "").strip()
+    if raw_exclude_path:
+        exclude_path = Path(raw_exclude_path)
+        try:
+            exclude_exists = exclude_path.exists()
+        except OSError:
+            exclude_exists = False
+        if not exclude_exists:
+            local_candidate = config_path.parent / exclude_path.name
+            if local_candidate.exists():
+                local_exclude_path = str(local_candidate)
+
     module = _load_training_module_for_ec2(str(Path(args.cache_root)))
     overrides = {
-        "bucket": args.bucket,
-        "caption_run": args.caption_run,
-        "pages_prefix": args.pages_prefix,
-        "annotations_prefix": args.annotations_prefix,
-        "captions_prefix": args.captions_prefix,
-        "include_chapter_regex": args.include_chapter_regex,
-        "max_pages": args.max_pages,
+        key: value
+        for key, value in {
+            "bucket": args.bucket,
+            "caption_run": args.caption_run,
+            "pages_prefix": args.pages_prefix,
+            "annotations_prefix": args.annotations_prefix,
+            "captions_prefix": args.captions_prefix,
+            "caption_field": args.caption_field,
+            "caption_format": args.caption_format,
+            "include_chapter_regex": args.include_chapter_regex,
+            "max_pages": args.max_pages,
+        }.items()
+        if value is not None
     }
+    if local_exclude_path:
+        overrides["exclude_sample_ids_path"] = local_exclude_path
     plan = module.plan_drawtoon_panel_cache(
         args.config,
         overrides,
@@ -495,9 +732,7 @@ def _color_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
 
 def _is_text_layout_pixel(rgb: tuple[int, int, int]) -> bool:
     red, green, blue = rgb
-    is_blue = blue >= 140 and red <= 90 and green <= 140
-    is_black_stripe = red <= 45 and green <= 45 and blue <= 45
-    return is_blue or is_black_stripe
+    return blue >= 140 and red <= 90 and green <= 140
 
 
 def _is_character_layout_pixel(rgb: tuple[int, int, int], target: tuple[int, int, int]) -> bool:
@@ -724,6 +959,15 @@ def _reference_panel(ref_paths: list[Path], *, max_width: int, max_height: int) 
     return canvas
 
 
+def _first_existing_control_image(sample_dir: Path, stem: str) -> Path | None:
+    for suffix in (".png", ".jpg", ".jpeg", ".webp"):
+        path = sample_dir / f"{stem}{suffix}"
+        if path.is_file():
+            return path
+    matches = sorted(path for path in sample_dir.glob(f"{stem}.*") if path.is_file())
+    return matches[0] if matches else None
+
+
 def _compose_validation_review(
     *,
     generated_path: Path,
@@ -731,18 +975,25 @@ def _compose_validation_review(
     output_path: Path,
 ) -> bool:
     target_path = sample_dir / "target.jpg"
-    layout_path = sample_dir / "ctrl_img_1.jpg"
+    layout_path = _first_existing_control_image(sample_dir, "ctrl_img_1")
     if not target_path.is_file() or not generated_path.is_file():
         return False
 
     ref_paths = sorted(
-        path for path in sample_dir.glob("ctrl_img_*.jpg") if path.stem != "ctrl_img_1"
+        path
+        for path in sample_dir.glob("ctrl_img_*.*")
+        if path.is_file() and path.stem != "ctrl_img_1"
     )
     with Image.open(target_path) as target_image:
         target_panel = _labeled_panel("target", target_image, max_width=520, max_height=720)
 
+    condition_panel = None
+    if layout_path is not None and layout_path.is_file():
+        with Image.open(layout_path) as layout_image:
+            condition_panel = _labeled_panel("conditioning ctrl_img_1", layout_image, max_width=360, max_height=720)
+
     refs_panel = _reference_panel(ref_paths, max_width=300, max_height=max(120, target_panel.height - 22))
-    if layout_path.is_file():
+    if layout_path is not None and layout_path.is_file():
         generated_image = _overlay_generated_bboxes(generated_path, layout_path)
     else:
         with Image.open(generated_path) as generated:
@@ -750,7 +1001,10 @@ def _compose_validation_review(
     generated_panel = _labeled_panel("generated + boxes", generated_image, max_width=520, max_height=720)
 
     gap = 12
-    panels = [target_panel, refs_panel, generated_panel]
+    panels = [target_panel]
+    if condition_panel is not None:
+        panels.append(condition_panel)
+    panels.extend([refs_panel, generated_panel])
     width = sum(panel.width for panel in panels) + gap * (len(panels) + 1)
     height = max(panel.height for panel in panels) + gap * 2
     sheet = Image.new("RGB", (width, height), (235, 235, 235))

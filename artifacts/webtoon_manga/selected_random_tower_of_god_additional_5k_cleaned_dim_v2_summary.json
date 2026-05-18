@@ -1,0 +1,51 @@
+{
+  "excluded_episode_count": 149,
+  "max_dropout_rate": 0.85,
+  "max_images_per_series": 5250,
+  "max_over_target": 250,
+  "min_images_per_series": 4750,
+  "output_csv": "artifacts/webtoon_manga/selected_random_tower_of_god_additional_5k_cleaned_dim_v2.csv",
+  "output_jsonl": "artifacts/webtoon_manga/selected_random_tower_of_god_additional_5k_cleaned_dim_v2.jsonl",
+  "seed": 20260518,
+  "series": [
+    {
+      "bins_covered": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "dropped_images": 4691,
+      "episode_no_max": 626,
+      "episode_no_min": 2,
+      "input_images": 9691,
+      "kept_images": 5000,
+      "selected_episode_numbers": [
+        2,
+        86,
+        102,
+        186,
+        216,
+        230,
+        252,
+        282,
+        312,
+        332,
+        626
+      ],
+      "selected_episodes": 11,
+      "series_name": "Tower of God",
+      "series_slug": "tower-of-god",
+      "weighted_dropout_rate": 0.4840573728201424
+    }
+  ],
+  "strategy": "random",
+  "target_images_per_series": 5000,
+  "total_dropped_images": 4691,
+  "total_input_images": 9691,
+  "total_kept_images": 5000,
+  "total_selected_episodes": 11
+}

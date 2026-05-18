@@ -1,0 +1,191 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Helck by Nanaki Nanao. Character 1 faces forward with eyes narrowed and mouth slightly open, head tilted slightly, against a stark white background with bold black ink lines defining facial features and hair, speech bubble positioned to the left side of the panel.",
+    "chapter": "helck_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0082/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.329861,
+              0.0,
+              0.975694,
+              0.971154
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.052083,
+                0.144231,
+                0.465278,
+                0.759615
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0082/ctrl_img_1.png"
+    },
+    "eval_index": 82,
+    "eval_seed": 20260597,
+    "eval_stratum": "1/1/landscape",
+    "page_id": "405__side_01",
+    "page_root": "helck_mangazero/405__side_01",
+    "panel_index": 7,
+    "sample_id": "helck_mangazero/405__side_01/panel_007",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/helck_mangazero/405__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/helck_mangazero/405__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/405__side_01.jpg",
+    "target_height": 208,
+    "target_panel": "/root/validation_datasets/generalist/img_0082/target.png",
+    "target_width": 288,
+    "validation_set_dir": "img_0082"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Helck by Nanaki Nanao. Character 1 faces forward with eyes narrowed and mouth slightly open, head tilted slightly, against a stark white background with bold black ink lines defining facial features and hair, speech bubble positioned to the left side of the panel.",
+    "chapter": "helck_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            589,
+            441,
+            838,
+            654
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/405__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.329861,
+              0.0,
+              0.975694,
+              0.971154
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.052083,
+                0.144231,
+                0.465278,
+                0.759615
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "405__side_01",
+    "page_root": "helck_mangazero/405__side_01",
+    "panel_index": 7,
+    "sample_id": "helck_mangazero/405__side_01/panel_007",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/helck_mangazero/405__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/helck_mangazero/405__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/405__side_01.jpg",
+    "target_height": 208,
+    "target_panel": {
+      "crop_box": [
+        86,
+        1125,
+        369,
+        1327
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/helck_mangazero/405__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 288
+  }
+}

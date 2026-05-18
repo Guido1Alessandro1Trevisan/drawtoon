@@ -1,0 +1,762 @@
+"""Modal app: distributed Magi v3 annotation on 40 H100s.
+
+Inspired by ``lineart2/6magi_3.py``. Loads ``ragavsachdeva/magiv3`` once per
+container (via ``@modal.enter(snap=True)`` so the load is captured in the
+memory snapshot), runs ``predict_detections_and_associations`` in batches,
+and writes one JSONL annotation per manga page to S3 in the schema the
+manga_caption workflow already consumes.
+
+Usage
+-----
+
+Deploy::
+
+    modal deploy modal_magi.py
+
+Smoke-test one page::
+
+    modal run modal_magi.py::smoke_test
+
+Bulk-annotate via the launcher::
+
+    python start.py --chapters jujutsu-kaisen --gpu-batch-size 8
+"""
+
+from __future__ import annotations
+
+import io
+import json
+import os
+import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import modal
+
+
+MAGI_V3_REPO = "ragavsachdeva/magiv3"
+HF_HOME = "/root/.cache/huggingface"
+
+S3_BUCKET_DEFAULT = os.environ.get("DRAWTOON_S3_BUCKET", "drawtoon")
+AWS_REGION_DEFAULT = os.environ.get("AWS_REGION", "us-east-1")
+AWS_SECRET_NAME = os.environ.get("DRAWTOON_AWS_SECRET_NAME", "lineart2-aws-s3")
+MODAL_REGION = os.environ.get("DRAWTOON_MODAL_REGION", "us-east-1")
+
+DEFAULT_MAX_CONTAINERS = int(os.environ.get("MAGI_V3_MAX_CONTAINERS", "40"))
+DEFAULT_GPU_BATCH_SIZE = int(os.environ.get("MAGI_V3_BATCH_SIZE", "8"))
+SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+
+# `hf_transfer` accelerates HF Hub downloads ~3x on a cold volume; pinning
+# torch/torchvision so transformers==4.49.0 stays compatible.
+image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .apt_install("libgl1", "libglib2.0-0")
+    .pip_install(
+        "accelerate==1.4.0",
+        "boto3==1.35.99",
+        "einops==0.8.0",
+        "hf_transfer==0.1.8",
+        "matplotlib==3.10.0",
+        "networkx==3.4.2",
+        "pillow==11.1.0",
+        "pytorch-metric-learning==2.8.1",
+        "safetensors==0.5.2",
+        "shapely==2.0.6",
+        "timm==1.0.13",
+        "torch==2.5.1",
+        "torchvision==0.20.1",
+        "transformers==4.49.0",
+    )
+    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1", "HF_HOME": HF_HOME})
+)
+
+app = modal.App("drawtoon-manga-annotate", image=image)
+hf_volume = modal.Volume.from_name("magi-hf-cache", create_if_missing=True)
+aws_secret = modal.Secret.from_name(AWS_SECRET_NAME)
+
+
+# ---------------------------------------------------------------------------
+# S3 helpers
+# ---------------------------------------------------------------------------
+
+
+def _parse_s3_uri(uri: str) -> tuple[str, str]:
+    value = str(uri).strip()
+    if not value.startswith("s3://"):
+        raise ValueError(f"Expected s3:// URI, got {uri!r}")
+    bucket, _, key = value[5:].partition("/")
+    if not bucket or not key:
+        raise ValueError(f"Invalid s3 URI: {uri!r}")
+    return bucket, key
+
+
+def _join_s3_uri(bucket: str, key: str) -> str:
+    return f"s3://{bucket}/{key.lstrip('/')}"
+
+
+def _json_friendly(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(k): _json_friendly(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_friendly(v) for v in value]
+    if hasattr(value, "tolist"):
+        try:
+            return _json_friendly(value.tolist())
+        except Exception:
+            pass
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            pass
+    return value
+
+
+def _s3_client_cached() -> Any:
+    import boto3
+    from botocore.config import Config
+
+    if not hasattr(_s3_client_cached, "_client"):
+        _s3_client_cached._client = boto3.client(  # type: ignore[attr-defined]
+            "s3",
+            region_name=AWS_REGION_DEFAULT,
+            config=Config(
+                retries={"mode": "adaptive", "max_attempts": 10},
+                connect_timeout=10,
+                read_timeout=120,
+                max_pool_connections=128,
+            ),
+        )
+    return _s3_client_cached._client  # type: ignore[attr-defined]
+
+
+def _head_exists(bucket: str, key: str) -> bool:
+    from botocore.exceptions import ClientError
+
+    try:
+        _s3_client_cached().head_object(Bucket=bucket, Key=key)
+        return True
+    except ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code") or "")
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            return False
+        raise
+
+
+def _download_rgb_image(bucket: str, key: str) -> tuple[Any, dict[str, Any]]:
+    from PIL import Image, ImageOps
+
+    response = _s3_client_cached().get_object(Bucket=bucket, Key=key)
+    image_bytes = response["Body"].read()
+    image_obj = Image.open(io.BytesIO(image_bytes))
+    image_obj = ImageOps.exif_transpose(image_obj).convert("RGB")
+    return image_obj, {
+        "bucket": bucket,
+        "key": key,
+        "s3_uri": _join_s3_uri(bucket, key),
+        "etag": str(response.get("ETag", "")).strip('"'),
+        "content_length": int(response.get("ContentLength", 0) or 0),
+    }
+
+
+def _put_jsonl_object(bucket: str, key: str, payload: dict[str, Any]) -> None:
+    body = (json.dumps(_json_friendly(payload), ensure_ascii=False) + "\n").encode("utf-8")
+    _s3_client_cached().put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType="application/x-ndjson; charset=utf-8",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Output schema — matches the existing magi_v3_page_annotation files on S3.
+# Caption pipeline reads: panels[].bbox/panel_id, characters[].bbox/source_character_id,
+# texts[].bbox, image_size. Cluster labels + associations are retained for downstream
+# attribution. Everything else (panel_index/character_index/text_region_index/etc.)
+# is invented and unused — dropped.
+# ---------------------------------------------------------------------------
+
+
+def _annotation_payload(
+    *,
+    sample_id: str,
+    image_obj: Any,
+    source: dict[str, Any],
+    raw_detections: dict[str, Any],
+    run_id: str,
+    git_sha: str,
+) -> dict[str, Any]:
+    detections = dict(raw_detections or {})
+    panels = list(detections.get("panels") or [])
+    characters = list(detections.get("characters") or [])
+    texts = list(detections.get("texts") or [])
+    tails = list(detections.get("tails") or [])
+    cluster_labels = [str(label) for label in (detections.get("character_cluster_labels") or [])]
+
+    def _coerce_box(box: Any) -> list[int] | None:
+        if not isinstance(box, (list, tuple)) or len(box) < 4:
+            return None
+        try:
+            x1, y1, x2, y2 = (float(v) for v in box[:4])
+        except (TypeError, ValueError):
+            return None
+        if x2 < x1:
+            x1, x2 = x2, x1
+        if y2 < y1:
+            y1, y2 = y2, y1
+        return [int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))]
+
+    def _ensure_dict(item: Any, *, default_score: float = 1.0) -> dict[str, Any] | None:
+        if isinstance(item, dict):
+            box = _coerce_box(item.get("bbox") or item.get("box") or item.get("xyxy"))
+            if box is None:
+                return None
+            score = item.get("score")
+            try:
+                score_value = float(score) if score is not None else default_score
+            except (TypeError, ValueError):
+                score_value = default_score
+            return {"bbox": box, "score": score_value}
+        box = _coerce_box(item)
+        if box is None:
+            return None
+        return {"bbox": box, "score": default_score}
+
+    normalized_panels: list[dict[str, Any]] = []
+    for idx, panel in enumerate(panels):
+        entry = _ensure_dict(panel)
+        if entry is None:
+            continue
+        entry["panel_id"] = f"{sample_id}__panel_{idx:03d}"
+        normalized_panels.append(entry)
+
+    normalized_characters: list[dict[str, Any]] = []
+    for idx, character in enumerate(characters):
+        entry = _ensure_dict(character)
+        if entry is None:
+            continue
+        # The caption pipeline groups recurring characters by source_character_id.
+        if idx < len(cluster_labels):
+            entry["source_character_id"] = cluster_labels[idx]
+        normalized_characters.append(entry)
+
+    normalized_texts = [entry for entry in (_ensure_dict(text) for text in texts) if entry]
+    normalized_tails = [entry for entry in (_ensure_dict(tail) for tail in tails) if entry]
+
+    detections_out = {
+        "panels": normalized_panels,
+        "characters": normalized_characters,
+        "texts": normalized_texts,
+        "tails": normalized_tails,
+        "character_cluster_labels": cluster_labels,
+        "text_character_associations": list(detections.get("text_character_associations") or []),
+        "text_tail_associations": list(detections.get("text_tail_associations") or []),
+    }
+
+    return _json_friendly(
+        {
+            "schema_name": "magi_v3_page_annotation",
+            "model_repo": MAGI_V3_REPO,
+            "sample_id": sample_id,
+            "source": source,
+            "image_size": {"width": int(image_obj.width), "height": int(image_obj.height)},
+            "tasks": ["detections"],
+            "detections": detections_out,
+            "summary": {
+                "panel_count": len(normalized_panels),
+                "character_count": len(normalized_characters),
+                "text_count": len(normalized_texts),
+                "tail_count": len(normalized_tails),
+                "character_cluster_count": len(set(cluster_labels)),
+                "text_character_association_count": len(detections_out["text_character_associations"]),
+                "text_tail_association_count": len(detections_out["text_tail_associations"]),
+            },
+            "run": {
+                "run_id": run_id,
+                "git_sha": git_sha,
+                "annotated_at": datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None).isoformat() + "Z",
+            },
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
+# Model class — @app.cls with snapshotting for fast cold starts
+# ---------------------------------------------------------------------------
+
+
+@app.cls(
+    region=MODAL_REGION,
+    gpu="H100",
+    timeout=3600,
+    startup_timeout=1500,
+    cpu=8.0,
+    memory=32768,
+    secrets=[aws_secret],
+    volumes={HF_HOME: hf_volume},
+    max_containers=DEFAULT_MAX_CONTAINERS,
+    scaledown_window=300,
+    enable_memory_snapshot=True,
+)
+class MagiAnnotator:
+    @modal.enter(snap=True)
+    def load_model_to_cpu(self) -> None:
+        """Pre-snapshot: download Magi v3 weights and load to CPU."""
+        import torch
+        from transformers import AutoModelForCausalLM, AutoProcessor
+
+        self.model = (
+            AutoModelForCausalLM.from_pretrained(
+                MAGI_V3_REPO,
+                torch_dtype=torch.float16,
+                trust_remote_code=True,
+            )
+            .eval()
+        )
+        self.processor = AutoProcessor.from_pretrained(MAGI_V3_REPO, trust_remote_code=True)
+
+    @modal.enter(snap=False)
+    def move_model_to_gpu(self) -> None:
+        """Post-snapshot: move to GPU and warm CUDA kernels.
+
+        Florence2's first decoder.generate call recompiles JIT kernels and
+        takes 30-60s. Doing a dummy 768x768 forward pass here moves that
+        cost into the container's startup_timeout budget so the first real
+        inference call lands fully warm.
+        """
+        import torch
+        from PIL import Image
+
+        self.model = self.model.cuda()
+        try:
+            dummy = Image.new("RGB", (768, 768), (128, 128, 128))
+            with torch.inference_mode():
+                _ = self.model.predict_detections_and_associations([dummy], self.processor)
+            torch.cuda.synchronize()
+        except Exception as exc:  # noqa: BLE001
+            print(f"[warmup] skipped due to {exc!r}", flush=True)
+
+    @modal.method()
+    def annotate_batch(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return _annotate_batch_impl(payload, model=self.model, processor=self.processor)
+
+
+def _annotate_batch_impl(
+    payload: dict[str, Any],
+    *,
+    model: Any,
+    processor: Any,
+) -> dict[str, Any]:
+    pages = list(payload.get("pages") or [])
+    if not pages:
+        raise ValueError("payload.pages is required and must be non-empty")
+
+    bucket = str(payload.get("bucket") or S3_BUCKET_DEFAULT).strip()
+    run_id = str(payload.get("run_id") or "").strip() or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    git_sha = str(payload.get("git_sha") or "").strip()
+    overwrite = bool(payload.get("overwrite", False))
+    gpu_batch_size = max(1, int(payload.get("gpu_batch_size") or DEFAULT_GPU_BATCH_SIZE))
+    failed_prefix = str(payload.get("failed_prefix") or "datasets/annotations/magi_v3/_failed").strip().strip("/")
+
+    # Skip pages that already have an annotation when overwrite=False.
+    todo: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for page in pages:
+        if not isinstance(page, dict):
+            continue
+        page_key = str(page.get("page_key") or "").strip()
+        output_key = str(page.get("output_key") or "").strip()
+        if not page_key or not output_key:
+            continue
+        if not overwrite and _head_exists(bucket, output_key):
+            skipped.append({"page_key": page_key, "output_key": output_key, "status": "skipped_existing"})
+            continue
+        todo.append(page)
+
+    if not todo:
+        return {"ok": True, "annotated": [], "skipped": skipped, "errors": []}
+
+    # Parallel S3 download — typical page is 100-400 KB, 32 threads keeps the
+    # H100 fed and overlaps with the previous batch's inference under
+    # @modal.concurrent(target_inputs=1, max_inputs=2).
+    download_start = time.perf_counter()
+    images: list[Any] = []
+    sources: list[dict[str, Any]] = []
+    sample_ids: list[str] = []
+    output_keys: list[str] = []
+
+    def _download(page: dict[str, Any]) -> tuple[Any, dict[str, Any], str, str]:
+        page_key = str(page["page_key"])
+        output_key = str(page["output_key"])
+        chapter = str(page.get("chapter") or "")
+        page_id = str(page.get("page_id") or Path(page_key).stem)
+        sample_id = str(page.get("sample_id") or (f"{chapter}__{page_id}" if chapter else page_id))
+        image_obj, source = _download_rgb_image(bucket, page_key)
+        return image_obj, source, sample_id, output_key
+
+    with ThreadPoolExecutor(max_workers=min(32, len(todo))) as pool:
+        for image_obj, source, sample_id, output_key in pool.map(_download, todo):
+            images.append(image_obj)
+            sources.append(source)
+            sample_ids.append(sample_id)
+            output_keys.append(output_key)
+    download_sec = time.perf_counter() - download_start
+
+    import torch
+
+    inference_start = time.perf_counter()
+    detections: list[Any] = []
+    with torch.inference_mode():
+        for start in range(0, len(images), gpu_batch_size):
+            batch_images = images[start : start + gpu_batch_size]
+            detections.extend(model.predict_detections_and_associations(batch_images, processor))
+    torch.cuda.synchronize()
+    inference_sec = time.perf_counter() - inference_start
+
+    annotated: list[dict[str, Any]] = []
+    errors: list[dict[str, Any]] = []
+    for image_obj, source, sample_id, output_key, raw in zip(
+        images, sources, sample_ids, output_keys, detections
+    ):
+        try:
+            annotation = _annotation_payload(
+                sample_id=sample_id,
+                image_obj=image_obj,
+                source=source,
+                raw_detections=raw or {},
+                run_id=run_id,
+                git_sha=git_sha,
+            )
+            _put_jsonl_object(bucket, output_key, annotation)
+            annotated.append(
+                {
+                    "sample_id": sample_id,
+                    "page_key": source.get("key"),
+                    "output_key": output_key,
+                    "status": "ok",
+                    "summary": annotation["summary"],
+                }
+            )
+        except Exception as exc:  # noqa: BLE001
+            # Persist failures so they're visible after the run finishes.
+            failure_key = f"{failed_prefix}/{run_id}/{sample_id}.json"
+            try:
+                _put_jsonl_object(
+                    bucket,
+                    failure_key,
+                    {
+                        "sample_id": sample_id,
+                        "page_key": source.get("key"),
+                        "output_key": output_key,
+                        "run_id": run_id,
+                        "error": repr(exc)[:1000],
+                    },
+                )
+            except Exception:
+                pass
+            errors.append(
+                {
+                    "sample_id": sample_id,
+                    "page_key": source.get("key"),
+                    "output_key": output_key,
+                    "failure_key": failure_key,
+                    "status": "error",
+                    "error": repr(exc)[:500],
+                }
+            )
+
+    return {
+        "ok": not errors,
+        "annotated": annotated,
+        "skipped": skipped,
+        "errors": errors,
+        "stats": {
+            "batch_size": len(images),
+            "gpu_batch_size": gpu_batch_size,
+            "download_sec": round(download_sec, 3),
+            "inference_sec": round(inference_sec, 3),
+            "pages_per_sec": round(len(images) / inference_sec, 3) if inference_sec > 0 else None,
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Local entrypoints
+# ---------------------------------------------------------------------------
+
+
+@app.function(
+    region=MODAL_REGION,
+    gpu="H100",
+    timeout=3600,
+    startup_timeout=1500,
+    cpu=8.0,
+    memory=65536,
+    secrets=[aws_secret],
+    volumes={HF_HOME: hf_volume},
+    max_containers=1,
+)
+def benchmark_batch_sizes(
+    bucket: str = S3_BUCKET_DEFAULT,
+    chapter: str = "jujutsu-kaisen",
+    source_prefix: str = "datasets/pages/filtered",
+    n_images: int = 128,
+    batch_sizes: list[int] | None = None,
+    warmup_batch_size: int = 1,
+    candidate_repeats: int = 2,
+) -> dict[str, Any]:
+    """Run a batch-size sweep on one H100 to find the throughput peak.
+
+    Loads ``n_images`` real pages from S3, warms up, then times each batch
+    size in ``batch_sizes`` for ``candidate_repeats`` iterations each.
+    """
+    import time
+    import torch
+    from transformers import AutoModelForCausalLM, AutoProcessor
+
+    if batch_sizes is None:
+        batch_sizes = [1, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128]
+
+    # Load model
+    load_start = time.perf_counter()
+    model = (
+        AutoModelForCausalLM.from_pretrained(
+            MAGI_V3_REPO,
+            torch_dtype=torch.float16,
+            trust_remote_code=True,
+        )
+        .cuda()
+        .eval()
+    )
+    processor = AutoProcessor.from_pretrained(MAGI_V3_REPO, trust_remote_code=True)
+    load_sec = time.perf_counter() - load_start
+
+    # List + download images
+    s3 = _s3_client_cached()
+    prefix = f"{source_prefix.rstrip('/')}/{chapter}/"
+    paginator = s3.get_paginator("list_objects_v2")
+    keys: list[str] = []
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+        for obj in page.get("Contents", []) or []:
+            key = str(obj.get("Key") or "")
+            if Path(key).suffix.lower() in SUPPORTED_IMAGE_SUFFIXES:
+                keys.append(key)
+                if len(keys) >= n_images:
+                    break
+        if len(keys) >= n_images:
+            break
+    if not keys:
+        raise RuntimeError(f"no pages found at s3://{bucket}/{prefix}")
+
+    download_start = time.perf_counter()
+    images: list[Any] = []
+    with ThreadPoolExecutor(max_workers=32) as pool:
+        for image_obj, _ in pool.map(lambda k: _download_rgb_image(bucket, k), keys):
+            images.append(image_obj)
+    download_sec = time.perf_counter() - download_start
+
+    # Warmup so the first measured batch is not cold
+    if warmup_batch_size > 0:
+        with torch.inference_mode():
+            _ = model.predict_detections_and_associations(
+                images[: max(1, min(warmup_batch_size, len(images)))], processor
+            )
+        torch.cuda.synchronize()
+
+    results: list[dict[str, Any]] = []
+    for batch_size in batch_sizes:
+        if batch_size > len(images):
+            results.append({"batch_size": batch_size, "skipped": "not enough images"})
+            continue
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+        candidate_images = images[:batch_size]
+        encoded = 0
+        oom = False
+        error = ""
+        start = time.perf_counter()
+        try:
+            for _ in range(max(1, int(candidate_repeats))):
+                with torch.inference_mode():
+                    _ = model.predict_detections_and_associations(candidate_images, processor)
+                encoded += batch_size
+                torch.cuda.synchronize()
+        except torch.cuda.OutOfMemoryError as exc:
+            oom = True
+            error = str(exc)[:300]
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+        except RuntimeError as exc:
+            if "out of memory" in str(exc).lower():
+                oom = True
+                error = str(exc)[:300]
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+            else:
+                raise
+        wall = time.perf_counter() - start
+        peak_alloc_gb = float(torch.cuda.max_memory_allocated() / (1024**3))
+        result = {
+            "batch_size": batch_size,
+            "oom": oom,
+            "error": error,
+            "images_completed": encoded,
+            "wall_sec": round(wall, 3),
+            "pages_per_sec": round(encoded / wall, 3) if wall > 0 else 0.0,
+            "sec_per_image": round(wall / encoded, 4) if encoded > 0 else None,
+            "peak_allocated_gb": round(peak_alloc_gb, 2),
+        }
+        print(f"[benchmark] {json.dumps(result, sort_keys=True)}", flush=True)
+        results.append(result)
+
+    viable = [r for r in results if not r.get("oom") and r.get("images_completed", 0) > 0]
+    best = max(viable, key=lambda r: r["pages_per_sec"]) if viable else None
+    return {
+        "ok": best is not None,
+        "model_repo": MAGI_V3_REPO,
+        "chapter": chapter,
+        "image_count": len(images),
+        "load_sec": round(load_sec, 2),
+        "download_sec": round(download_sec, 2),
+        "best": best,
+        "results": results,
+    }
+
+
+@app.local_entrypoint()
+def run_benchmark(
+    chapter: str = "jujutsu-kaisen",
+    n_images: int = 128,
+):
+    result = benchmark_batch_sizes.remote(chapter=chapter, n_images=n_images)
+    print(json.dumps(result, indent=2, default=str))
+
+
+@app.local_entrypoint()
+def smoke_test(page_s3_uri: str = ""):
+    """Annotate one page end-to-end as a deploy sanity check."""
+    if not page_s3_uri:
+        page_s3_uri = f"s3://{S3_BUCKET_DEFAULT}/datasets/pages/filtered/jujutsu-kaisen/0001.jpg"
+    bucket, page_key = _parse_s3_uri(page_s3_uri)
+    chapter = page_key.split("/")[-2] if "/" in page_key else ""
+    page_id = Path(page_key).stem
+    output_key = f"datasets/annotations/magi_v3/_smoke/{chapter}/{page_id}.jsonl"
+    payload = {
+        "bucket": bucket,
+        "run_id": "smoke",
+        "overwrite": True,
+        "gpu_batch_size": 1,
+        "pages": [
+            {
+                "chapter": chapter,
+                "page_id": page_id,
+                "sample_id": f"{chapter}__{page_id}" if chapter else page_id,
+                "page_key": page_key,
+                "output_key": output_key,
+            }
+        ],
+    }
+    annotator = MagiAnnotator()
+    result = annotator.annotate_batch.remote(payload)
+    print(json.dumps(result, indent=2, default=str))
+
+
+@app.local_entrypoint()
+def annotate_manifest_local(
+    manifest_path: str,
+    bucket: str = S3_BUCKET_DEFAULT,
+    run_id: str = "",
+    git_sha: str = "",
+    overwrite: bool = False,
+    gpu_batch_size: int = DEFAULT_GPU_BATCH_SIZE,
+    pages_per_shard: int = 16,
+):
+    """Read a JSONL manifest of pages and fan them out across the H100 pool."""
+    manifest = Path(manifest_path)
+    if not manifest.exists():
+        raise FileNotFoundError(f"manifest not found: {manifest}")
+
+    rows: list[dict[str, Any]] = []
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        rows.append(json.loads(line))
+    if not rows:
+        print("manifest is empty; nothing to do")
+        return
+
+    effective_run_id = run_id.strip() or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    shard_size = max(1, int(pages_per_shard))
+    shards = [
+        {
+            "bucket": bucket,
+            "run_id": effective_run_id,
+            "git_sha": git_sha,
+            "overwrite": overwrite,
+            "gpu_batch_size": gpu_batch_size,
+            "pages": rows[start : start + shard_size],
+        }
+        for start in range(0, len(rows), shard_size)
+    ]
+
+    print(
+        json.dumps(
+            {
+                "event": "start",
+                "run_id": effective_run_id,
+                "pages": len(rows),
+                "shards": len(shards),
+                "shard_size": shard_size,
+                "gpu_batch_size": gpu_batch_size,
+                "max_containers": DEFAULT_MAX_CONTAINERS,
+            }
+        ),
+        flush=True,
+    )
+
+    annotated_total = 0
+    skipped_total = 0
+    error_total = 0
+    wall_start = time.perf_counter()
+    annotator = MagiAnnotator()
+    for idx, result in enumerate(annotator.annotate_batch.map(shards, order_outputs=False)):
+        annotated_total += len(result.get("annotated", []))
+        skipped_total += len(result.get("skipped", []))
+        error_total += len(result.get("errors", []))
+        elapsed = time.perf_counter() - wall_start
+        rate = annotated_total / elapsed if elapsed > 0 else 0.0
+        print(
+            json.dumps(
+                {
+                    "event": "shard_done",
+                    "completed_shards": idx + 1,
+                    "annotated_total": annotated_total,
+                    "skipped_total": skipped_total,
+                    "error_total": error_total,
+                    "elapsed_sec": round(elapsed, 1),
+                    "pages_per_sec_cluster": round(rate, 2),
+                    "stats": result.get("stats"),
+                }
+            ),
+            flush=True,
+        )
+    wall_sec = time.perf_counter() - wall_start
+    print(
+        json.dumps(
+            {
+                "event": "done",
+                "run_id": effective_run_id,
+                "annotated_total": annotated_total,
+                "skipped_total": skipped_total,
+                "error_total": error_total,
+                "wall_sec": round(wall_sec, 1),
+                "pages_per_sec_cluster": round(annotated_total / wall_sec, 2) if wall_sec > 0 else None,
+            }
+        ),
+        flush=True,
+    )

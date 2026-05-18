@@ -1,0 +1,211 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. One Piece by Eiichiro Oda. Character 1 faces forward with mouth open wide and eyes narrowed, brow furrowed with visible tension lines across the face, sweat drops falling, wearing a striped hat. Close-up shot with stark white background and jagged panel borders creating a dynamic frame.",
+    "chapter": "one-piece_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0130/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.2125,
+              0.03125,
+              0.9875,
+              0.996528
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.858333,
+                0.222222,
+                0.955556,
+                0.295139
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.061111,
+                0.657986,
+                0.188889,
+                0.734375
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0130/ctrl_img_1.png"
+    },
+    "eval_index": 130,
+    "eval_seed": 20260645,
+    "eval_stratum": "1/2plus/landscape",
+    "page_id": "588__side_00",
+    "page_root": "one-piece_mangazero/588__side_00",
+    "panel_index": 0,
+    "sample_id": "one-piece_mangazero/588__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/one-piece_mangazero/588__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/one-piece_mangazero/588__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/588__side_00.jpg",
+    "target_height": 576,
+    "target_panel": "/root/validation_datasets/generalist/img_0130/target.png",
+    "target_width": 720,
+    "validation_set_dir": "img_0130"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. One Piece by Eiichiro Oda. Character 1 faces forward with mouth open wide and eyes narrowed, brow furrowed with visible tension lines across the face, sweat drops falling, wearing a striped hat. Close-up shot with stark white background and jagged panel borders creating a dynamic frame.",
+    "chapter": "one-piece_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            197,
+            18,
+            755,
+            575
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/588__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.2125,
+              0.03125,
+              0.9875,
+              0.996528
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.858333,
+                0.222222,
+                0.955556,
+                0.295139
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.061111,
+                0.657986,
+                0.188889,
+                0.734375
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "588__side_00",
+    "page_root": "one-piece_mangazero/588__side_00",
+    "panel_index": 0,
+    "sample_id": "one-piece_mangazero/588__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/one-piece_mangazero/588__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/one-piece_mangazero/588__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/588__side_00.jpg",
+    "target_height": 576,
+    "target_panel": {
+      "crop_box": [
+        44,
+        0,
+        756,
+        574
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/588__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 720
+  }
+}

@@ -1,0 +1,23 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+setup: run_id=auth_reader_great_20260517T211223Z sites=1 prefix=s3://drawtoon/datasets/pages/single download=True chapter_workers=12 image_workers=3
+discover: site=great series=the-great-mage-returns-after-4000-years_manwa chapters=257
+manifest: path=artifacts/separata_manwa/manifests/auth_reader_great_20260517T211223Z_chapters.jsonl chapters=257
+progress: chapters=1/257 accessible=0 no_images=0 images=15 written=14 skipped=0 failures=1 chapter_rate=0.00/s eta=1134.9m
+progress: chapters=2/257 accessible=0 no_images=0 images=31 written=28 skipped=0 failures=3 chapter_rate=0.01/s eta=678.9m
+progress: chapters=4/257 accessible=0 no_images=0 images=60 written=52 skipped=1 failures=7 chapter_rate=0.01/s eta=413.6m
+progress: chapters=5/257 accessible=0 no_images=0 images=78 written=66 skipped=1 failures=11 chapter_rate=0.01/s eta=398.9m
+progress: chapters=7/257 accessible=0 no_images=0 images=105 written=86 skipped=1 failures=18 chapter_rate=0.01/s eta=316.5m
+progress: chapters=8/257 accessible=0 no_images=0 images=120 written=99 skipped=1 failures=20 chapter_rate=0.01/s eta=293.3m
+progress: chapters=9/257 accessible=0 no_images=0 images=133 written=106 skipped=1 failures=26 chapter_rate=0.01/s eta=278.7m
+progress: chapters=15/257 accessible=0 no_images=0 images=227 written=148 skipped=1 failures=78 chapter_rate=0.02/s eta=183.2m
+progress: chapters=16/257 accessible=0 no_images=0 images=247 written=155 skipped=1 failures=91 chapter_rate=0.02/s eta=180.5m
+progress: chapters=17/257 accessible=0 no_images=0 images=262 written=158 skipped=1 failures=103 chapter_rate=0.02/s eta=186.0m
+progress: chapters=19/257 accessible=0 no_images=0 images=293 written=169 skipped=1 failures=123 chapter_rate=0.02/s eta=181.0m
+progress: chapters=20/257 accessible=0 no_images=0 images=313 written=175 skipped=1 failures=137 chapter_rate=0.02/s eta=178.3m
+progress: chapters=23/257 accessible=0 no_images=0 images=357 written=184 skipped=1 failures=172 chapter_rate=0.02/s eta=161.8m
+progress: chapters=25/257 accessible=0 no_images=0 images=388 written=189 skipped=1 failures=198 chapter_rate=0.02/s eta=154.7m
+progress: chapters=26/257 accessible=0 no_images=0 images=401 written=190 skipped=1 failures=210 chapter_rate=0.02/s eta=156.0m
+progress: chapters=27/257 accessible=0 no_images=0 images=416 written=192 skipped=1 failures=223 chapter_rate=0.02/s eta=160.5m
+progress: chapters=30/257 accessible=0 no_images=0 images=458 written=197 skipped=1 failures=260 chapter_rate=0.03/s eta=147.4m
+progress: chapters=31/257 accessible=0 no_images=0 images=475 written=202 skipped=1 failures=272 chapter_rate=0.03/s eta=150.0m

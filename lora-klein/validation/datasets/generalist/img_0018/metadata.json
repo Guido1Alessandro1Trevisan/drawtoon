@@ -1,0 +1,317 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. The Promised Neverland by Kaiu Shirai / Posuka Demizu. Character 2 and Character 3 stand facing each other in a ground-level scene with plants and foliage, while Character 1 appears in profile on the right side with mouth open. Multiple speech bubbles contain dialogue. Diagonal speed lines fill the left background, creating dynamic panel composition with stark black ink and white space.",
+    "chapter": "the-promised-neverland_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0018/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0018/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0018/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.61875,
+              0.296875,
+              0.978125,
+              0.973958
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.310937,
+              0.523438,
+              0.460938,
+              0.895833
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.554688,
+              0.554688,
+              0.659375,
+              0.867188
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.83125,
+                0.135417,
+                0.94375,
+                0.309896
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.464062,
+                0.179688,
+                0.673438,
+                0.380208
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.18125,
+                0.122396,
+                0.4,
+                0.453125
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0018/ctrl_img_1.png"
+    },
+    "eval_index": 18,
+    "eval_seed": 20260533,
+    "eval_stratum": "3plus/2plus/landscape",
+    "page_id": "955__side_01",
+    "page_root": "the-promised-neverland_mangazero/955__side_01",
+    "panel_index": 2,
+    "sample_id": "the-promised-neverland_mangazero/955__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/the-promised-neverland_mangazero/955__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/the-promised-neverland_mangazero/955__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/the-promised-neverland_mangazero/955__side_01.jpg",
+    "target_height": 384,
+    "target_panel": "/root/validation_datasets/generalist/img_0018/target.png",
+    "target_width": 640,
+    "validation_set_dir": "img_0018"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. The Promised Neverland by Kaiu Shirai / Posuka Demizu. Character 2 and Character 3 stand facing each other in a ground-level scene with plants and foliage, while Character 1 appears in profile on the right side with mouth open. Multiple speech bubbles contain dialogue. Diagonal speed lines fill the left background, creating dynamic panel composition with stark black ink and white space.",
+    "chapter": "the-promised-neverland_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            490,
+            0,
+            741,
+            200
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/the-promised-neverland_mangazero/955__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            50,
+            1083,
+            134,
+            1220
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/the-promised-neverland_mangazero/955__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            356,
+            526,
+            423,
+            646
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/the-promised-neverland_mangazero/955__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.61875,
+              0.296875,
+              0.978125,
+              0.973958
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.310937,
+              0.523438,
+              0.460938,
+              0.895833
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.554688,
+              0.554688,
+              0.659375,
+              0.867188
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.83125,
+                0.135417,
+                0.94375,
+                0.309896
+              ],
+              "text_region_index": 0,
+              "type": "Shout Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.464062,
+                0.179688,
+                0.673438,
+                0.380208
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.18125,
+                0.122396,
+                0.4,
+                0.453125
+              ],
+              "text_region_index": 2,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "955__side_01",
+    "page_root": "the-promised-neverland_mangazero/955__side_01",
+    "panel_index": 2,
+    "sample_id": "the-promised-neverland_mangazero/955__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/the-promised-neverland_mangazero/955__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/the-promised-neverland_mangazero/955__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/the-promised-neverland_mangazero/955__side_01.jpg",
+    "target_height": 384,
+    "target_panel": {
+      "crop_box": [
+        1,
+        313,
+        630,
+        695
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/the-promised-neverland_mangazero/955__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 640
+  }
+}

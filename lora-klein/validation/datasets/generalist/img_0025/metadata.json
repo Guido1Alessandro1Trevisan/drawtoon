@@ -1,0 +1,255 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Hunter x Hunter by Yoshihiro Togashi. Character 1 leans back with head tilted and eyes wide, mouth open in shock, while Character 2 stands upright with fist raised and gaze directed downward, and Character 3 appears in silhouette at left edge. Intense radial speed lines fill the background, creating dynamic forward motion across the panel.",
+    "chapter": "hunter-x-hunter_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0025/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0025/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0025/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.188889,
+              0.20777,
+              0.501389,
+              0.819257
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.583333,
+              0.018581,
+              0.998611,
+              0.819257
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.009722,
+              0.452703,
+              0.2,
+              0.981419
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0025/ctrl_img_1.png"
+    },
+    "eval_index": 25,
+    "eval_seed": 20260540,
+    "eval_stratum": "3plus/0/landscape",
+    "page_id": "039__side_01",
+    "page_root": "hunter-x-hunter_mangazero/039__side_01",
+    "panel_index": 4,
+    "sample_id": "hunter-x-hunter_mangazero/039__side_01/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/hunter-x-hunter_mangazero/039__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/hunter-x-hunter_mangazero/039__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/039__side_01.jpg",
+    "target_height": 592,
+    "target_panel": "/root/validation_datasets/generalist/img_0025/target.png",
+    "target_width": 720,
+    "validation_set_dir": "img_0025"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Hunter x Hunter by Yoshihiro Togashi. Character 1 leans back with head tilted and eyes wide, mouth open in shock, while Character 2 stands upright with fist raised and gaze directed downward, and Character 3 appears in silhouette at left edge. Intense radial speed lines fill the background, creating dynamic forward motion across the panel.",
+    "chapter": "hunter-x-hunter_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            317,
+            190,
+            392,
+            268
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/039__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            609,
+            245,
+            702,
+            441
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/039__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            518,
+            313,
+            589,
+            455
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/039__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.188889,
+              0.20777,
+              0.501389,
+              0.819257
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.583333,
+              0.018581,
+              0.998611,
+              0.819257
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.009722,
+              0.452703,
+              0.2,
+              0.981419
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "039__side_01",
+    "page_root": "hunter-x-hunter_mangazero/039__side_01",
+    "panel_index": 4,
+    "sample_id": "hunter-x-hunter_mangazero/039__side_01/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/hunter-x-hunter_mangazero/039__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/hunter-x-hunter_mangazero/039__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/039__side_01.jpg",
+    "target_height": 592,
+    "target_panel": {
+      "crop_box": [
+        2,
+        618,
+        721,
+        1199
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/hunter-x-hunter_mangazero/039__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 720
+  }
+}

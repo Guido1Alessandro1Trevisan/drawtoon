@@ -1,0 +1,341 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Frieren: Beyond Journey's End by Kanehito Yamada / Tsukasa Abe. Character 1 stands with neutral posture on the left, Character 4 approaches from the foreground with forward gaze, Character 3 sits at a central table with downward focus, and Character 5 stands on the right with direct forward gaze. Character 2 stands in the background left. Interior stone-floor setting with architectural columns and doorway, isometric overhead perspective, stark white background with minimal screen tone.",
+    "chapter": "sousou-no-frieren_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0196/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0196/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0196/ctrl_img_4.png",
+        "/root/validation_datasets/generalist/img_0196/ctrl_img_5.png",
+        "/root/validation_datasets/generalist/img_0196/ctrl_img_6.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.406593,
+              0.287975,
+              0.509615,
+              0.528481
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.137363,
+              0.587816,
+              0.228022,
+              0.898734
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.521978,
+              0.443829,
+              0.598214,
+              0.624209
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.193681,
+              0.147152,
+              0.311126,
+              0.488924
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.686813,
+              0.161392,
+              0.789835,
+              0.525316
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0196/ctrl_img_1.png"
+    },
+    "eval_index": 196,
+    "eval_seed": 20260711,
+    "eval_stratum": "3plus/0/square",
+    "page_id": "975__side_00",
+    "page_root": "sousou-no-frieren_mangazero/975__side_00",
+    "panel_index": 0,
+    "sample_id": "sousou-no-frieren_mangazero/975__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/sousou-no-frieren_mangazero/975__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/sousou-no-frieren_mangazero/975__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+    "target_height": 1264,
+    "target_panel": "/root/validation_datasets/generalist/img_0196/target.png",
+    "target_width": 1456,
+    "validation_set_dir": "img_0196"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Frieren: Beyond Journey's End by Kanehito Yamada / Tsukasa Abe. Character 1 stands with neutral posture on the left, Character 4 approaches from the foreground with forward gaze, Character 3 sits at a central table with downward focus, and Character 5 stands on the right with direct forward gaze. Character 2 stands in the background left. Interior stone-floor setting with architectural columns and doorway, isometric overhead perspective, stark white background with minimal screen tone.",
+    "chapter": "sousou-no-frieren_mangazero",
+    "character_count": 5,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            121,
+            221,
+            757,
+            1050
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            1267,
+            2379,
+            1645,
+            3199
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            857,
+            1682,
+            1128,
+            2157
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            199,
+            1332,
+            374,
+            1593
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            1092,
+            1332,
+            1299,
+            1689
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.406593,
+              0.287975,
+              0.509615,
+              0.528481
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.137363,
+              0.587816,
+              0.228022,
+              0.898734
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.521978,
+              0.443829,
+              0.598214,
+              0.624209
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.193681,
+              0.147152,
+              0.311126,
+              0.488924
+            ],
+            "character_label": "Character 4",
+            "color": "magenta",
+            "control_slot": 5,
+            "rgb": [
+              255,
+              0,
+              255
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.686813,
+              0.161392,
+              0.789835,
+              0.525316
+            ],
+            "character_label": "Character 5",
+            "color": "cyan",
+            "control_slot": 6,
+            "rgb": [
+              0,
+              220,
+              255
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 0,
+          "regions": [],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 0
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "975__side_00",
+    "page_root": "sousou-no-frieren_mangazero/975__side_00",
+    "panel_index": 0,
+    "sample_id": "sousou-no-frieren_mangazero/975__side_00/panel_000",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/sousou-no-frieren_mangazero/975__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/sousou-no-frieren_mangazero/975__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+    "target_height": 1264,
+    "target_panel": {
+      "crop_box": [
+        782,
+        0,
+        2224,
+        1258
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/sousou-no-frieren_mangazero/975__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 1456
+  }
+}

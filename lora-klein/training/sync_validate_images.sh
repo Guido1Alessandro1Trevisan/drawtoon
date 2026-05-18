@@ -101,8 +101,12 @@ normalize_job_dir() {
 build_review_sheets() {
   local job_dir="$1"
   [ -d "$job_dir" ] || return 0
-  echo "Building target/ref/generated bbox review images for $job_dir"
-  "$PYTHON_BIN" "$SCRIPT_DIR/utils.py" build-validation-review-sheets --job-dir "$job_dir"
+  echo "Building target/conditioning/ref/generated bbox review images for $job_dir"
+  local review_args=(build-validation-review-sheets --job-dir "$job_dir")
+  if [ ${#FORCE_ARGS[@]} -gt 0 ]; then
+    review_args+=(--force)
+  fi
+  "$PYTHON_BIN" "$SCRIPT_DIR/utils.py" "${review_args[@]}"
 }
 
 while [ $# -gt 0 ]; do

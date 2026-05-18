@@ -1,0 +1,277 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Dungeon Meshi by Ryoko Kui. Character 1 and Character 2 face each other with wide eyes and open mouths in close-up, their heads tilted toward one another against a dotted screen-tone background, while Character 3 appears in a distant interior scene; a speech bubble occupies the right edge of the panel.",
+    "chapter": "dungeon-meshi_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0127/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0127/ctrl_img_3.png",
+        "/root/validation_datasets/generalist/img_0127/ctrl_img_4.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.004545,
+              0.164773,
+              0.122727,
+              0.948864
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.144318,
+              0.039773,
+              0.297727,
+              0.920455
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.313636,
+              0.017045,
+              0.602273,
+              0.909091
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.817045,
+                0.573864,
+                0.889773,
+                0.784091
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0127/ctrl_img_1.png"
+    },
+    "eval_index": 127,
+    "eval_seed": 20260642,
+    "eval_stratum": "3plus/1/landscape",
+    "page_id": "354__side_00",
+    "page_root": "dungeon-meshi_mangazero/354__side_00",
+    "panel_index": 3,
+    "sample_id": "dungeon-meshi_mangazero/354__side_00/panel_003",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/dungeon-meshi_mangazero/354__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/dungeon-meshi_mangazero/354__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/dungeon-meshi_mangazero/354__side_00.jpg",
+    "target_height": 176,
+    "target_panel": "/root/validation_datasets/generalist/img_0127/target.png",
+    "target_width": 880,
+    "validation_set_dir": "img_0127"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Dungeon Meshi by Ryoko Kui. Character 1 and Character 2 face each other with wide eyes and open mouths in close-up, their heads tilted toward one another against a dotted screen-tone background, while Character 3 appears in a distant interior scene; a speech bubble occupies the right edge of the panel.",
+    "chapter": "dungeon-meshi_mangazero",
+    "character_count": 3,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            158,
+            664,
+            959,
+            1498
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/dungeon-meshi_mangazero/354__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            139,
+            262,
+            356,
+            458
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/dungeon-meshi_mangazero/354__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            139,
+            262,
+            356,
+            458
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/dungeon-meshi_mangazero/354__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.004545,
+              0.164773,
+              0.122727,
+              0.948864
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.144318,
+              0.039773,
+              0.297727,
+              0.920455
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.313636,
+              0.017045,
+              0.602273,
+              0.909091
+            ],
+            "character_label": "Character 3",
+            "color": "yellow",
+            "control_slot": 4,
+            "rgb": [
+              255,
+              220,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.817045,
+                0.573864,
+                0.889773,
+                0.784091
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "354__side_00",
+    "page_root": "dungeon-meshi_mangazero/354__side_00",
+    "panel_index": 3,
+    "sample_id": "dungeon-meshi_mangazero/354__side_00/panel_003",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/dungeon-meshi_mangazero/354__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/dungeon-meshi_mangazero/354__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/dungeon-meshi_mangazero/354__side_00.jpg",
+    "target_height": 176,
+    "target_panel": {
+      "crop_box": [
+        90,
+        474,
+        963,
+        650
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/dungeon-meshi_mangazero/354__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 880
+  }
+}

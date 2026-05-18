@@ -1,0 +1,274 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Gintama by Hideaki Sorachi. Character 1 sits with head tilted back and mouth open, holding a bottle, while Character 2 stands facing forward with a neutral expression and downward gaze. Interior setting with vertical architectural elements dividing the composition. Multiple speech bubbles frame the interaction. Medium shot with characters positioned on opposite sides of a central vertical divide.",
+    "chapter": "gintama_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0036/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0036/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.081522,
+              0.473485,
+              0.459239,
+              0.825758
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.57337,
+              0.185606,
+              0.978261,
+              0.975379
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.690217,
+                0.045455,
+                0.964674,
+                0.246212
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.019022,
+                0.047348,
+                0.388587,
+                0.414773
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.42663,
+                0.689394,
+                0.5625,
+                0.994318
+              ],
+              "text_region_index": 2,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0036/ctrl_img_1.png"
+    },
+    "eval_index": 36,
+    "eval_seed": 20260551,
+    "eval_stratum": "2/2plus/portrait",
+    "page_id": "957__side_00",
+    "page_root": "gintama_mangazero/957__side_00",
+    "panel_index": 4,
+    "sample_id": "gintama_mangazero/957__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/gintama_mangazero/957__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/gintama_mangazero/957__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/957__side_00.jpg",
+    "target_height": 528,
+    "target_panel": "/root/validation_datasets/generalist/img_0036/target.png",
+    "target_width": 368,
+    "validation_set_dir": "img_0036"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Gintama by Hideaki Sorachi. Character 1 sits with head tilted back and mouth open, holding a bottle, while Character 2 stands facing forward with a neutral expression and downward gaze. Interior setting with vertical architectural elements dividing the composition. Multiple speech bubbles frame the interaction. Medium shot with characters positioned on opposite sides of a central vertical divide.",
+    "chapter": "gintama_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            628,
+            1143,
+            684,
+            1255
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/957__side_00.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            703,
+            1150,
+            757,
+            1247
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/957__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.081522,
+              0.473485,
+              0.459239,
+              0.825758
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.57337,
+              0.185606,
+              0.978261,
+              0.975379
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 3,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.690217,
+                0.045455,
+                0.964674,
+                0.246212
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.019022,
+                0.047348,
+                0.388587,
+                0.414773
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.42663,
+                0.689394,
+                0.5625,
+                0.994318
+              ],
+              "text_region_index": 2,
+              "type": "Shout Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 1,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "957__side_00",
+    "page_root": "gintama_mangazero/957__side_00",
+    "panel_index": 4,
+    "sample_id": "gintama_mangazero/957__side_00/panel_004",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/gintama_mangazero/957__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/gintama_mangazero/957__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/957__side_00.jpg",
+    "target_height": 528,
+    "target_panel": {
+      "crop_box": [
+        45,
+        870,
+        408,
+        1395
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/gintama_mangazero/957__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 368
+  }
+}

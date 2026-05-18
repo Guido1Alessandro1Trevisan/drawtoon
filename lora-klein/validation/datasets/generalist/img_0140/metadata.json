@@ -1,0 +1,191 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. Parasyte by Hitoshi Iwaaki. Character 1 faces forward with wide eyes and a tense, closed mouth, head tilted slightly, rendered in black and white line art with stark hatching and minimal background, medium close-up shot framing the face prominently with a speech bubble positioned to the upper right.",
+    "chapter": "parasyte_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0140/ctrl_img_2.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.014423,
+              0.128289,
+              0.923077,
+              0.944079
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.605769,
+                0.144737,
+                0.870192,
+                0.388158
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0140/ctrl_img_1.png"
+    },
+    "eval_index": 140,
+    "eval_seed": 20260655,
+    "eval_stratum": "1/1/portrait",
+    "page_id": "550__side_00",
+    "page_root": "parasyte_mangazero/550__side_00",
+    "panel_index": 2,
+    "sample_id": "parasyte_mangazero/550__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/parasyte_mangazero/550__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/parasyte_mangazero/550__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/550__side_00.jpg",
+    "target_height": 304,
+    "target_panel": "/root/validation_datasets/generalist/img_0140/target.png",
+    "target_width": 208,
+    "validation_set_dir": "img_0140"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. Parasyte by Hitoshi Iwaaki. Character 1 faces forward with wide eyes and a tense, closed mouth, head tilted slightly, rendered in black and white line art with stark hatching and minimal background, medium close-up shot framing the face prominently with a speech bubble positioned to the upper right.",
+    "chapter": "parasyte_mangazero",
+    "character_count": 1,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            490,
+            585,
+            562,
+            798
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/550__side_00.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.014423,
+              0.128289,
+              0.923077,
+              0.944079
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 1,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.605769,
+                0.144737,
+                0.870192,
+                0.388158
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 1
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "550__side_00",
+    "page_root": "parasyte_mangazero/550__side_00",
+    "panel_index": 2,
+    "sample_id": "parasyte_mangazero/550__side_00/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/parasyte_mangazero/550__side_00.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/parasyte_mangazero/550__side_00.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/550__side_00.jpg",
+    "target_height": 304,
+    "target_panel": {
+      "crop_box": [
+        37,
+        70,
+        234,
+        364
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/parasyte_mangazero/550__side_00.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 208
+  }
+}

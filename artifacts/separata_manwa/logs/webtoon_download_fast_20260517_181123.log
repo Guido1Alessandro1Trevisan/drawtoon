@@ -1,0 +1,598 @@
+/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/boto3/compat.py:82: PythonDeprecationWarning: Boto3 will no longer support Python 3.7 starting December 13, 2023. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.8 or later. More information can be found here: https://aws.amazon.com/blogs/developer/python-support-policy-updates-for-aws-sdks-and-tools/
+  warnings.warn(warning, PythonDeprecationWarning)
+preload: listing s3://drawtoon/datasets/pages/source/webtoon/
+preload: existing_source_keys=15733
+setup: series=17 series_workers=17 episode_workers=128 image_workers=8 max_image_concurrency=512 image_retries=6 download_order=round-robin s3_pool_connections=1536 s3_client_count=64 preload_existing_s3=True proxy=enabled dry_run=False
+[the-boxer] discover page=1 page_episodes=7 new=7 total=7
+[lookism] discover page=1 page_episodes=11 new=11 total=11
+[tower-of-god] discover page=1 page_episodes=10 new=10 total=10[noblesse] discover page=1 page_episodes=11 new=11 total=11
+
+[the-gamer] discover page=1 page_episodes=9 new=9 total=9[sweet-home] discover page=1 page_episodes=11 new=11 total=11[tomb-raider-king] discover page=1 page_episodes=10 new=10 total=10
+
+
+[the-horizon] discover page=1 page_episodes=2 new=2 total=2[who-made-me-a-princess] discover page=1 page_episodes=11 new=11 total=11[girls-of-the-wilds] discover page=1 page_episodes=11 new=11 total=11[the-god-of-high-school] discover page=1 page_episodes=11 new=11 total=11
+
+
+
+[bastard] discover page=1 page_episodes=11 new=11 total=11
+[the-sound-of-magic-annarasumanara] discover page=1 page_episodes=8 new=8 total=8[the-breaker-eternal-force] discover page=1 page_episodes=10 new=10 total=10[teenage-mercenary] discover page=1 page_episodes=11 new=11 total=11
+
+
+[eleceed] discover page=1 page_episodes=11 new=11 total=11
+[omniscient-reader] discover page=1 page_episodes=11 new=11 total=11
+[the-boxer] discover page=2 page_episodes=7 new=0 total=7
+[the-boxer] discovered episodes=7
+[tower-of-god] discover page=2 page_episodes=10 new=9 total=19
+[lookism] discover page=2 page_episodes=11 new=10 total=21[who-made-me-a-princess] discover page=2 page_episodes=3 new=2 total=13
+
+[noblesse] discover page=2 page_episodes=11 new=10 total=21
+[bastard] discover page=2 page_episodes=1 new=0 total=11
+[the-gamer] discover page=2 page_episodes=9 new=0 total=9[bastard] discovered episodes=11[the-breaker-eternal-force] discover page=2 page_episodes=10 new=9 total=19
+
+[the-horizon] discover page=2 page_episodes=2 new=0 total=2
+[the-gamer] discovered episodes=9
+
+[sweet-home] discover page=2 page_episodes=5 new=4 total=15[the-god-of-high-school] discover page=2 page_episodes=11 new=10 total=21[teenage-mercenary] discover page=2 page_episodes=11 new=10 total=21
+
+
+[the-horizon] discovered episodes=2
+[tomb-raider-king] discover page=2 page_episodes=10 new=0 total=10[the-sound-of-magic-annarasumanara] discover page=2 page_episodes=8 new=0 total=8
+[tomb-raider-king] discovered episodes=10
+
+[the-sound-of-magic-annarasumanara] discovered episodes=8
+[eleceed] discover page=2 page_episodes=11 new=10 total=21
+[omniscient-reader] discover page=2 page_episodes=11 new=10 total=21
+[girls-of-the-wilds] discover page=2 page_episodes=5 new=4 total=15
+[tower-of-god] discover page=3 page_episodes=10 new=9 total=28
+[the-breaker-eternal-force] discover page=3 page_episodes=10 new=9 total=28
+[who-made-me-a-princess] discover page=3 page_episodes=3 new=0 total=13
+[who-made-me-a-princess] discovered episodes=13
+[noblesse] discover page=3 page_episodes=11 new=10 total=31
+[sweet-home] discover page=3 page_episodes=5 new=0 total=15
+[sweet-home] discovered episodes=15
+[teenage-mercenary] discover page=3 page_episodes=11 new=10 total=31
+[eleceed] discover page=3 page_episodes=11 new=10 total=31
+[lookism] discover page=3 page_episodes=11 new=10 total=31
+[the-god-of-high-school] discover page=3 page_episodes=11 new=10 total=31
+[omniscient-reader] discover page=3 page_episodes=11 new=10 total=31
+[girls-of-the-wilds] discover page=3 page_episodes=5 new=0 total=15
+[girls-of-the-wilds] discovered episodes=15
+[tower-of-god] discover page=4 page_episodes=10 new=9 total=37
+[the-breaker-eternal-force] discover page=4 page_episodes=10 new=9 total=37[teenage-mercenary] discover page=4 page_episodes=11 new=10 total=41[noblesse] discover page=4 page_episodes=11 new=10 total=41
+
+
+[the-god-of-high-school] discover page=4 page_episodes=4 new=3 total=34
+[eleceed] discover page=4 page_episodes=11 new=10 total=41
+[lookism] discover page=4 page_episodes=11 new=10 total=41
+[omniscient-reader] discover page=4 page_episodes=11 new=10 total=41
+[tower-of-god] discover page=5 page_episodes=10 new=9 total=46
+[teenage-mercenary] discover page=5 page_episodes=11 new=10 total=51
+[noblesse] discover page=5 page_episodes=10 new=9 total=50
+[eleceed] discover page=5 page_episodes=11 new=10 total=51[the-god-of-high-school] discover page=5 page_episodes=4 new=0 total=34[the-breaker-eternal-force] discover page=5 page_episodes=10 new=9 total=46
+[the-god-of-high-school] discovered episodes=34
+
+
+[lookism] discover page=5 page_episodes=11 new=10 total=51
+[omniscient-reader] discover page=5 page_episodes=11 new=10 total=51
+[tower-of-god] discover page=6 page_episodes=10 new=9 total=55
+[teenage-mercenary] discover page=6 page_episodes=11 new=10 total=61
+[eleceed] discover page=6 page_episodes=11 new=10 total=61
+[lookism] discover page=6 page_episodes=11 new=10 total=61
+[noblesse] discover page=6 page_episodes=10 new=0 total=50
+[noblesse] discovered episodes=50
+[the-breaker-eternal-force] discover page=6 page_episodes=10 new=9 total=55
+[omniscient-reader] discover page=6 page_episodes=11 new=10 total=61
+[tower-of-god] discover page=7 page_episodes=10 new=9 total=64
+[teenage-mercenary] discover page=7 page_episodes=11 new=10 total=71
+[lookism] discover page=7 page_episodes=11 new=10 total=71
+[eleceed] discover page=7 page_episodes=11 new=10 total=71
+[the-breaker-eternal-force] discover page=7 page_episodes=10 new=9 total=64
+[omniscient-reader] discover page=7 page_episodes=11 new=10 total=71
+[tower-of-god] discover page=8 page_episodes=10 new=9 total=73
+[lookism] discover page=8 page_episodes=11 new=10 total=81
+[teenage-mercenary] discover page=8 page_episodes=11 new=10 total=81
+[the-breaker-eternal-force] discover page=8 page_episodes=10 new=9 total=73
+[eleceed] discover page=8 page_episodes=11 new=10 total=81
+[omniscient-reader] discover page=8 page_episodes=11 new=10 total=81
+[tower-of-god] discover page=9 page_episodes=10 new=9 total=82
+[lookism] discover page=9 page_episodes=11 new=10 total=91
+[eleceed] discover page=9 page_episodes=11 new=10 total=91
+[teenage-mercenary] discover page=9 page_episodes=11 new=10 total=91
+[the-breaker-eternal-force] discover page=9 page_episodes=10 new=9 total=82
+[omniscient-reader] discover page=9 page_episodes=11 new=10 total=91
+[lookism] discover page=10 page_episodes=11 new=10 total=101
+[tower-of-god] discover page=10 page_episodes=10 new=9 total=91
+[the-breaker-eternal-force] discover page=10 page_episodes=10 new=9 total=91
+[eleceed] discover page=10 page_episodes=11 new=10 total=101
+[teenage-mercenary] discover page=10 page_episodes=11 new=10 total=101
+[omniscient-reader] discover page=10 page_episodes=11 new=10 total=101
+[tower-of-god] discover page=11 page_episodes=10 new=9 total=100
+[lookism] discover page=11 page_episodes=11 new=10 total=111
+[the-breaker-eternal-force] discover page=11 page_episodes=10 new=9 total=100
+[eleceed] discover page=11 page_episodes=11 new=10 total=111
+[teenage-mercenary] discover page=11 page_episodes=11 new=10 total=111
+[the-breaker-eternal-force] discover page=12 page_episodes=1 new=0 total=100
+[the-breaker-eternal-force] discovered episodes=100
+[eleceed] discover page=12 page_episodes=11 new=10 total=121
+[teenage-mercenary] discover page=12 page_episodes=11 new=10 total=121
+[omniscient-reader] discover page=11 page_episodes=11 new=10 total=111
+[eleceed] discover page=13 page_episodes=11 new=10 total=131
+[teenage-mercenary] discover page=13 page_episodes=11 new=10 total=131
+[omniscient-reader] discover page=12 page_episodes=11 new=10 total=121
+[lookism] discover page=12 page_episodes=11 new=10 total=121
+[teenage-mercenary] discover page=14 page_episodes=11 new=10 total=141
+[tower-of-god] discover page=12 page_episodes=10 new=9 total=109
+[eleceed] discover page=14 page_episodes=11 new=10 total=141
+[omniscient-reader] discover page=13 page_episodes=11 new=10 total=131
+[lookism] discover page=13 page_episodes=11 new=10 total=131
+[teenage-mercenary] discover page=15 page_episodes=11 new=10 total=151
+[tower-of-god] discover page=13 page_episodes=10 new=9 total=118
+[eleceed] discover page=15 page_episodes=11 new=10 total=151
+[omniscient-reader] discover page=14 page_episodes=11 new=10 total=141
+[tower-of-god] discover page=14 page_episodes=10 new=9 total=127
+[teenage-mercenary] discover page=16 page_episodes=11 new=10 total=161
+[lookism] discover page=14 page_episodes=11 new=10 total=141
+[eleceed] discover page=16 page_episodes=11 new=10 total=161
+[omniscient-reader] discover page=15 page_episodes=11 new=10 total=151
+[tower-of-god] discover page=15 page_episodes=10 new=9 total=136
+[lookism] discover page=15 page_episodes=11 new=10 total=151
+[teenage-mercenary] discover page=17 page_episodes=11 new=10 total=171
+[eleceed] discover page=17 page_episodes=11 new=10 total=171
+[omniscient-reader] discover page=16 page_episodes=11 new=10 total=161
+[tower-of-god] discover page=16 page_episodes=10 new=9 total=145
+[lookism] discover page=16 page_episodes=11 new=10 total=161
+[teenage-mercenary] discover page=18 page_episodes=11 new=10 total=181
+[eleceed] discover page=18 page_episodes=11 new=10 total=181
+[omniscient-reader] discover page=17 page_episodes=11 new=10 total=171
+[lookism] discover page=17 page_episodes=11 new=10 total=171
+[tower-of-god] discover page=17 page_episodes=10 new=9 total=154
+[eleceed] discover page=19 page_episodes=11 new=10 total=191
+[teenage-mercenary] discover page=19 page_episodes=11 new=10 total=191
+[omniscient-reader] discover page=18 page_episodes=11 new=10 total=181
+[lookism] discover page=18 page_episodes=11 new=10 total=181
+[tower-of-god] discover page=18 page_episodes=10 new=9 total=163
+[eleceed] discover page=20 page_episodes=11 new=10 total=201
+[teenage-mercenary] discover page=20 page_episodes=11 new=10 total=201
+[omniscient-reader] discover page=19 page_episodes=11 new=10 total=191
+[lookism] discover page=19 page_episodes=11 new=10 total=191
+[tower-of-god] discover page=19 page_episodes=10 new=9 total=172
+[teenage-mercenary] discover page=21 page_episodes=11 new=10 total=211
+[eleceed] discover page=21 page_episodes=11 new=10 total=211
+[omniscient-reader] discover page=20 page_episodes=11 new=10 total=201
+[lookism] discover page=20 page_episodes=11 new=10 total=201
+[tower-of-god] discover page=20 page_episodes=10 new=9 total=181
+[teenage-mercenary] discover page=22 page_episodes=11 new=10 total=221
+[eleceed] discover page=22 page_episodes=11 new=10 total=221
+[omniscient-reader] discover page=21 page_episodes=11 new=10 total=211
+[eleceed] discover page=23 page_episodes=11 new=10 total=231
+[tower-of-god] discover page=21 page_episodes=10 new=9 total=190
+[lookism] discover page=21 page_episodes=11 new=10 total=211
+[teenage-mercenary] discover page=23 page_episodes=11 new=10 total=231
+[omniscient-reader] discover page=22 page_episodes=11 new=10 total=221
+[tower-of-god] discover page=22 page_episodes=10 new=9 total=199
+[teenage-mercenary] discover page=24 page_episodes=11 new=10 total=241
+[lookism] discover page=22 page_episodes=11 new=10 total=221
+[eleceed] discover page=24 page_episodes=11 new=10 total=241
+[omniscient-reader] discover page=23 page_episodes=11 new=10 total=231
+[tower-of-god] discover page=23 page_episodes=10 new=9 total=208
+[lookism] discover page=23 page_episodes=11 new=10 total=231
+[eleceed] discover page=25 page_episodes=11 new=10 total=251
+[teenage-mercenary] discover page=25 page_episodes=11 new=10 total=251
+[omniscient-reader] discover page=24 page_episodes=11 new=10 total=241
+[tower-of-god] discover page=24 page_episodes=10 new=9 total=217
+[lookism] discover page=24 page_episodes=11 new=10 total=241
+[eleceed] discover page=26 page_episodes=11 new=10 total=261
+[teenage-mercenary] discover page=26 page_episodes=11 new=10 total=261
+[omniscient-reader] discover page=25 page_episodes=11 new=10 total=251
+[tower-of-god] discover page=25 page_episodes=10 new=9 total=226
+[eleceed] discover page=27 page_episodes=11 new=10 total=271
+[lookism] discover page=25 page_episodes=11 new=10 total=251
+[teenage-mercenary] discover page=27 page_episodes=11 new=10 total=271
+[omniscient-reader] discover page=26 page_episodes=11 new=10 total=261
+[tower-of-god] discover page=26 page_episodes=10 new=9 total=235
+[lookism] discover page=26 page_episodes=11 new=10 total=261
+[eleceed] discover page=28 page_episodes=11 new=10 total=281
+[teenage-mercenary] discover page=28 page_episodes=1 new=0 total=271
+[teenage-mercenary] discovered episodes=271
+[omniscient-reader] discover page=27 page_episodes=11 new=10 total=271
+[tower-of-god] discover page=27 page_episodes=10 new=9 total=244
+[lookism] discover page=27 page_episodes=11 new=10 total=271
+[eleceed] discover page=29 page_episodes=11 new=10 total=291
+[omniscient-reader] discover page=28 page_episodes=11 new=10 total=281
+[tower-of-god] discover page=28 page_episodes=10 new=9 total=253
+[lookism] discover page=28 page_episodes=11 new=10 total=281
+[eleceed] discover page=30 page_episodes=11 new=10 total=301
+[omniscient-reader] discover page=29 page_episodes=11 new=10 total=291
+[tower-of-god] discover page=29 page_episodes=10 new=9 total=262
+[lookism] discover page=29 page_episodes=11 new=10 total=291
+[eleceed] discover page=31 page_episodes=11 new=10 total=311
+[omniscient-reader] discover page=30 page_episodes=11 new=10 total=301
+[tower-of-god] discover page=30 page_episodes=10 new=9 total=271
+[lookism] discover page=30 page_episodes=11 new=10 total=301
+[eleceed] discover page=32 page_episodes=11 new=10 total=321
+[omniscient-reader] discover page=31 page_episodes=6 new=5 total=306
+[tower-of-god] discover page=31 page_episodes=10 new=9 total=280
+[eleceed] discover page=33 page_episodes=11 new=10 total=331
+[lookism] discover page=31 page_episodes=11 new=10 total=311
+[omniscient-reader] discover page=32 page_episodes=6 new=0 total=306
+[omniscient-reader] discovered episodes=306
+[tower-of-god] discover page=32 page_episodes=10 new=9 total=289
+[eleceed] discover page=34 page_episodes=11 new=10 total=341
+[lookism] discover page=32 page_episodes=11 new=10 total=321
+[tower-of-god] discover page=33 page_episodes=10 new=9 total=298
+[lookism] discover page=33 page_episodes=11 new=10 total=331
+[eleceed] discover page=35 page_episodes=11 new=10 total=351
+[tower-of-god] discover page=34 page_episodes=10 new=9 total=307
+[lookism] discover page=34 page_episodes=11 new=10 total=341
+[eleceed] discover page=36 page_episodes=11 new=10 total=361
+[tower-of-god] discover page=35 page_episodes=10 new=9 total=316
+[lookism] discover page=35 page_episodes=11 new=10 total=351
+[eleceed] discover page=37 page_episodes=11 new=10 total=371
+[tower-of-god] discover page=36 page_episodes=10 new=9 total=325
+[lookism] discover page=36 page_episodes=11 new=10 total=361
+[eleceed] discover page=38 page_episodes=11 new=10 total=381
+[tower-of-god] discover page=37 page_episodes=10 new=9 total=334
+[lookism] discover page=37 page_episodes=11 new=10 total=371
+[eleceed] discover page=39 page_episodes=5 new=4 total=385
+[tower-of-god] discover page=38 page_episodes=10 new=9 total=343
+[lookism] discover page=38 page_episodes=11 new=10 total=381
+[eleceed] discover page=40 page_episodes=5 new=0 total=385
+[eleceed] discovered episodes=385
+[tower-of-god] discover page=39 page_episodes=10 new=9 total=352
+[lookism] discover page=39 page_episodes=11 new=10 total=391
+[tower-of-god] discover page=40 page_episodes=10 new=9 total=361
+[lookism] discover page=40 page_episodes=11 new=10 total=401
+[tower-of-god] discover page=41 page_episodes=10 new=9 total=370
+[lookism] discover page=41 page_episodes=11 new=10 total=411
+[tower-of-god] discover page=42 page_episodes=10 new=9 total=379
+[lookism] discover page=42 page_episodes=11 new=10 total=421
+[tower-of-god] discover page=43 page_episodes=10 new=9 total=388
+[lookism] discover page=43 page_episodes=11 new=10 total=431
+[tower-of-god] discover page=44 page_episodes=10 new=9 total=397
+[lookism] discover page=44 page_episodes=11 new=10 total=441
+[tower-of-god] discover page=45 page_episodes=10 new=9 total=406
+[lookism] discover page=45 page_episodes=11 new=10 total=451
+[tower-of-god] discover page=46 page_episodes=10 new=9 total=415
+[lookism] discover page=46 page_episodes=11 new=10 total=461
+[tower-of-god] discover page=47 page_episodes=10 new=9 total=424
+[lookism] discover page=47 page_episodes=11 new=10 total=471
+[tower-of-god] discover page=48 page_episodes=10 new=9 total=433
+[lookism] discover page=48 page_episodes=11 new=10 total=481
+[tower-of-god] discover page=49 page_episodes=10 new=9 total=442
+[lookism] discover page=49 page_episodes=11 new=10 total=491
+[tower-of-god] discover page=50 page_episodes=10 new=9 total=451
+[lookism] discover page=50 page_episodes=11 new=10 total=501
+[tower-of-god] discover page=51 page_episodes=10 new=9 total=460
+[lookism] discover page=51 page_episodes=11 new=10 total=511
+[tower-of-god] discover page=52 page_episodes=10 new=9 total=469
+[lookism] discover page=52 page_episodes=11 new=10 total=521
+[tower-of-god] discover page=53 page_episodes=10 new=9 total=478
+[lookism] discover page=53 page_episodes=11 new=10 total=531
+[tower-of-god] discover page=54 page_episodes=10 new=9 total=487
+[lookism] discover page=54 page_episodes=11 new=10 total=541
+[tower-of-god] discover page=55 page_episodes=10 new=9 total=496
+[lookism] discover page=55 page_episodes=11 new=10 total=551
+[tower-of-god] discover page=56 page_episodes=10 new=9 total=505
+[lookism] discover page=56 page_episodes=11 new=10 total=561
+[tower-of-god] discover page=57 page_episodes=10 new=9 total=514
+[lookism] discover page=57 page_episodes=11 new=10 total=571
+[tower-of-god] discover page=58 page_episodes=10 new=9 total=523
+[lookism] discover page=58 page_episodes=11 new=10 total=581
+[tower-of-god] discover page=59 page_episodes=10 new=9 total=532
+[lookism] discover page=59 page_episodes=11 new=10 total=591
+[tower-of-god] discover page=60 page_episodes=10 new=9 total=541
+[lookism] discover page=60 page_episodes=6 new=5 total=596
+[tower-of-god] discover page=61 page_episodes=10 new=9 total=550
+[lookism] discover page=61 page_episodes=6 new=0 total=596
+[lookism] discovered episodes=596
+[tower-of-god] discover page=62 page_episodes=10 new=9 total=559
+[tower-of-god] discover page=63 page_episodes=10 new=9 total=568
+[tower-of-god] discover page=64 page_episodes=10 new=9 total=577
+[tower-of-god] discover page=65 page_episodes=10 new=9 total=586
+[tower-of-god] discover page=66 page_episodes=10 new=9 total=595
+[tower-of-god] discover page=67 page_episodes=10 new=9 total=604
+[tower-of-god] discover page=68 page_episodes=10 new=9 total=613
+[tower-of-god] discover page=69 page_episodes=10 new=9 total=622
+[tower-of-god] discover page=70 page_episodes=10 new=9 total=631
+[tower-of-god] discover page=71 page_episodes=10 new=9 total=640
+[tower-of-god] discover page=72 page_episodes=10 new=9 total=649
+[tower-of-god] discover page=73 page_episodes=4 new=3 total=652
+[tower-of-god] discover page=74 page_episodes=4 new=0 total=652
+[tower-of-god] discovered episodes=652
+download: total_episodes=2484
+[noblesse] episode=2 images=28 written=0 skipped=28 failures=0
+[the-sound-of-magic-annarasumanara] episode=1 images=11 written=0 skipped=11 failures=0
+[tower-of-god] episode=1 images=8 written=0 skipped=8 failures=0
+[girls-of-the-wilds] episode=1 images=6 written=0 skipped=6 failures=0
+[girls-of-the-wilds] episode=4 images=38 written=0 skipped=38 failures=0
+[who-made-me-a-princess] episode=3 images=50 written=0 skipped=50 failures=0
+[bastard] episode=8 images=57 written=0 skipped=57 failures=0
+[noblesse] episode=1 images=34 written=0 skipped=34 failures=0
+progress: lists=279 episodes=8/2484 episodes_started=136 images_seen=10890 image_done=3429 written=58 skipped=3371 failures=0 image_rate=34.1/s eta=1h35m
+[who-made-me-a-princess] episode=1 images=33 written=0 skipped=33 failures=0
+[bastard] episode=1 images=46 written=0 skipped=46 failures=0
+[girls-of-the-wilds] episode=5 images=33 written=2 skipped=31 failures=0
+[bastard] episode=3 images=62 written=0 skipped=62 failures=0
+[the-gamer] episode=4 images=57 written=0 skipped=57 failures=0
+[the-sound-of-magic-annarasumanara] episode=8 images=56 written=0 skipped=56 failures=0
+[bastard] episode=5 images=58 written=0 skipped=58 failures=0
+[bastard] episode=6 images=60 written=0 skipped=60 failures=0
+[tower-of-god] episode=8 images=35 written=1 skipped=34 failures=0
+[the-god-of-high-school] episode=3 images=44 written=1 skipped=43 failures=0
+[girls-of-the-wilds] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/girls-of-the-wilds/ep-9/viewer?title_no=93&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=19/2484 episodes_started=144 images_seen=11594 image_done=4765 written=553 skipped=4212 failures=1 image_rate=36.5/s eta=1h29m
+[tower-of-god] episode=4 images=47 written=21 skipped=26 failures=0
+progress: lists=279 episodes=20/2484 episodes_started=145 images_seen=11643 image_done=4848 written=598 skipped=4250 failures=1 image_rate=30.2/s eta=1h47m
+[the-gamer] episode=1 images=37 written=0 skipped=37 failures=0
+[lookism] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/drama/lookism/ep-10/viewer?title_no=1049&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[noblesse] episode=6 images=35 written=1 skipped=34 failures=0
+progress: lists=279 episodes=23/2484 episodes_started=146 images_seen=11675 image_done=5077 written=707 skipped=4370 failures=2 image_rate=26.6/s eta=2h01m
+[the-gamer] episode=3 images=43 written=0 skipped=43 failures=0
+[the-gamer] episode=2 images=38 written=0 skipped=38 failures=0
+[sweet-home] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/thriller/sweethome/ep-9/viewer?title_no=1285&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=26/2484 episodes_started=147 images_seen=11770 image_done=5270 written=811 skipped=4459 failures=3 image_rate=23.9/s eta=2h15m
+[noblesse] episode=8 images=40 written=21 skipped=19 failures=0
+[teenage-mercenary] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/teenage-mercenary/episode-9/viewer?title_no=2677&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tomb-raider-king] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/tomb-raider-king/episode-10/viewer?title_no=10204&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=29/2484 episodes_started=149 images_seen=12002 image_done=5511 written=942 skipped=4569 failures=5 image_rate=22.0/s eta=2h27m
+[noblesse] episode=3 images=42 written=0 skipped=42 failures=0
+[the-god-of-high-school] episode=6 images=44 written=16 skipped=28 failures=0
+[the-god-of-high-school] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-god-of-high-school/ep-10/viewer?title_no=66&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', timeout('_ssl.c:1029: The handshake operation timed out')))
+[who-made-me-a-princess] episode=10 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/romance/who-made-me-a-princess/episode-10/viewer?title_no=9475&episode_no=10 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=33/2484 episodes_started=149 images_seen=12002 image_done=5697 written=1064 skipped=4633 failures=7 image_rate=20.3/s eta=2h39m
+[lookism] episode=8 images=79 written=31 skipped=48 failures=0
+[eleceed] episode=11 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-11/viewer?title_no=1571&episode_no=11 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tomb-raider-king] episode=2 images=77 written=19 skipped=58 failures=0
+[lookism] episode=11 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/drama/lookism/ep-11/viewer?title_no=1049&episode_no=11 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[girls-of-the-wilds] episode=3 images=38 written=0 skipped=38 failures=0
+progress: lists=279 episodes=38/2484 episodes_started=154 images_seen=12301 image_done=5973 written=1222 skipped=4751 failures=9 image_rate=19.2/s eta=2h46m
+[the-boxer] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10354"
+[noblesse] episode=5 images=30 written=7 skipped=23 failures=0
+[sweet-home] episode=11 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/thriller/sweethome/ep-10/viewer?title_no=1285&episode_no=11 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=40/2484 episodes_started=155 images_seen=12455 image_done=6256 written=1413 skipped=4843 failures=11 image_rate=18.4/s eta=2h55m
+[the-boxer] episode=3 images=52 written=1 skipped=51 failures=0
+[the-god-of-high-school] episode=8 images=42 written=0 skipped=42 failures=0
+[the-sound-of-magic-annarasumanara] episode=3 images=69 written=9 skipped=60 failures=0
+[sweet-home] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10323"
+[lookism] episode=6 images=56 written=36 skipped=20 failures=0
+progress: lists=279 episodes=44/2484 episodes_started=156 images_seen=12537 image_done=6594 written=1643 skipped=4951 failures=12 image_rate=17.8/s eta=3h00m
+[who-made-me-a-princess] episode=11 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/romance/who-made-me-a-princess/episode-11/viewer?title_no=9475&episode_no=11 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[the-sound-of-magic-annarasumanara] episode=5 images=70 written=48 skipped=22 failures=0
+[the-god-of-high-school] episode=4 images=52 written=4 skipped=48 failures=0
+[noblesse] episode=12 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/noblesse/ep-12/viewer?title_no=87&episode_no=12 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=48/2484 episodes_started=160 images_seen=12918 image_done=6900 written=1884 skipped=5016 failures=14 image_rate=17.2/s eta=3h07m
+[sweet-home] episode=7 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[omniscient-reader] episode=12 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-11/viewer?title_no=2154&episode_no=12 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[sweet-home] episode=7 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[who-made-me-a-princess] episode=6 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10345"
+[who-made-me-a-princess] episode=6 images=58 written=53 skipped=4 failures=1
+[the-gamer] episode=8 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-gamer] episode=8 images=59 written=9 skipped=49 failures=1
+[sweet-home] episode=7 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10363"
+[the-boxer] episode=1 images=106 written=55 skipped=51 failures=0
+[lookism] episode=5 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[sweet-home] episode=1 images=53 written=3 skipped=50 failures=0
+progress: lists=279 episodes=53/2484 episodes_started=163 images_seen=13126 image_done=7137 written=2053 skipped=5084 failures=21 image_rate=16.6/s eta=3h14m
+[tower-of-god] episode=7 images=43 written=31 skipped=12 failures=0
+[sweet-home] episode=12 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/thriller/sweethome/ep-11/viewer?title_no=1285&episode_no=12 (Caused by ProxyError('Cannot connect to proxy.', timeout('timed out')))
+[girls-of-the-wilds] episode=8 images=33 written=2 skipped=31 failures=0
+[who-made-me-a-princess] episode=4 images=51 written=16 skipped=35 failures=0
+[the-boxer] episode=5 images=58 written=28 skipped=29 failures=1
+[the-breaker-eternal-force] episode=12 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-breaker-eternal-force/episode-12/viewer?title_no=4501&episode_no=12 (Caused by ProxyError('Cannot connect to proxy.', timeout('_ssl.c:1029: The handshake operation timed out')))
+[who-made-me-a-princess] episode=12 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/romance/who-made-me-a-princess/episode-12/viewer?title_no=9475&episode_no=12 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tomb-raider-king] episode=8 images=89 written=41 skipped=48 failures=0
+[eleceed] episode=13 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-13/viewer?title_no=1571&episode_no=13 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[bastard] episode=4 images=58 written=0 skipped=58 failures=0
+[teenage-mercenary] episode=1 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10327"
+[girls-of-the-wilds] episode=6 images=41 written=2 skipped=39 failures=0
+[who-made-me-a-princess] episode=2 images=54 written=11 skipped=43 failures=0
+progress: lists=279 episodes=65/2484 episodes_started=167 images_seen=13446 image_done=7392 written=2256 skipped=5136 failures=26 image_rate=16.0/s eta=3h20m
+[the-boxer] episode=7 images=68 written=30 skipped=38 failures=0
+[the-god-of-high-school] episode=7 images=45 written=32 skipped=13 failures=0
+[bastard] episode=7 images=61 written=0 skipped=61 failures=0
+[lookism] episode=7 images=86 written=83 skipped=3 failures=0
+[eleceed] episode=6 images=94 written=0 skipped=94 failures=0
+[the-gamer] episode=7 images=54 written=27 skipped=27 failures=0
+[lookism] episode=4 images=67 written=31 skipped=36 failures=0
+[noblesse] episode=7 images=54 written=12 skipped=42 failures=0
+progress: lists=279 episodes=73/2484 episodes_started=176 images_seen=14060 image_done=7715 written=2509 skipped=5206 failures=26 image_rate=15.7/s eta=3h22m
+[the-sound-of-magic-annarasumanara] episode=6 images=59 written=27 skipped=32 failures=0
+[omniscient-reader] episode=5 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[tomb-raider-king] episode=7 images=90 written=56 skipped=34 failures=0
+[eleceed] episode=1 images=107 written=0 skipped=107 failures=0[bastard] episode=2 images=62 written=0 skipped=62 failures=0
+
+[girls-of-the-wilds] episode=14 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/girls-of-the-wilds/ep-13/viewer?title_no=93&episode_no=14 (Caused by ProxyError('Cannot connect to proxy.', timeout('timed out')))
+[sweet-home] episode=7 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=14 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-breaker-eternal-force/episode-14/viewer?title_no=4501&episode_no=14 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[the-god-of-high-school] episode=5 images=35 written=6 skipped=29 failures=0
+[tomb-raider-king] episode=4 images=78 written=26 skipped=52 failures=0
+progress: lists=279 episodes=81/2484 episodes_started=184 images_seen=14734 image_done=8077 written=2809 skipped=5268 failures=30 image_rate=15.5/s eta=3h25m
+[the-boxer] episode=2 images=61 written=13 skipped=48 failures=0
+[tower-of-god] episode=6 images=52 written=30 skipped=22 failures=0
+[girls-of-the-wilds] episode=2 images=51 written=1 skipped=50 failures=0
+[lookism] episode=5 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[lookism] episode=1 images=92 written=57 skipped=35 failures=0
+progress: lists=279 episodes=85/2484 episodes_started=190 images_seen=15216 image_done=8405 written=3083 skipped=5322 failures=31 image_rate=15.3/s eta=3h28m
+[eleceed] episode=4 images=111 written=0 skipped=111 failures=0
+[lookism] episode=5 images=64 written=53 skipped=9 failures=2
+[the-boxer] episode=6 images=77 written=28 skipped=49 failures=0
+[noblesse] episode=4 images=51 written=6 skipped=45 failures=0
+[eleceed] episode=16 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-16/viewer?title_no=1571&episode_no=16 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=90/2484 episodes_started=196 images_seen=15889 image_done=8904 written=3460 skipped=5444 failures=32 image_rate=15.3/s eta=3h29m
+[eleceed] episode=8 images=113 written=0 skipped=113 failures=0
+[who-made-me-a-princess] episode=5 images=54 written=24 skipped=30 failures=0
+[the-god-of-high-school] episode=1 images=66 written=9 skipped=57 failures=0
+[tower-of-god] episode=2 images=52 written=23 skipped=29 failures=0
+[the-sound-of-magic-annarasumanara] episode=7 images=64 written=43 skipped=21 failures=0
+[the-horizon] episode=2 images=65 written=7 skipped=58 failures=0
+[tomb-raider-king] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10351"
+[who-made-me-a-princess] episode=7 images=68 written=34 skipped=34 failures=0
+[eleceed] episode=3 images=113 written=0 skipped=113 failures=0
+[eleceed] episode=2 images=86 written=0 skipped=86 failures=0
+progress: lists=279 episodes=99/2484 episodes_started=201 images_seen=16205 image_done=9267 written=3779 skipped=5488 failures=33 image_rate=15.2/s eta=3h29m
+[eleceed] episode=7 images=128 written=0 skipped=128 failures=0
+[sweet-home] episode=5 image failed: Read timeout on endpoint URL: "https://drawtoon.s3.amazonaws.com/datasets/pages/source/webtoon/sweet-home/episode-000005-ep-4/page-0063.jpg"
+[the-sound-of-magic-annarasumanara] episode=4 images=68 written=8 skipped=60 failures=0
+[eleceed] episode=17 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-17/viewer?title_no=1571&episode_no=17 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tower-of-god] episode=5 images=66 written=35 skipped=31 failures=0
+[omniscient-reader] episode=5 images=129 written=95 skipped=33 failures=1
+[omniscient-reader] episode=17 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-16/viewer?title_no=2154&episode_no=17 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[girls-of-the-wilds] episode=7 images=34 written=17 skipped=17 failures=0
+[the-god-of-high-school] episode=2 images=60 written=7 skipped=53 failures=0
+progress: lists=279 episodes=107/2484 episodes_started=203 images_seen=16396 image_done=9636 written=4129 skipped=5507 failures=36 image_rate=15.0/s eta=3h31m
+[teenage-mercenary] episode=17 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/teenage-mercenary/episode-16/viewer?title_no=2677&episode_no=17 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tomb-raider-king] episode=3 images=74 written=16 skipped=58 failures=0
+[the-boxer] episode=4 images=62 written=8 skipped=54 failures=0
+[omniscient-reader] episode=3 images=112 written=70 skipped=42 failures=0
+[eleceed] episode=5 images=156 written=0 skipped=156 failures=0
+[bastard] episode=9 images=47 written=0 skipped=47 failures=0
+progress: lists=279 episodes=113/2484 episodes_started=208 images_seen=16950 image_done=10071 written=4511 skipped=5560 failures=37 image_rate=15.0/s eta=3h33m
+[noblesse] episode=19 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/noblesse/ep-19/viewer?title_no=87&episode_no=19 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[lookism] episode=3 images=68 written=22 skipped=46 failures=0
+[eleceed] episode=9 images=45 written=0 skipped=45 failures=0
+[noblesse] episode=18 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/noblesse/ep-18/viewer?title_no=87&episode_no=18 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tomb-raider-king] episode=6 images=84 written=51 skipped=33 failures=0
+[tower-of-god] episode=18 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/fantasy/tower-of-god/season-1-ep-17/viewer?title_no=95&episode_no=18 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tower-of-god] episode=3 images=76 written=31 skipped=45 failures=0
+[the-sound-of-magic-annarasumanara] episode=2 images=76 written=26 skipped=50 failures=0
+[teenage-mercenary] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10319"
+[the-breaker-eternal-force] episode=7 image failed: Read timeout on endpoint URL: "https://drawtoon.s3.amazonaws.com/datasets/pages/source/webtoon/the-breaker-eternal-force/episode-000007-episode-7/page-0055.jpg"
+progress: lists=279 episodes=121/2484 episodes_started=214 images_seen=17417 image_done=10278 written=4673 skipped=5605 failures=42 image_rate=14.7/s eta=3h38m
+[eleceed] episode=20 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-20/viewer?title_no=1571&episode_no=20 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[teenage-mercenary] episode=7 images=119 written=75 skipped=44 failures=0
+[the-gamer] episode=5 images=52 written=20 skipped=32 failures=0
+[teenage-mercenary] episode=6 images=148 written=104 skipped=44 failures=0
+[omniscient-reader] episode=20 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-19/viewer?title_no=2154&episode_no=20 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+progress: lists=279 episodes=126/2484 episodes_started=220 images_seen=17883 image_done=10458 written=4853 skipped=5605 failures=44 image_rate=14.3/s eta=3h42m
+[tomb-raider-king] episode=1 images=86 written=30 skipped=56 failures=0
+[tower-of-god] episode=20 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/fantasy/tower-of-god/season-1-ep-19/viewer?title_no=95&episode_no=20 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[the-gamer] episode=9 images=60 written=27 skipped=33 failures=0
+progress: lists=279 episodes=129/2484 episodes_started=224 images_seen=18162 image_done=10587 written=4982 skipped=5605 failures=45 image_rate=13.9/s eta=3h48m
+[sweet-home] episode=4 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10361"
+[sweet-home] episode=4 images=98 written=44 skipped=53 failures=1
+[the-breaker-eternal-force] episode=2 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10316"
+[omniscient-reader] episode=6 images=102 written=47 skipped=55 failures=0
+[omniscient-reader] episode=1 images=64 written=20 skipped=44 failures=0
+[teenage-mercenary] episode=4 images=123 written=83 skipped=40 failures=0
+[the-horizon] episode=1 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-horizon] episode=1 images=147 written=96 skipped=50 failures=1
+[eleceed] episode=21 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Read timed out.
+[teenage-mercenary] episode=8 images=111 written=99 skipped=12 failures=0
+[sweet-home] episode=6 images=101 written=72 skipped=29 failures=0
+progress: lists=279 episodes=137/2484 episodes_started=226 images_seen=18454 image_done=10752 written=5147 skipped=5605 failures=49 image_rate=13.6/s eta=3h55m
+[teenage-mercenary] episode=5 images=131 written=68 skipped=62 failures=1
+[the-breaker-eternal-force] episode=2 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[omniscient-reader] episode=7 images=142 written=119 skipped=23 failures=0
+[eleceed] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-22/viewer?title_no=1571&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[teenage-mercenary] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/teenage-mercenary/episode-21/viewer?title_no=2677&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[lookism] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/drama/lookism/ep-22/viewer?title_no=1049&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[tomb-raider-king] episode=5 images=86 written=41 skipped=44 failures=1
+progress: lists=279 episodes=143/2484 episodes_started=227 images_seen=18537 image_done=10904 written=5299 skipped=5605 failures=53 image_rate=13.3/s eta=4h00m
+[tower-of-god] episode=21 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/fantasy/tower-of-god/season-1-ep-20/viewer?title_no=95&episode_no=21 (Caused by ProxyError('Cannot connect to proxy.', timeout('_ssl.c:1029: The handshake operation timed out')))
+[noblesse] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/noblesse/ep-22/viewer?title_no=87&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[the-god-of-high-school] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-god-of-high-school/ep-22/viewer?title_no=66&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[omniscient-reader] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-21/viewer?title_no=2154&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[sweet-home] episode=2 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10325"
+[sweet-home] episode=2 images=75 written=18 skipped=56 failures=1
+[eleceed] episode=10 images=32 written=0 skipped=32 failures=0
+[bastard] episode=10 images=49 written=0 skipped=49 failures=0
+progress: lists=279 episodes=150/2484 episodes_started=229 images_seen=18819 image_done=11126 written=5440 skipped=5686 failures=58 image_rate=13.1/s eta=4h05m
+[the-breaker-eternal-force] episode=22 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-breaker-eternal-force/episode-22/viewer?title_no=4501&episode_no=22 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[omniscient-reader] episode=4 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[teenage-mercenary] episode=1 images=168 written=119 skipped=48 failures=1
+[omniscient-reader] episode=8 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[omniscient-reader] episode=2 images=123 written=84 skipped=39 failures=0
+progress: lists=279 episodes=153/2484 episodes_started=238 images_seen=19421 image_done=11287 written=5601 skipped=5686 failures=61 image_rate=12.8/s eta=4h08m
+[sweet-home] episode=5 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[sweet-home] episode=5 images=107 written=67 skipped=37 failures=3
+[sweet-home] episode=8 images=82 written=65 skipped=17 failures=0
+[the-breaker-eternal-force] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10330"
+progress: lists=279 episodes=155/2484 episodes_started=245 images_seen=20092 image_done=11458 written=5772 skipped=5686 failures=63 image_rate=12.6/s eta=4h14m
+[bastard] episode=11 images=44 written=0 skipped=44 failures=0
+[the-breaker-eternal-force] episode=6 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=6 images=223 written=200 skipped=22 failures=1
+[the-breaker-eternal-force] episode=1 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10315"
+[teenage-mercenary] episode=3 images=182 written=143 skipped=39 failures=0
+[teenage-mercenary] episode=2 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10362"
+[teenage-mercenary] episode=2 images=161 written=112 skipped=48 failures=1
+[omniscient-reader] episode=25 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-24/viewer?title_no=2154&episode_no=25 (Caused by ProxyError('Cannot connect to proxy.', ConnectionResetError(54, 'Connection reset by peer')))
+progress: lists=279 episodes=160/2484 episodes_started=246 images_seen=20154 image_done=11663 written=5933 skipped=5730 failures=68 image_rate=12.4/s eta=4h17m
+[girls-of-the-wilds] episode=9 images=27 written=27 skipped=0 failures=0
+[who-made-me-a-princess] episode=8 images=48 written=48 skipped=0 failures=0
+[the-breaker-eternal-force] episode=7 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+progress: lists=279 episodes=162/2484 episodes_started=248 images_seen=20441 image_done=11838 written=6108 skipped=5730 failures=69 image_rate=12.2/s eta=4h23m
+[omniscient-reader] episode=8 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[omniscient-reader] episode=8 images=134 written=112 skipped=20 failures=2
+[lookism] episode=25 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/drama/lookism/ep-25/viewer?title_no=1049&episode_no=25 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[lookism] episode=2 images=117 written=79 skipped=38 failures=0
+[sweet-home] episode=7 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10354"
+[sweet-home] episode=7 images=106 written=93 skipped=8 failures=5
+[sweet-home] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10357"
+[omniscient-reader] episode=4 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10322"
+[omniscient-reader] episode=4 images=141 written=100 skipped=39 failures=2
+[tower-of-god] episode=25 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/fantasy/tower-of-god/season-1-ep-24/viewer?title_no=95&episode_no=25 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[omniscient-reader] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10304"
+progress: lists=279 episodes=168/2484 episodes_started=251 images_seen=20633 image_done=12014 written=6284 skipped=5730 failures=76 image_rate=12.0/s eta=4h26m
+[teenage-mercenary] episode=26 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/teenage-mercenary/episode-25/viewer?title_no=2677&episode_no=26 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[eleceed] episode=12 images=156 written=0 skipped=156 failures=0
+[sweet-home] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10306"
+[the-breaker-eternal-force] episode=7 images=227 written=199 skipped=26 failures=2
+progress: lists=279 episodes=171/2484 episodes_started=251 images_seen=20633 image_done=12303 written=6417 skipped=5886 failures=78 image_rate=11.9/s eta=4h27m
+[omniscient-reader] episode=26 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-25/viewer?title_no=2154&episode_no=26 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[eleceed] episode=26 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/eleceed/episode-26/viewer?title_no=1571&episode_no=26 (Caused by ProxyError('Cannot connect to proxy.', timeout('timed out')))
+[the-breaker-eternal-force] episode=8 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10359"
+[the-breaker-eternal-force] episode=8 images=217 written=207 skipped=9 failures=1
+[the-breaker-eternal-force] episode=2 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=4 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=4 images=156 written=110 skipped=45 failures=1
+progress: lists=279 episodes=175/2484 episodes_started=252 images_seen=20722 image_done=12340 written=6454 skipped=5886 failures=83 image_rate=11.6/s eta=4h34m
+[the-god-of-high-school] episode=26 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-god-of-high-school/ep-26/viewer?title_no=66&episode_no=26 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[omniscient-reader] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10315"
+[tower-of-god] episode=26 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/fantasy/tower-of-god/season-1-ep-25/viewer?title_no=95&episode_no=26 (Caused by ProxyError('Cannot connect to proxy.', timeout('_ssl.c:1029: The handshake operation timed out')))
+[teenage-mercenary] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10316"
+[teenage-mercenary] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10330"
+[the-breaker-eternal-force] episode=2 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=2 images=163 written=120 skipped=39 failures=4
+[omniscient-reader] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10347"
+[teenage-mercenary] episode=27 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/teenage-mercenary/episode-26/viewer?title_no=2677&episode_no=27 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[the-breaker-eternal-force] episode=26 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-breaker-eternal-force/episode-26/viewer?title_no=4501&episode_no=26 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[noblesse] episode=27 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/noblesse/ep-27/viewer?title_no=87&episode_no=27 (Caused by ProxyError('Cannot connect to proxy.', timeout('timed out')))
+progress: lists=279 episodes=181/2484 episodes_started=253 images_seen=20774 image_done=12382 written=6496 skipped=5886 failures=93 image_rate=11.4/s eta=4h41m
+[the-breaker-eternal-force] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10314"
+[sweet-home] episode=3 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10338"
+[sweet-home] episode=3 images=86 written=27 skipped=58 failures=1
+[teenage-mercenary] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10332"
+[omniscient-reader] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[lookism] episode=27 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/drama/lookism/ep-27/viewer?title_no=1049&episode_no=27 (Caused by ProxyError('Cannot connect to proxy.', RemoteDisconnected('Remote end closed connection without response')))
+[lookism] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10331"
+[lookism] episode=9 images=75 written=74 skipped=0 failures=1
+[omniscient-reader] episode=10 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10343"
+[the-breaker-eternal-force] episode=5 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10359"
+[the-breaker-eternal-force] episode=5 images=235 written=202 skipped=30 failures=3
+[omniscient-reader] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[the-breaker-eternal-force] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+progress: lists=279 episodes=185/2484 episodes_started=253 images_seen=20774 image_done=12434 written=6548 skipped=5886 failures=103 image_rate=11.1/s eta=4h47m
+[omniscient-reader] episode=9 images=121 written=116 skipped=0 failures=5
+[the-breaker-eternal-force] episode=27 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/the-breaker-eternal-force/episode-27/viewer?title_no=4501&episode_no=27 (Caused by ProxyError('Cannot connect to proxy.', timeout('_ssl.c:1029: The handshake operation timed out')))
+[teenage-mercenary] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[tomb-raider-king] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[sweet-home] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[omniscient-reader] episode=10 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10329"
+[the-breaker-eternal-force] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10334"
+[the-gamer] episode=10 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10356"
+[the-breaker-eternal-force] episode=3 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10336"
+[the-breaker-eternal-force] episode=3 images=173 written=125 skipped=47 failures=1
+[noblesse] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10344"
+[noblesse] episode=9 images=35 written=34 skipped=0 failures=1
+[the-breaker-eternal-force] episode=1 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10345"
+[the-breaker-eternal-force] episode=1 images=239 written=194 skipped=43 failures=2
+[tomb-raider-king] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10340"
+progress: lists=279 episodes=190/2484 episodes_started=258 images_seen=21161 image_done=12483 written=6597 skipped=5886 failures=114 image_rate=10.8/s eta=4h53m
+[sweet-home] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[sweet-home] episode=9 images=104 written=100 skipped=0 failures=4
+[teenage-mercenary] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10314"
+[omniscient-reader] episode=28 failed: HTTPSConnectionPool(host='www.webtoons.com', port=443): Max retries exceeded with url: /en/action/omniscient-reader/episode-27/viewer?title_no=2154&episode_no=28 (Caused by ProxyError('Cannot connect to proxy.', timeout('timed out')))
+[the-breaker-eternal-force] episode=9 image failed: An error occurred (RequestTimeout) when calling the PutObject operation (reached max retries: 5): Your socket connection to the server was not read from or written to within the timeout period. Idle connections will be closed.
+[omniscient-reader] episode=10 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10305"
+[tomb-raider-king] episode=9 image failed: Failed to connect to proxy URL: "http://***:***@dc.decodo.com:10353"

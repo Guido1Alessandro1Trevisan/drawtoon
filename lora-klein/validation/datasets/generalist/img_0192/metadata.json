@@ -1,0 +1,254 @@
+{
+  "manifest_row": {
+    "caption": "Black and White Manga. One Piece by Eiichiro Oda. Character 1 stands with head tilted and mouth open in a questioning expression, while Character 2 faces forward with mouth open in speech, both positioned in an outdoor setting with foliage and trees in the background, medium shot with close framing on both figures and speech bubbles occupying the upper right portion of the panel.",
+    "chapter": "one-piece_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        "/root/validation_datasets/generalist/img_0192/ctrl_img_2.png",
+        "/root/validation_datasets/generalist/img_0192/ctrl_img_3.png"
+      ],
+      "character_ref_policy": "fixed_random_manifest_sample",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.065476,
+              0.346875,
+              0.333333,
+              0.959375
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.339286,
+              0.409375,
+              0.735119,
+              0.95
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.693452,
+                0.053125,
+                0.96131,
+                0.446875
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.130952,
+                0.134375,
+                0.318452,
+                0.21875
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      },
+      "layout_control_path": "/root/validation_datasets/generalist/img_0192/ctrl_img_1.png"
+    },
+    "eval_index": 192,
+    "eval_seed": 20260707,
+    "eval_stratum": "2/2plus/square",
+    "page_id": "284__side_01",
+    "page_root": "one-piece_mangazero/284__side_01",
+    "panel_index": 2,
+    "sample_id": "one-piece_mangazero/284__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/one-piece_mangazero/284__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/one-piece_mangazero/284__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/284__side_01.jpg",
+    "target_height": 320,
+    "target_panel": "/root/validation_datasets/generalist/img_0192/target.png",
+    "target_width": 336,
+    "validation_set_dir": "img_0192"
+  },
+  "source_row": {
+    "caption": "Black and White Manga. One Piece by Eiichiro Oda. Character 1 stands with head tilted and mouth open in a questioning expression, while Character 2 faces forward with mouth open in speech, both positioned in an outdoor setting with foliage and trees in the background, medium shot with close framing on both figures and speech bubbles occupying the upper right portion of the panel.",
+    "chapter": "one-piece_mangazero",
+    "character_count": 2,
+    "controls": {
+      "character_ref_paths": [
+        {
+          "crop_box": [
+            270,
+            930,
+            369,
+            1120
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/284__side_01.jpg",
+          "pad_multiple": 16
+        },
+        {
+          "crop_box": [
+            372,
+            806,
+            606,
+            1121
+          ],
+          "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/284__side_01.jpg",
+          "pad_multiple": 16
+        }
+      ],
+      "character_ref_policy": "same_character_random_other_panel_else_target_panel",
+      "has_previous_control": false,
+      "layout_control": {
+        "characters": [
+          {
+            "bbox_norm": [
+              0.065476,
+              0.346875,
+              0.333333,
+              0.959375
+            ],
+            "character_label": "Character 1",
+            "color": "red",
+            "control_slot": 2,
+            "rgb": [
+              255,
+              0,
+              0
+            ]
+          },
+          {
+            "bbox_norm": [
+              0.339286,
+              0.409375,
+              0.735119,
+              0.95
+            ],
+            "character_label": "Character 2",
+            "color": "green",
+            "control_slot": 3,
+            "rgb": [
+              0,
+              180,
+              0
+            ]
+          }
+        ],
+        "control_slot": 1,
+        "text": {
+          "color": "blue",
+          "count": 2,
+          "regions": [
+            {
+              "bbox_norm": [
+                0.693452,
+                0.053125,
+                0.96131,
+                0.446875
+              ],
+              "text_region_index": 0,
+              "type": "Speech Bubble"
+            },
+            {
+              "bbox_norm": [
+                0.130952,
+                0.134375,
+                0.318452,
+                0.21875
+              ],
+              "text_region_index": 1,
+              "type": "Speech Bubble"
+            }
+          ],
+          "rgb": [
+            0,
+            96,
+            255
+          ],
+          "stripe_color": "black",
+          "stripe_rgb": [
+            0,
+            0,
+            0
+          ],
+          "type_counts": {
+            "Narration Bubble": 0,
+            "Shout Bubble": 0,
+            "Speech Bubble": 2
+          },
+          "types": {
+            "Narration Bubble": "blue rectangle with 8 equal-width vertical black stripes",
+            "Shout Bubble": "blue rectangle with 8 equal-width horizontal black stripes",
+            "Speech Bubble": "solid blue rectangle"
+          }
+        }
+      }
+    },
+    "page_id": "284__side_01",
+    "page_root": "one-piece_mangazero/284__side_01",
+    "panel_index": 2,
+    "sample_id": "one-piece_mangazero/284__side_01/panel_002",
+    "sample_type": "panel_prediction",
+    "schema_version": 1,
+    "source": "drawtoon",
+    "source_annotation": "s3://drawtoon/datasets/annotations/magi_v3/one-piece_mangazero/284__side_01.jsonl",
+    "source_caption": "s3://drawtoon/captions/haiku-pass/one-piece_mangazero/284__side_01.json",
+    "source_page": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/284__side_01.jpg",
+    "target_height": 320,
+    "target_panel": {
+      "crop_box": [
+        42,
+        465,
+        371,
+        774
+      ],
+      "image": "s3://drawtoon/datasets/pages/filtered/one-piece_mangazero/284__side_01.jpg",
+      "pad_multiple": 16
+    },
+    "target_width": 336
+  }
+}
