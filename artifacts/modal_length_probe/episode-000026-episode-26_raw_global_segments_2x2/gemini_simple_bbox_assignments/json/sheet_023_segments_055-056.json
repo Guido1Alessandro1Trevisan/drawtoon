@@ -1,0 +1,41 @@
+{
+  "sheet_id": "sheet_023_segments_055-056",
+  "bbox_assignments": {
+    "bbox1": "character0",
+    "bbox2": "character1"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        15,
+        205,
+        318,
+        572
+      ]
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        29,
+        764,
+        317,
+        1382
+      ]
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "usage": {
+      "input_tokens": 1479,
+      "output_tokens": 43,
+      "reasoning_tokens": 378,
+      "total_tokens": 1900
+    }
+  }
+}

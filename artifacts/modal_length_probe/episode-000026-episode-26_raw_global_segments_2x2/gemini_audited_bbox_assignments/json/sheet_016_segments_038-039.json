@@ -1,0 +1,188 @@
+{
+  "sheet_id": "sheet_016_segments_038-039",
+  "bbox_assignments": {
+    "bbox1": "woman in orange dress",
+    "bbox2": "middle-aged hotel manager in black suit",
+    "bbox3": "red-haired man in brown suit",
+    "bbox4": "middle-aged hotel manager in black suit",
+    "bbox5": "woman in orange dress",
+    "bbox6": "white-haired injured man",
+    "bbox7": "middle-aged hotel manager in black suit",
+    "bbox8": "red-haired man in brown suit"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "woman in orange dress",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the woman with brown curly hair and orange dress in panel 0."
+    },
+    "bbox2": {
+      "final_label": "middle-aged hotel manager in black suit",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the back of the hotel manager in panel 0."
+    },
+    "bbox3": {
+      "final_label": "red-haired man in brown suit",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the red-haired man in panel 0."
+    },
+    "bbox4": {
+      "final_label": "middle-aged hotel manager in black suit",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the hotel manager in panel 1."
+    },
+    "bbox5": {
+      "final_label": "woman in orange dress",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the woman in orange dress in panel 2."
+    },
+    "bbox6": {
+      "final_label": "white-haired injured man",
+      "decision": "correct_label",
+      "reason": "This box corresponds to the white-haired man in the background of panel 2, identified in text as Mr. Angelini. The previous label was incorrect."
+    },
+    "bbox7": {
+      "final_label": "middle-aged hotel manager in black suit",
+      "decision": "correct_label",
+      "reason": "This box captures the hotel manager's back/side in panel 2. The previous label was incorrect."
+    },
+    "bbox8": {
+      "final_label": "red-haired man in brown suit",
+      "decision": "correct_label",
+      "reason": "This box captures the red-haired man in panel 2. The previous label was incorrect, and although it was previously NoCharacter, it's the primary box for this character in the list for this panel."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        505,
+        235,
+        647,
+        549
+      ],
+      "area": 44588,
+      "previous_named_label": "brown-haired woman in an orange dress",
+      "previous_stable_label": "woman in orange dress"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        325,
+        371,
+        647,
+        714
+      ],
+      "area": 110446,
+      "previous_named_label": "middle-aged man in a suit",
+      "previous_stable_label": "middle-aged hotel manager in black suit"
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "2",
+      "bbox": [
+        324,
+        219,
+        486,
+        578
+      ],
+      "area": 58158,
+      "previous_named_label": "red-haired man in a suit",
+      "previous_stable_label": "red-haired man in brown suit"
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "1",
+      "bbox": [
+        26,
+        251,
+        289,
+        700
+      ],
+      "area": 118087,
+      "previous_named_label": "middle-aged man in a suit",
+      "previous_stable_label": "middle-aged hotel manager in black suit"
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "0",
+      "bbox": [
+        234,
+        855,
+        324,
+        1173
+      ],
+      "area": 28620,
+      "previous_named_label": "brown-haired woman in an orange dress",
+      "previous_stable_label": "woman in orange dress"
+    },
+    {
+      "bbox_id": "bbox6",
+      "character_index": 5,
+      "source_character_id": "3",
+      "bbox": [
+        179,
+        793,
+        249,
+        903
+      ],
+      "area": 7700,
+      "previous_named_label": "middle-aged man in a suit",
+      "previous_stable_label": "middle-aged hotel manager in black suit"
+    },
+    {
+      "bbox_id": "bbox7",
+      "character_index": 6,
+      "source_character_id": "1",
+      "bbox": [
+        111,
+        896,
+        254,
+        1117
+      ],
+      "area": 31603,
+      "previous_named_label": "red-haired man in a suit",
+      "previous_stable_label": "red-haired man in brown suit"
+    },
+    {
+      "bbox_id": "bbox8",
+      "character_index": 7,
+      "source_character_id": "2",
+      "bbox": [
+        2,
+        853,
+        163,
+        1173
+      ],
+      "area": 51520,
+      "previous_named_label": "white-haired man holding a child",
+      "previous_stable_label": "NoCharacter"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 4040,
+      "output_tokens": 660,
+      "reasoning_tokens": 8351,
+      "total_tokens": 13051
+    }
+  }
+}

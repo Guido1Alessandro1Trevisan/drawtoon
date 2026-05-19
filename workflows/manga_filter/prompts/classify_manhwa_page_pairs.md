@@ -9,20 +9,15 @@ The supplied diagnostic image contains four labeled views:
 
 The boundary crops include red guide lines. The red line at the bottom of the left crop marks the exact bottom edge of the first page; the red line at the top of the right crop marks the exact top edge of the second page. Use those lines as reference guides only, not as comic artwork.
 
-Classify each full page as exactly one page_type:
-- story: sequential comic/story art, including splash or full-bleed story panels.
-- title_or_chapter: chapter title, episode title, divider, logo-only page, or page primarily announcing the chapter.
-- cover_or_illustration: cover art, promo illustration, poster, or standalone illustration not clearly part of story flow.
-- credits_or_text: credits, notes, table of contents, pure text, or announcement page.
-- blank_or_low_content: mostly blank, loading spacer, empty background, or very low visual content.
-- screenshot_or_ui: app/browser/UI screenshot, reader controls, ads, or non-comic interface.
-- other_non_story: visible image but not usable story-page content.
-- uncertain: genuinely unclear.
+Classify each full page as exactly Pass or Fail:
+- Pass: real sequential comic/story content, including splash or full-bleed story panels.
+- Fail: chapter title, episode title, divider, cover, promo illustration, credits, notes, blank page, loading spacer, ads, reader UI, screenshot, or anything not usable as story-page content.
 
-Then decide whether the adjacent pages are the same physically split panel/artwork.
+Then decide whether the adjacent pages are the same physical panel/artwork split across the page break.
 
-Return continues_same_panel true only when the comic artwork immediately touching those red guide lines visibly continues the same panel/artwork. Continuing character body parts, speech balloon shapes, background architecture, action effects, panel borders, or color/linework across the bottom/top boundary are good evidence.
-Return chain_break false only when continues_same_panel is true. Non-story pages always break chains.
+Return is_chain true only when page_1 is Pass, page_2 is Pass, and a visible character, object, action, panel, background structure, or artwork is cut at the bottom of page_1 and visibly continues at the top of page_2.
+If either page is Fail, is_chain must be false.
 
-Be conservative. A normal story-to-story transition is not a chain unless the same panel/artwork is visibly split across the boundary.
-Keep reason short and visual.
+Return is_chain false for normal next panels, same scene, same characters in a new shot, dialogue/narration continuation, black/empty/gradient background, mood, color, or reader flow.
+
+Be conservative. A normal story-to-story transition is not a chain unless the same drawn panel/artwork is visibly split across the boundary. The shared visual element must touch the bottom red line in the left crop and the top red line in the right crop.

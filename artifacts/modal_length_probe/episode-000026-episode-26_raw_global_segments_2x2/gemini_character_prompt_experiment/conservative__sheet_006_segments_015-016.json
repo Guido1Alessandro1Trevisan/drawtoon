@@ -1,0 +1,178 @@
+{
+  "sheet_id": "sheet_006_segments_015-016",
+  "local_characters": [
+    {
+      "local_character_id": "man_silver_hair",
+      "description": "A man with silver hair and a bandage on his forehead, wearing a blue suit jacket over a white shirt.",
+      "distinguishing_features": [
+        "silver hair",
+        "bandage on forehead",
+        "blue suit jacket",
+        "white shirt"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_6"
+      ]
+    },
+    {
+      "local_character_id": "woman_red_dress",
+      "description": "A woman with reddish-brown hair wearing a red dress.",
+      "distinguishing_features": [
+        "reddish-brown hair",
+        "red dress",
+        "holding a duckling"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_1"
+      ]
+    },
+    {
+      "local_character_id": "blonde_boy",
+      "description": "A young boy with blonde hair.",
+      "distinguishing_features": [
+        "blonde hair",
+        "young child",
+        "wrapped in a blanket in one scene"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_8",
+        "sheet_006_segments_015-016::char_5"
+      ]
+    },
+    {
+      "local_character_id": "blonde_woman_tan_dress",
+      "description": "A woman with blonde hair in a bun wearing a tan dress, seen from the back.",
+      "distinguishing_features": [
+        "blonde hair in a bun",
+        "tan dress",
+        "seen from back"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_7"
+      ]
+    },
+    {
+      "local_character_id": "duckling",
+      "description": "A small bird, specifically a duckling, being held by the characters.",
+      "distinguishing_features": [
+        "small bird",
+        "light-colored feathers"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_4"
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_0",
+      "local_character_id": "man_silver_hair",
+      "confidence": 0.95,
+      "visible_extent": "back view of head and shoulders",
+      "evidence": [
+        "matching silver hair and bandage silhouette with char_6",
+        "same blue suit jacket",
+        "continuity in the scene"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_1",
+      "local_character_id": "woman_red_dress",
+      "confidence": 1.0,
+      "visible_extent": "upper body",
+      "evidence": [
+        "clear view of face, hair, and red dress"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_2",
+      "local_character_id": "blonde_boy",
+      "confidence": 0.9,
+      "visible_extent": "back view of head and shoulders",
+      "evidence": [
+        "matching blonde hair color and style with char_8 and char_5",
+        "continuity in the scene with the man and red-haired woman"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_3",
+      "local_character_id": "woman_red_dress",
+      "confidence": 1.0,
+      "visible_extent": "upper body side profile",
+      "evidence": [
+        "matching reddish-brown hair and red dress with char_1",
+        "continuity between panels"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_4",
+      "local_character_id": "duckling",
+      "confidence": 1.0,
+      "visible_extent": "full body",
+      "evidence": [
+        "clear view of the bird being held"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_5",
+      "local_character_id": "blonde_boy",
+      "confidence": 1.0,
+      "visible_extent": "upper body",
+      "evidence": [
+        "clear view of face and blonde hair",
+        "continuity with char_2 and char_8"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_6",
+      "local_character_id": "man_silver_hair",
+      "confidence": 1.0,
+      "visible_extent": "upper body",
+      "evidence": [
+        "clear view of face, silver hair, bandage, and blue suit"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_7",
+      "local_character_id": "blonde_woman_tan_dress",
+      "confidence": 1.0,
+      "visible_extent": "back view of upper body",
+      "evidence": [
+        "distinct blonde hair bun and tan dress"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_8",
+      "local_character_id": "blonde_boy",
+      "confidence": 1.0,
+      "visible_extent": "head and shoulders",
+      "evidence": [
+        "clear view of face and blonde hair"
+      ]
+    }
+  ],
+  "ambiguous_assignments": [
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_0",
+      "candidate_local_character_ids": [
+        "man_silver_hair"
+      ],
+      "reason": "Back view, but identified by hair color, bandage, and clothing continuity.",
+      "chosen_local_character_id": "man_silver_hair"
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_2",
+      "candidate_local_character_ids": [
+        "blonde_boy"
+      ],
+      "reason": "Back view, but identified by hair color and scene context.",
+      "chosen_local_character_id": "blonde_boy"
+    }
+  ],
+  "quality_checks": {
+    "all_boxes_assigned_once": true,
+    "no_magi_id_global_assumption": true,
+    "uncertain_cases_marked": true,
+    "notes": "Characters were identified based on hair color, clothing, and scene continuity. Back views were assigned based on strong visual matches with front views in the same or adjacent panels."
+  }
+}

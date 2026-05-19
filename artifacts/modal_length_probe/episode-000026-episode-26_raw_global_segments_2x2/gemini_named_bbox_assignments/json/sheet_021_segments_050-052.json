@@ -1,0 +1,85 @@
+{
+  "sheet_id": "sheet_021_segments_050-052",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "white-haired man in grey shirt",
+    "bbox3": "red-haired woman in red dress",
+    "bbox4": "red-haired woman in red dress",
+    "bbox5": "woman in orange dress"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        447,
+        227,
+        527,
+        448
+      ],
+      "area": 17680
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        2,
+        187,
+        203,
+        582
+      ],
+      "area": 79395
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "0",
+      "bbox": [
+        174,
+        309,
+        294,
+        580
+      ],
+      "area": 32520
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "1",
+      "bbox": [
+        3,
+        654,
+        324,
+        1406
+      ],
+      "area": 241392
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "0",
+      "bbox": [
+        17,
+        1080,
+        262,
+        1407
+      ],
+      "area": 80115
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "label_mode": "direct_descriptive_labels",
+    "allowed_drop_label": "NoCharacter",
+    "overlap_rule": "drop smaller duplicate same-character boxes",
+    "usage": {
+      "input_tokens": 2010,
+      "output_tokens": 110,
+      "reasoning_tokens": 1396,
+      "total_tokens": 3516
+    }
+  }
+}

@@ -1,72 +1,54 @@
-# Remove Text Workflow
+# Drawtoon Remove Text — Modal
 
-Distributed manga page text removal for already-filtered Drawtoon pages.
+Local FLUX.2 Klein 9B manga text removal on Modal.
 
-This workflow is intentionally based on the `lineart2/text-remove-lora` base-model evaluation path:
-
-- endpoint: `fal-ai/qwen-image-edit-2511`
-- prompt: `prompts/master_prompt.md`
-- steps: `40`
-- guidance: `4.5`
-- output: `png`
-- LoRA: disabled; the workflow rejects `/lora` endpoints
-
-Input defaults to:
+The only production model in this workflow is:
 
 ```text
-s3://drawtoon/datasets/pages/filtered/
+black-forest-labs/FLUX.2-klein-9B
+num_inference_steps = 4
+variant = klein_local_9b_4step
 ```
 
-Output defaults to:
+No fal endpoint is used. No Qwen-Image-Edit-2511 path remains in this workflow.
 
-```text
-s3://drawtoon/datasets/pages/text_removed/qwen2511_master_prompt_v1/
-```
+The model is gated on Hugging Face. The Modal worker uses the existing
+`lineart2-hf-token` secret by default, which must contain
+`HF_TOKEN`. If `HF_TOKEN` is exported locally at launch time, the worker forwards
+that local value as an ephemeral Modal secret instead.
 
-Each source page gets:
-
-- a text-removed PNG at the same relative path under the run prefix
-- a status JSON under `_status/`
-- Step Functions audit JSONL under `_audit/`
-- job manifests/config under `_jobs/`
-
-## Secret
-
-Do not hardcode the fal key. Deploy with a Secrets Manager secret named by the template parameter `FalSecretName`:
-
-```text
-drawtoon-fal-key
-```
-
-The secret can be either the raw fal key or JSON containing `FAL_KEY`.
-
-## Deploy
+## One-Time Setup
 
 ```bash
 cd workflows/remove_text
-sam build
-sam deploy --guided
+modal deploy modal_klein.py
 ```
 
-## Dry Run
+Weights are cached on Modal volume `flux2-klein-9b-hf-cache`.
+
+## Bulk Annotate
+
+Writes one PNG per source page to `s3://drawtoon/datasets/pages/text_removed/<chapter>/`,
+skipping any page that already has an output there.
 
 ```bash
-python3 workflows/remove_text/start.py \
-  --stack-name drawtoon-remove-text \
-  --dry-run \
-  remove-pages \
-  --max-pages 10
+KLEIN_GPU=H200 KLEIN_MAX_CONTAINERS=40 python3 start.py \
+  --chapters vinland-saga \
+  --output-prefix datasets/pages/text_removed \
+  --pages-per-shard 8 \
+  --detach
 ```
 
-## Launch
+`start.py` always checks `--output-prefix` for existing PNGs. Pass extra
+`--skip-existing-prefix <path>` flags to union in additional prefixes (e.g. an
+older one-off run you don't want to redo).
 
-```bash
-python3 workflows/remove_text/start.py \
-  --stack-name drawtoon-remove-text \
-  --job-name qwen2511-master-prompt-v1 \
-  --max-concurrency 32 \
-  --tolerated-failure-count 1000 \
-  remove-pages
+## Files
+
+```text
+workflows/remove_text/
+├── README.md
+├── start.py
+├── modal_klein.py
+└── prompts/master_prompt.md
 ```
-
-Use `--overwrite` only when intentionally regenerating outputs. Without it, the prepare step skips existing PNG outputs under the run prefix.

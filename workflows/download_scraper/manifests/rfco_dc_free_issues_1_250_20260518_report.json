@@ -1,0 +1,11 @@
+{
+  "bucket": "drawtoon",
+  "dedupe_fields": [
+    "url"
+  ],
+  "output": "workflows/download_scraper/manifests/rfco_dc_free_issues_1_250_20260518.jsonl",
+  "prefix": "workflows/download_scraper/manifests/rfco_dc_free_listing_1_250_20260518T201023Z/issue_shards/",
+  "raw_count": 680,
+  "row_count": 431,
+  "shard_count": 250
+}

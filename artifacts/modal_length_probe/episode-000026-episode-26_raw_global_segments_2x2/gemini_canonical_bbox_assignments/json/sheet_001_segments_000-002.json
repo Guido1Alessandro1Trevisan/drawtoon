@@ -1,0 +1,50 @@
+{
+  "sheet_id": "sheet_001_segments_000-002",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        113,
+        881,
+        210,
+        1044
+      ],
+      "area": 15811
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "label_mode": "canonical_allowed_labels",
+    "allowed_labels": [
+      "red-haired woman in red dress",
+      "blond boy in light robe",
+      "white-haired injured man",
+      "woman in orange dress",
+      "red-haired man in brown suit",
+      "brown-haired man with glasses in white shirt",
+      "older white-haired bearded man",
+      "older blond woman with glasses",
+      "woman in pink dress",
+      "man in black suit",
+      "blond woman in brown jacket",
+      "pink-haired person in light coat",
+      "dark-haired man in car",
+      "pink-haired person on screen",
+      "NoCharacter"
+    ],
+    "allowed_drop_label": "NoCharacter",
+    "overlap_rule": "drop smaller duplicate same-character boxes",
+    "usage": {
+      "input_tokens": 1799,
+      "output_tokens": 40,
+      "reasoning_tokens": 520,
+      "total_tokens": 2359
+    }
+  }
+}

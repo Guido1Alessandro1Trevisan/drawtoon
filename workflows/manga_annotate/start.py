@@ -26,7 +26,18 @@ DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_S3_REGION")
 DEFAULT_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
 DEFAULT_SOURCE_PREFIX = "datasets/pages/filtered"
 DEFAULT_OUTPUT_PREFIX = "datasets/annotations/magi_v3"
+DEFAULT_GEMINI_VERIFIER_MODEL = os.environ.get("GEMINI_VERIFIER_MODEL", "gemini-3-flash-preview")
+DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL = os.environ.get("GEMINI_VERIFIER_THINKING_LEVEL", "HIGH")
 SUPPORTED_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+NON_MANGA_SUFFIXES = ("_manwa", "_manhwa", "_manha", "_manhua", "_comic")
+KNOWN_PLAIN_MANGA_CHAPTERS = {
+    "jujutsu-kaisen",
+    "monster",
+    "my-hero-academia",
+    "the-fragrant-flower-blooms-with-dignity",
+    "vagabond",
+    "vinland-saga",
+}
 
 
 def boto3_session(profile: str) -> boto3.Session:
@@ -58,6 +69,19 @@ def _list_existing_annotations(s3, bucket: str, output_prefix: str, chapter: str
     return seen
 
 
+def normalize_manga_chapter_name(chapter: str) -> str:
+    if (
+        not chapter
+        or chapter.startswith("_")
+        or chapter.endswith("_manga")
+        or chapter.endswith(NON_MANGA_SUFFIXES)
+    ):
+        return chapter
+    if chapter.endswith(("_mangazero", "_manga109")) or chapter in KNOWN_PLAIN_MANGA_CHAPTERS:
+        return f"{chapter}_manga"
+    return chapter
+
+
 def list_pages(
     *,
     session: boto3.Session,
@@ -86,8 +110,9 @@ def list_pages(
     stats["chapter_count"] = len(chapters)
 
     for chapter in chapters:
+        output_chapter = normalize_manga_chapter_name(chapter)
         chapter_prefix = f"{source_prefix.rstrip('/')}/{chapter}/"
-        existing = set() if overwrite else _list_existing_annotations(s3, bucket, output_prefix, chapter)
+        existing = set() if overwrite else _list_existing_annotations(s3, bucket, output_prefix, output_chapter)
         paginator = s3.get_paginator("list_objects_v2")
         for page in paginator.paginate(Bucket=bucket, Prefix=chapter_prefix):
             for obj in page.get("Contents", []) or []:
@@ -102,10 +127,11 @@ def list_pages(
                 rows.append(
                     {
                         "chapter": chapter,
+                        "output_chapter": output_chapter,
                         "page_id": page_id,
-                        "sample_id": f"{chapter}__{page_id}",
+                        "sample_id": f"{output_chapter}__{page_id}",
                         "page_key": key,
-                        "output_key": f"{output_prefix.rstrip('/')}/{chapter}/{page_id}.jsonl",
+                        "output_key": f"{output_prefix.rstrip('/')}/{output_chapter}/{page_id}.jsonl",
                     }
                 )
                 if max_pages > 0 and len(rows) >= max_pages:
@@ -130,6 +156,11 @@ def main() -> int:
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--gpu-batch-size", type=int, default=8)
     parser.add_argument("--pages-per-shard", type=int, default=16)
+    # Gemini character verification is always on and mandatory: after Magi v3
+    # detection, Gemini drops/corrects character boxes and stores audit reasons.
+    # A Gemini failure on a page fails that page (it lands in _failed/).
+    parser.add_argument("--gemini-verifier-model", default=DEFAULT_GEMINI_VERIFIER_MODEL)
+    parser.add_argument("--gemini-verifier-thinking-level", default=DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL)
     parser.add_argument("--run-id", default="")
     parser.add_argument(
         "--manifest-path",
@@ -206,6 +237,14 @@ def main() -> int:
             str(args.gpu_batch_size),
             "--pages-per-shard",
             str(args.pages_per_shard),
+        ]
+    )
+    cmd.extend(
+        [
+            "--gemini-verifier-model",
+            args.gemini_verifier_model,
+            "--gemini-verifier-thinking-level",
+            args.gemini_verifier_thinking_level,
         ]
     )
     if args.overwrite:

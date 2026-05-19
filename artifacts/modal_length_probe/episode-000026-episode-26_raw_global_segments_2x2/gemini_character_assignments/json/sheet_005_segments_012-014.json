@@ -1,0 +1,47 @@
+{
+  "sheet_id": "sheet_005_segments_012-014",
+  "local_characters": [
+    {
+      "local_character_id": "local_character_0",
+      "description": "A character with brown wavy hair and striking blue eyes, wearing a white mask over the lower half of their face and an orange top.",
+      "distinguishing_features": [
+        "brown wavy hair",
+        "blue eyes",
+        "white face mask",
+        "orange top"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_005_segments_012-014::char_0"
+      ]
+    }
+  ],
+  "box_assignments": [
+    {
+      "magi_box_id": "sheet_005_segments_012-014::char_0",
+      "local_character_id": "local_character_0",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Clear view of the character's head and shoulders in the first panel."
+      ]
+    }
+  ],
+  "ambiguous_assignments": [],
+  "quality_checks": {
+    "all_boxes_assigned_once": true,
+    "no_magi_id_global_assumption": true,
+    "uncertain_cases_marked": true,
+    "notes": "Only one character box was provided and it clearly identifies the single character visible on the sheet."
+  },
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "elapsed_sec": 5.94,
+    "usage": {
+      "input_tokens": 1922,
+      "output_tokens": 367,
+      "reasoning_tokens": 673,
+      "total_tokens": 2962
+    }
+  }
+}

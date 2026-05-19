@@ -1,0 +1,220 @@
+{
+  "authorization_ref": "MARVEL-DC-DRAWTOON-THIRD-PARTY-INGEST-2026-05-18",
+  "approval_period": "2026-05-18 through 2026-06-18",
+  "output_root": "datasets/pages/single",
+  "output_prefix_template": "{output_root}/{publisher}_{issue_slug}_comic",
+  "platform": "readfreecomicsonline",
+  "source_type": "authorized_third_party_public_browser_flow",
+  "issues": [
+    {
+      "publisher": "marvel",
+      "series_slug": "young-avengers",
+      "issue_slug": "young-avengers-issue-5-2005",
+      "title": "Young Avengers Issue 5 (2005)",
+      "url": "https://readfreecomicsonline.com/young-avengers-issue-5-2005/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "young-avengers",
+      "issue_slug": "young-avengers-issue-4-2005",
+      "title": "Young Avengers Issue 4 (2005)",
+      "url": "https://readfreecomicsonline.com/young-avengers-issue-4-2005/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "young-avengers",
+      "issue_slug": "young-avengers-issue-3-2005",
+      "title": "Young Avengers Issue 3 (2005)",
+      "url": "https://readfreecomicsonline.com/young-avengers-issue-3-2005/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "young-avengers",
+      "issue_slug": "young-avengers-issue-1-2005",
+      "title": "Young Avengers Issue 1 (2005)",
+      "url": "https://readfreecomicsonline.com/young-avengers-issue-1-2005/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "young-avengers",
+      "issue_slug": "young-avengers-issue-2-2005",
+      "title": "Young Avengers Issue 2 (2005)",
+      "url": "https://readfreecomicsonline.com/young-avengers-issue-2-2005/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "uncanny-x-men",
+      "issue_slug": "uncanny-x-men-issue-16-2025",
+      "title": "Uncanny X-Men Issue 16 (2025)",
+      "url": "https://readfreecomicsonline.com/uncanny-x-men-issue-16-2025/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "uncanny-x-men",
+      "issue_slug": "uncanny-x-men-issue-17-2025",
+      "title": "Uncanny X-Men Issue 17 (2025)",
+      "url": "https://readfreecomicsonline.com/uncanny-x-men-issue-17-2025/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "uncanny-x-men",
+      "issue_slug": "uncanny-x-men-issue-18-2025",
+      "title": "Uncanny X-Men Issue 18 (2025)",
+      "url": "https://readfreecomicsonline.com/uncanny-x-men-issue-18-2025/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "uncanny-x-men",
+      "issue_slug": "uncanny-x-men-issue-19-2025",
+      "title": "Uncanny X-Men Issue 19 (2025)",
+      "url": "https://readfreecomicsonline.com/uncanny-x-men-issue-19-2025/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "uncanny-x-men",
+      "issue_slug": "uncanny-x-men-issue-20-2025",
+      "title": "Uncanny X-Men Issue 20 (2025)",
+      "url": "https://readfreecomicsonline.com/uncanny-x-men-issue-20-2025/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "uncanny-x-men",
+      "issue_slug": "uncanny-x-men-issue-28-2026",
+      "title": "Uncanny X-Men Issue 28 (2026)",
+      "url": "https://readfreecomicsonline.com/uncanny-x-men-issue-28-2026/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "captain-america",
+      "issue_slug": "captain-america-issue-11-2026",
+      "title": "Captain America Issue 11 (2026)",
+      "url": "https://readfreecomicsonline.com/captain-america-issue-11-2026/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "black-cat",
+      "issue_slug": "black-cat-issue-10-2026",
+      "title": "Black Cat Issue 10 (2026)",
+      "url": "https://readfreecomicsonline.com/black-cat-issue-10-2026/"
+    },
+    {
+      "publisher": "marvel",
+      "series_slug": "doctor-strange",
+      "issue_slug": "doctor-strange-issue-6-2026",
+      "title": "Doctor Strange Issue 6 (2026)",
+      "url": "https://readfreecomicsonline.com/doctor-strange-issue-6-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "the-fury-of-firestorm",
+      "issue_slug": "the-fury-of-firestorm-issue-2-2026",
+      "title": "The Fury of Firestorm Issue 2 (2026)",
+      "url": "https://readfreecomicsonline.com/the-fury-of-firestorm-issue-2-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "supergirl",
+      "issue_slug": "supergirl-issue-13-2026",
+      "title": "Supergirl Issue 13 (2026)",
+      "url": "https://readfreecomicsonline.com/supergirl-issue-13-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "green-lantern-corps",
+      "issue_slug": "green-lantern-corps-issue-16-2026",
+      "title": "Green Lantern Corps Issue 16 (2026)",
+      "url": "https://readfreecomicsonline.com/green-lantern-corps-issue-16-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "emperor-aquaman",
+      "issue_slug": "emperor-aquaman-issue-17-2026",
+      "title": "Emperor Aquaman Issue 17 (2026)",
+      "url": "https://readfreecomicsonline.com/emperor-aquaman-issue-17-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "bleeding-hearts",
+      "issue_slug": "bleeding-hearts-issue-4-2026",
+      "title": "Bleeding Hearts Issue 4 (2026)",
+      "url": "https://readfreecomicsonline.com/bleeding-hearts-issue-4-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "action-comics",
+      "issue_slug": "action-comics-issue-1098-2026",
+      "title": "Action Comics Issue 1098 (2026)",
+      "url": "https://readfreecomicsonline.com/action-comics-issue-1098-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "absolute-martian-manhunter",
+      "issue_slug": "absolute-martian-manhunter-issue-11-2026",
+      "title": "Absolute Martian Manhunter Issue 11 (2026)",
+      "url": "https://readfreecomicsonline.com/absolute-martian-manhunter-issue-11-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "barbara-gordon-breakout",
+      "issue_slug": "barbara-gordon-breakout-issue-1-2026",
+      "title": "Barbara Gordon Breakout Issue 1 (2026)",
+      "url": "https://readfreecomicsonline.com/barbara-gordon-breakout-issue-1-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "dc-x-sonic-the-hedgehog-the-metal-legion",
+      "issue_slug": "dc-x-sonic-the-hedgehog-the-metal-legion-issue-1-2026",
+      "title": "DC x Sonic the Hedgehog The Metal Legion Issue 1 (2026)",
+      "url": "https://readfreecomicsonline.com/dc-x-sonic-the-hedgehog-the-metal-legion-issue-1-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "batman-static-beyond",
+      "issue_slug": "batman-static-beyond-issue-6-2026",
+      "title": "Batman Static Beyond Issue 6 (2026)",
+      "url": "https://readfreecomicsonline.com/batman-static-beyond-issue-6-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "batgirl",
+      "issue_slug": "batgirl-issue-19-2026",
+      "title": "Batgirl Issue 19 (2026)",
+      "url": "https://readfreecomicsonline.com/batgirl-issue-19-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "adventures-of-superman-book-of-el",
+      "issue_slug": "adventures-of-superman-book-of-el-issue-8-2026",
+      "title": "Adventures of Superman Book of El Issue 8 (2026)",
+      "url": "https://readfreecomicsonline.com/adventures-of-superman-book-of-el-issue-8-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "absolute-superman",
+      "issue_slug": "absolute-superman-issue-19-2026",
+      "title": "Absolute Superman Issue 19 (2026)",
+      "url": "https://readfreecomicsonline.com/absolute-superman-issue-19-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "supergirls-family-vacation",
+      "issue_slug": "supergirls-family-vacation-2026",
+      "title": "Supergirls Family Vacation (2026)",
+      "url": "https://readfreecomicsonline.com/supergirls-family-vacation-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "absolute-green-lantern",
+      "issue_slug": "absolute-green-lantern-issue-14-2026",
+      "title": "Absolute Green Lantern Issue 14 (2026)",
+      "url": "https://readfreecomicsonline.com/absolute-green-lantern-issue-14-2026/"
+    },
+    {
+      "publisher": "dc",
+      "series_slug": "absolute-batman",
+      "issue_slug": "absolute-batman-issue-20-2026",
+      "title": "Absolute Batman Issue 20 (2026)",
+      "url": "https://readfreecomicsonline.com/absolute-batman-issue-20-2026/"
+    }
+  ]
+}

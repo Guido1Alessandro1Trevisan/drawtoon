@@ -2,3 +2,13 @@
 .aws-sam/
 __pycache__/
 *.py[cod]
+
+# Licensed Marvel page-source manifests may contain confidential URLs, S3 keys,
+# checksums, authorization references, or short-lived export data.
+artifacts/marvel_official_free/manifest/licensed_page_manifest.jsonl
+artifacts/marvel_official_free/manifest/authorized_source_pages*.jsonl
+!artifacts/marvel_official_free/manifest/authorized_source_pages.example.jsonl
+artifacts/marvel_official_free/manifest/*.har
+artifacts/marvel_official_free/manifest/*.har.json
+artifacts/marvel_official_free/manifest/.authorized_chrome_profile*/
+artifacts/marvel_official_free/downloads/

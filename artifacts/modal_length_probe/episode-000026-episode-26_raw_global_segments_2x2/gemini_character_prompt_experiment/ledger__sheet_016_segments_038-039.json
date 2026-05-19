@@ -1,0 +1,156 @@
+{
+  "sheet_id": "sheet_016_segments_038-039",
+  "local_characters": [
+    {
+      "local_character_id": "local_character_1",
+      "description": "Older man, likely a hotel manager or staff member. He has grey hair, a mustache, and wears a formal black tuxedo with a white shirt and black bowtie.",
+      "distinguishing_features": [
+        "grey hair",
+        "mustache",
+        "black tuxedo",
+        "black bowtie"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_016_segments_038-039::char_3",
+        "sheet_016_segments_038-039::char_5"
+      ]
+    },
+    {
+      "local_character_id": "local_character_2",
+      "description": "Young man with messy red hair. He wears a dark shirt with an orange tie and a brown suit jacket.",
+      "distinguishing_features": [
+        "red hair",
+        "dark shirt",
+        "orange tie",
+        "brown jacket"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_016_segments_038-039::char_2",
+        "sheet_016_segments_038-039::char_6"
+      ]
+    },
+    {
+      "local_character_id": "local_character_3",
+      "description": "Woman with dark skin and voluminous, wavy brown hair. She wears an orange dress.",
+      "distinguishing_features": [
+        "dark skin",
+        "wavy brown hair",
+        "orange dress"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_016_segments_038-039::char_0",
+        "sheet_016_segments_038-039::char_4"
+      ]
+    },
+    {
+      "local_character_id": "local_character_4",
+      "description": "A pair of background characters. One has grey hair and is carrying another person with blonde hair.",
+      "distinguishing_features": [
+        "background figures",
+        "grey hair",
+        "blonde hair"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_016_segments_038-039::char_7"
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_0",
+      "local_character_id": "local_character_3",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Matches appearance of the woman in orange dress from other panels."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_1",
+      "local_character_id": "local_character_1",
+      "confidence": 0.9,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Back view of the older man, identified by hair and tuxedo consistent with the hotel staff character."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_2",
+      "local_character_id": "local_character_2",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Matches appearance of the red-haired man with dark shirt and orange tie."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_3",
+      "local_character_id": "local_character_1",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Frontal view of the older man with grey hair and tuxedo."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_4",
+      "local_character_id": "local_character_3",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Matches appearance of the woman in orange dress from other panels."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_5",
+      "local_character_id": "local_character_1",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Side view of the older man with grey hair and tuxedo."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_6",
+      "local_character_id": "local_character_2",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "Matches appearance of the red-haired man, now wearing a brown jacket."
+      ]
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_7",
+      "local_character_id": "local_character_4",
+      "confidence": 0.8,
+      "visible_extent": "full_body",
+      "evidence": [
+        "Small background figures, one carrying another."
+      ]
+    }
+  ],
+  "ambiguous_assignments": [
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_1",
+      "candidate_local_character_ids": [
+        "local_character_1"
+      ],
+      "reason": "Back view of the character, but hair and clothing are perfectly consistent with the hotel staff character in context.",
+      "chosen_local_character_id": "local_character_1"
+    },
+    {
+      "magi_box_id": "sheet_016_segments_038-039::char_7",
+      "candidate_local_character_ids": [
+        "local_character_4"
+      ],
+      "reason": "Contains two distinct individuals in one box, treated as a single background entity.",
+      "chosen_local_character_id": "local_character_4"
+    }
+  ],
+  "quality_checks": {
+    "all_boxes_assigned_once": true,
+    "no_magi_id_global_assumption": true,
+    "uncertain_cases_marked": true,
+    "notes": "Character 1 is a back view but clearly the same person based on context. Character 7 is a single box containing two background figures."
+  }
+}

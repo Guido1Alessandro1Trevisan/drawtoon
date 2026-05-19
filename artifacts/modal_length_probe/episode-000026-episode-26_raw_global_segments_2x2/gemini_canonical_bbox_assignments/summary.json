@@ -1,0 +1,409 @@
+{
+  "model": "gemini-3-flash-preview",
+  "thinking_level": "HIGH",
+  "label_mode": "canonical_allowed_labels",
+  "allowed_labels": [
+    "red-haired woman in red dress",
+    "blond boy in light robe",
+    "white-haired injured man",
+    "woman in orange dress",
+    "red-haired man in brown suit",
+    "brown-haired man with glasses in white shirt",
+    "older white-haired bearded man",
+    "older blond woman with glasses",
+    "woman in pink dress",
+    "man in black suit",
+    "blond woman in brown jacket",
+    "pink-haired person in light coat",
+    "dark-haired man in car",
+    "pink-haired person on screen",
+    "NoCharacter"
+  ],
+  "allowed_drop_label": "NoCharacter",
+  "overlap_rule": "drop smaller duplicate same-character boxes",
+  "sheet_count": 23,
+  "completed": 23,
+  "ok": 23,
+  "errors": [],
+  "total_expected": 104,
+  "total_assigned": 104,
+  "total_missing": 0,
+  "total_extra": 0,
+  "total_bad_values": 0,
+  "total_nocharacter": 8,
+  "results": [
+    {
+      "sheet_id": "sheet_001_segments_000-002",
+      "expected": 1,
+      "assigned": 1,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_002_segments_003-005",
+      "expected": 2,
+      "assigned": 2,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_003_segments_006-008",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "woman in orange dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_004_segments_009-011",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox4"
+      ],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "woman in orange dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_005_segments_012-014",
+      "expected": 1,
+      "assigned": 1,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "woman in orange dress"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_006_segments_015-016",
+      "expected": 9,
+      "assigned": 9,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "character_labels": [
+        "blond boy in light robe",
+        "blond woman in brown jacket",
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_007_segments_017-018",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "character_labels": [
+        "blond boy in light robe",
+        "red-haired woman in red dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_008_segments_019-020",
+      "expected": 6,
+      "assigned": 6,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox2",
+        "bbox5"
+      ],
+      "character_labels": [
+        "blond boy in light robe",
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_009_segments_021-023",
+      "expected": 7,
+      "assigned": 7,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired man in brown suit",
+        "red-haired woman in red dress",
+        "white-haired injured man",
+        "woman in orange dress"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_010_segments_024-026",
+      "expected": 7,
+      "assigned": 7,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "blond boy in light robe",
+        "brown-haired man with glasses in white shirt",
+        "red-haired man in brown suit",
+        "white-haired injured man"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_011_segments_027-028",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_012_segments_029-031",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "dark-haired man in car",
+        "older white-haired bearded man",
+        "pink-haired person on screen"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_013_segments_032-033",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "older white-haired bearded man",
+        "pink-haired person on screen"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_014_segments_034-035",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox1"
+      ],
+      "character_labels": [
+        "blond woman in brown jacket"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_015_segments_036-037",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "blond boy in light robe",
+        "pink-haired person in light coat",
+        "red-haired man in brown suit",
+        "white-haired injured man"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_016_segments_038-039",
+      "expected": 8,
+      "assigned": 8,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox6"
+      ],
+      "character_labels": [
+        "man in black suit",
+        "red-haired man in brown suit",
+        "woman in orange dress"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_017_segments_040-042",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "character_labels": [
+        "brown-haired man with glasses in white shirt",
+        "red-haired woman in red dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_018_segments_043-045",
+      "expected": 8,
+      "assigned": 8,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "brown-haired man with glasses in white shirt",
+        "older blond woman with glasses",
+        "red-haired woman in red dress",
+        "woman in pink dress"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_019_segments_046-047",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "man in black suit",
+        "red-haired man in brown suit",
+        "red-haired woman in red dress",
+        "woman in orange dress",
+        "woman in pink dress"
+      ],
+      "character_count": 5,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_020_segments_048-049",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_021_segments_050-052",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "older blond woman with glasses",
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_022_segments_053-054",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_023_segments_055-056",
+      "expected": 2,
+      "assigned": 2,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired injured man"
+      ],
+      "character_count": 2,
+      "ok": true
+    }
+  ]
+}

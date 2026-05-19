@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Drawtoon manga page filtering workflow using one Step Functions Distributed Map and Claude Haiku.
+Description: Drawtoon manga/manwa page filtering workflow using Step Functions Distributed Map.
 
 Parameters:
   DatasetBucketName:
@@ -77,6 +77,10 @@ Resources:
               Resource: "*"
             - Effect: Allow
               Action:
+                - secretsmanager:GetSecretValue
+              Resource: "*"
+            - Effect: Allow
+              Action:
                 - aws-marketplace:ViewSubscriptions
                 - aws-marketplace:Subscribe
                 - aws-marketplace:Unsubscribe
@@ -86,7 +90,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers.finalize_manga_filter_run
-      MemorySize: 1024
+      MemorySize: 2048
       Timeout: 900
       Policies:
         - Statement:

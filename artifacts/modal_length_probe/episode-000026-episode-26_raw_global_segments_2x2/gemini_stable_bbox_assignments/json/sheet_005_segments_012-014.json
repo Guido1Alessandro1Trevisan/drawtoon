@@ -1,0 +1,31 @@
+{
+  "sheet_id": "sheet_005_segments_012-014",
+  "bbox_assignments": {
+    "bbox1": "woman in orange dress"
+  },
+  "_source_assignment_file": "gemini_named_bbox_assignments/json/sheet_005_segments_012-014.json",
+  "_canonicalization": {
+    "method": "normalize_freeform_named_assignments_to_stable_descriptions",
+    "changed": {
+      "bbox1": {
+        "from": "brown-haired woman with blue eyes and a white mask",
+        "to": "woman in orange dress"
+      }
+    },
+    "note": "Same visible character should use the exact same description string across sheets. NoCharacter means drop the box."
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        17,
+        323,
+        464
+      ],
+      "area": 143040
+    }
+  ]
+}

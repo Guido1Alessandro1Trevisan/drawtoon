@@ -1,0 +1,15 @@
+{
+  "mode": "minimal_overlay_only_smoke",
+  "sheet_count": 2,
+  "ok": 2,
+  "targets": [
+    "sheet_004_segments_009-011",
+    "sheet_006_segments_015-016"
+  ],
+  "usage_total": {
+    "input_tokens": 4207,
+    "output_tokens": 947,
+    "reasoning_tokens": 2131,
+    "total_tokens": 7285
+  }
+}

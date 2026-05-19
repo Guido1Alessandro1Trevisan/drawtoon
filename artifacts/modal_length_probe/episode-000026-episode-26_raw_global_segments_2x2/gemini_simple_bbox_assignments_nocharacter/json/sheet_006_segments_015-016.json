@@ -1,0 +1,126 @@
+{
+  "sheet_id": "sheet_006_segments_015-016",
+  "bbox_assignments": {
+    "bbox1": "character0",
+    "bbox2": "character1",
+    "bbox3": "character2",
+    "bbox4": "character3",
+    "bbox5": "character2",
+    "bbox6": "character3",
+    "bbox7": "character0",
+    "bbox8": "character3",
+    "bbox9": "character2"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        325,
+        156,
+        525,
+        720
+      ]
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        508,
+        406,
+        639,
+        790
+      ]
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "2",
+      "bbox": [
+        332,
+        558,
+        510,
+        791
+      ]
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "1",
+      "bbox": [
+        516,
+        790,
+        647,
+        1345
+      ]
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "3",
+      "bbox": [
+        460,
+        1041,
+        619,
+        1285
+      ]
+    },
+    {
+      "bbox_id": "bbox6",
+      "character_index": 5,
+      "source_character_id": "2",
+      "bbox": [
+        342,
+        1112,
+        544,
+        1346
+      ]
+    },
+    {
+      "bbox_id": "bbox7",
+      "character_index": 6,
+      "source_character_id": "0",
+      "bbox": [
+        24,
+        380,
+        253,
+        904
+      ]
+    },
+    {
+      "bbox_id": "bbox8",
+      "character_index": 7,
+      "source_character_id": "3",
+      "bbox": [
+        142,
+        516,
+        324,
+        975
+      ]
+    },
+    {
+      "bbox_id": "bbox9",
+      "character_index": 8,
+      "source_character_id": "2",
+      "bbox": [
+        7,
+        776,
+        155,
+        976
+      ]
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "allowed_drop_label": "NoCharacter",
+    "usage": {
+      "input_tokens": 1968,
+      "output_tokens": 99,
+      "reasoning_tokens": 1424,
+      "total_tokens": 3491
+    }
+  }
+}

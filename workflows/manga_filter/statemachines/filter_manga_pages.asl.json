@@ -107,6 +107,11 @@
           "Variable": "$.run.mode",
           "StringEquals": "manhwa",
           "Next": "FinalizeRun"
+        },
+        {
+          "Variable": "$.run.mode",
+          "StringEquals": "manhwa_raw",
+          "Next": "FinalizeRun"
         }
       ],
       "Default": "Done"

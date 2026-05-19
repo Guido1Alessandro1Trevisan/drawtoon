@@ -1,0 +1,68 @@
+{
+  "sheet_id": "sheet_002_segments_003-005",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "red-haired woman in red dress"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "The box correctly identifies the character with red hair and a red dress in a close-up."
+    },
+    "bbox2": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "The box correctly identifies the character with red hair and a red dress."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        324,
+        217,
+        646,
+        539
+      ],
+      "area": 103684,
+      "previous_named_label": "red-haired woman with grey mask and red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        162,
+        314,
+        484
+      ],
+      "area": 100142,
+      "previous_named_label": "red-haired woman with grey mask and red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 3303,
+      "output_tokens": 196,
+      "reasoning_tokens": 665,
+      "total_tokens": 4164
+    }
+  }
+}

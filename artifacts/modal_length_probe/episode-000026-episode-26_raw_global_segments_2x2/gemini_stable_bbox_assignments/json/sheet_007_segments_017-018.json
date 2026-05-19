@@ -1,0 +1,57 @@
+{
+  "sheet_id": "sheet_007_segments_017-018",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "blond boy in light robe",
+    "bbox3": "NoCharacter"
+  },
+  "_source_assignment_file": "gemini_named_bbox_assignments/json/sheet_007_segments_017-018.json",
+  "_canonicalization": {
+    "method": "normalize_freeform_named_assignments_to_stable_descriptions",
+    "changed": {
+      "bbox2": {
+        "from": "blond boy",
+        "to": "blond boy in light robe"
+      }
+    },
+    "note": "Same visible character should use the exact same description string across sheets. NoCharacter means drop the box."
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        374,
+        59,
+        630,
+        695
+      ],
+      "area": 162816
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        3,
+        52,
+        324,
+        603
+      ],
+      "area": 176871
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "2",
+      "bbox": [
+        165,
+        413,
+        324,
+        603
+      ],
+      "area": 30210
+    }
+  ]
+}

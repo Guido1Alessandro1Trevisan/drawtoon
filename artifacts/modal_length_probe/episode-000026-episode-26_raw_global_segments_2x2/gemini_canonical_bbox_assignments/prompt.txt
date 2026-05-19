@@ -1,0 +1,31 @@
+You are assigning existing Magi character bounding boxes to canonical character labels within one manga/webtoon board sheet.
+
+Input:
+- Image 1 is the clean board sheet.
+- Image 2 is the same board sheet with Magi overlays.
+- The text metadata lists bbox ids and exact coordinates.
+
+Task:
+Return only a simple mapping from each bbox id to one canonical label from the allowed list.
+
+Allowed labels, use exact strings only:
+["red-haired woman in red dress", "blond boy in light robe", "white-haired injured man", "woman in orange dress", "red-haired man in brown suit", "brown-haired man with glasses in white shirt", "older white-haired bearded man", "older blond woman with glasses", "woman in pink dress", "man in black suit", "blond woman in brown jacket", "pink-haired person in light coat", "dark-haired man in car", "pink-haired person on screen", "NoCharacter"]
+
+Rules:
+1. Use only the provided bbox ids: bbox1, bbox2, etc.
+2. Every bbox id from the input must appear exactly once in bbox_assignments.
+3. Do not invent extra bbox ids.
+4. Every value must exactly match one string from the allowed labels list.
+5. If two boxes show the same visual person, use exactly the same allowed label string for both boxes.
+6. If two boxes show different people, use different allowed label strings unless one should be NoCharacter.
+7. Return NoCharacter when the box does not actually contain a character/person, contains multiple people in one box, is only background/object/panel art, speech bubble/text/tail, or is too ambiguous to identify as one person.
+8. Duplicate overlap rule: if two boxes overlap the same person and would receive the same label, keep only the larger/more complete box as that label and return NoCharacter for the smaller duplicate box.
+9. If a smaller box is only a crop inside a larger box of the same person, return NoCharacter for the smaller crop.
+10. If overlapping boxes cover different people, keep both and assign different allowed labels.
+11. For silhouettes, backs, tiny partial bodies, hands, or heavily occluded boxes: use a character label only if it clearly depicts a person and can be visually matched to one allowed label; otherwise use NoCharacter.
+12. Do not use Magi source_character_id as identity. It is only detector metadata.
+13. Use visual identity: face, hair, clothing, body shape, accessories, panel continuity, and clear speech-tail evidence.
+14. Do not merge people only because they are near each other, in the same scene, or have the same Magi label.
+15. Do not split the same person only because pose, crop, scale, expression, lighting, or front/back view changes.
+16. Do not create a legend. Put the canonical label directly in bbox_assignments.
+17. Return JSON only. No explanations.

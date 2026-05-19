@@ -1,0 +1,393 @@
+{
+  "model": "gemini-3-flash-preview",
+  "thinking_level": "HIGH",
+  "label_mode": "direct_descriptive_labels",
+  "allowed_drop_label": "NoCharacter",
+  "overlap_rule": "drop smaller duplicate same-character boxes",
+  "sheet_count": 23,
+  "completed": 23,
+  "ok": 23,
+  "errors": [],
+  "total_expected": 104,
+  "total_assigned": 104,
+  "total_missing": 0,
+  "total_extra": 0,
+  "total_bad_values": 0,
+  "total_nocharacter": 9,
+  "results": [
+    {
+      "sheet_id": "sheet_001_segments_000-002",
+      "expected": 1,
+      "assigned": 1,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_002_segments_003-005",
+      "expected": 2,
+      "assigned": 2,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman with grey mask and red dress"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_003_segments_006-008",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "woman in orange dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_004_segments_009-011",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox1",
+        "bbox4"
+      ],
+      "character_labels": [
+        "red-haired woman in red dress and woman with brown hair in orange dress",
+        "woman with brown hair in orange dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_005_segments_012-014",
+      "expected": 1,
+      "assigned": 1,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "brown-haired woman with blue eyes and a white mask"
+      ],
+      "character_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_006_segments_015-016",
+      "expected": 9,
+      "assigned": 9,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox6"
+      ],
+      "character_labels": [
+        "blond boy",
+        "red-haired woman in red dress",
+        "white-haired man in blue suit",
+        "woman in tan dress"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_007_segments_017-018",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "character_labels": [
+        "blond boy",
+        "red-haired woman in red dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_008_segments_019-020",
+      "expected": 6,
+      "assigned": 6,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox3",
+        "bbox6"
+      ],
+      "character_labels": [
+        "blond boy",
+        "red-haired woman in red dress",
+        "white-haired man in suit"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_009_segments_021-023",
+      "expected": 7,
+      "assigned": 7,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired man in suit",
+        "red-haired woman in red dress",
+        "white-haired man in suit",
+        "woman in orange dress"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_010_segments_024-026",
+      "expected": 7,
+      "assigned": 7,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "blond boy",
+        "brown-haired man in white shirt",
+        "red-haired man in brown suit",
+        "white-haired man in blue suit"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_011_segments_027-028",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox2"
+      ],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired man in suit"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_012_segments_029-031",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "dark-haired man in car",
+        "person with light pink wavy hair on screen",
+        "white-haired man with beard"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_013_segments_032-033",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "blond-haired person on screen",
+        "white-haired man with beard in brown suit"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_014_segments_034-035",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "hand in brown suit sleeve",
+        "woman with short blonde hair in brown jacket"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_015_segments_036-037",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "pink-haired person in light coat",
+        "red-haired man in brown suit",
+        "white-haired man in blue suit",
+        "woman in orange dress"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_016_segments_038-039",
+      "expected": 8,
+      "assigned": 8,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "brown-haired woman in an orange dress",
+        "middle-aged man in a suit",
+        "red-haired man in a suit",
+        "white-haired man holding a child"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_017_segments_040-042",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "character_labels": [
+        "brown-haired man with glasses",
+        "red-haired woman in red dress"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_018_segments_043-045",
+      "expected": 8,
+      "assigned": 8,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "man in white shirt",
+        "older woman in tan dress",
+        "red-haired woman in red dress",
+        "woman in pink dress"
+      ],
+      "character_count": 4,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_019_segments_046-047",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [
+        "bbox4"
+      ],
+      "character_labels": [
+        "man in black suit",
+        "red-haired woman in red dress",
+        "woman in orange dress"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_020_segments_048-049",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired man with open shirt"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_021_segments_050-052",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired man in grey shirt",
+        "woman in orange dress"
+      ],
+      "character_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_022_segments_053-054",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired man in white shirt"
+      ],
+      "character_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_023_segments_055-056",
+      "expected": 2,
+      "assigned": 2,
+      "missing": [],
+      "extra": [],
+      "bad_values": [],
+      "nocharacter": [],
+      "character_labels": [
+        "red-haired woman in red dress",
+        "white-haired man with head bandage"
+      ],
+      "character_count": 2,
+      "ok": true
+    }
+  ]
+}

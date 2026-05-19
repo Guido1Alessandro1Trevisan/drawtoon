@@ -1,0 +1,160 @@
+{
+  "sheet_id": "sheet_006_segments_015-016",
+  "local_characters": [
+    {
+      "local_character_id": "local_character_1",
+      "description": "Man with light grey hair and a blue suit jacket. He has a bandage on his forehead.",
+      "distinguishing_features": [
+        "light grey hair",
+        "blue suit jacket",
+        "bandage on forehead"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_6"
+      ]
+    },
+    {
+      "local_character_id": "local_character_2",
+      "description": "Woman with reddish-brown hair in a bun, wearing a red dress.",
+      "distinguishing_features": [
+        "reddish-brown hair in a bun",
+        "red dress"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_1"
+      ]
+    },
+    {
+      "local_character_id": "local_character_3",
+      "description": "Young boy with blonde hair.",
+      "distinguishing_features": [
+        "blonde hair"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_8"
+      ]
+    },
+    {
+      "local_character_id": "local_character_4",
+      "description": "Woman with blonde hair in a bun, wearing a tan dress.",
+      "distinguishing_features": [
+        "blonde hair in a bun",
+        "tan dress"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_7"
+      ]
+    },
+    {
+      "local_character_id": "local_character_5",
+      "description": "A small duck.",
+      "distinguishing_features": [
+        "duck appearance"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_006_segments_015-016::char_4"
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_0",
+      "local_character_id": "local_character_1",
+      "confidence": 0.95,
+      "visible_extent": "partial",
+      "evidence": [
+        "same blue suit jacket",
+        "same light grey hair",
+        "panel continuity"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_1",
+      "local_character_id": "local_character_2",
+      "confidence": 1.0,
+      "visible_extent": "full",
+      "evidence": [
+        "reddish-brown hair in bun",
+        "red dress"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_2",
+      "local_character_id": "local_character_3",
+      "confidence": 0.95,
+      "visible_extent": "partial",
+      "evidence": [
+        "blonde hair",
+        "panel continuity"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_3",
+      "local_character_id": "local_character_2",
+      "confidence": 1.0,
+      "visible_extent": "full",
+      "evidence": [
+        "reddish-brown hair in bun",
+        "red dress",
+        "panel continuity"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_4",
+      "local_character_id": "local_character_5",
+      "confidence": 1.0,
+      "visible_extent": "full",
+      "evidence": [
+        "duck appearance"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_5",
+      "local_character_id": "local_character_3",
+      "confidence": 1.0,
+      "visible_extent": "full",
+      "evidence": [
+        "blonde hair",
+        "panel continuity"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_6",
+      "local_character_id": "local_character_1",
+      "confidence": 1.0,
+      "visible_extent": "full",
+      "evidence": [
+        "light grey hair",
+        "blue suit jacket",
+        "bandage on forehead"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_7",
+      "local_character_id": "local_character_4",
+      "confidence": 1.0,
+      "visible_extent": "partial",
+      "evidence": [
+        "blonde hair in bun",
+        "tan dress"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_006_segments_015-016::char_8",
+      "local_character_id": "local_character_3",
+      "confidence": 1.0,
+      "visible_extent": "full",
+      "evidence": [
+        "blonde hair",
+        "wrapped in blanket"
+      ]
+    }
+  ],
+  "ambiguous_assignments": [],
+  "quality_checks": {
+    "all_boxes_assigned_once": true,
+    "no_magi_id_global_assumption": true,
+    "uncertain_cases_marked": true,
+    "notes": "Identities are clear from visual consistency and panel flow. Back views were matched based on hair and clothing."
+  }
+}

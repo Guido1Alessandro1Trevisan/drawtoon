@@ -1,0 +1,322 @@
+{
+  "sheet_count": 23,
+  "ok": 23,
+  "total_expected": 104,
+  "total_assigned": 104,
+  "total_missing": 0,
+  "total_extra": 0,
+  "total_nocharacter": 12,
+  "label_counts": {
+    "red-haired woman in red dress": 32,
+    "white-haired injured man": 14,
+    "NoCharacter": 12,
+    "woman in orange dress": 9,
+    "blond boy in light robe": 8,
+    "red-haired man in brown suit": 6,
+    "brown-haired man with glasses in white shirt": 4,
+    "older woman in tan dress": 4,
+    "middle-aged hotel manager in black suit": 3,
+    "older white-haired bearded man": 3,
+    "blond woman in brown jacket": 2,
+    "pink-haired person on screen": 2,
+    "dark-haired man in car": 1,
+    "man in black suit": 1,
+    "man in white shirt": 1,
+    "pink-haired person in light coat": 1,
+    "woman in pink dress": 1
+  },
+  "canonical_map": {
+    "red-haired woman in red dress": "red-haired woman in red dress",
+    "red-haired woman with grey mask and red dress": "red-haired woman in red dress",
+    "woman in tan dress": "red-haired woman in red dress",
+    "woman with brown hair in orange dress": "woman in orange dress",
+    "woman in orange dress": "woman in orange dress",
+    "brown-haired woman in an orange dress": "woman in orange dress",
+    "brown-haired woman with blue eyes and a white mask": "woman in orange dress",
+    "red-haired man in suit": "red-haired man in brown suit",
+    "red-haired man in brown suit": "red-haired man in brown suit",
+    "red-haired man in a suit": "red-haired man in brown suit",
+    "white-haired man in suit": "white-haired injured man",
+    "white-haired man in blue suit": "white-haired injured man",
+    "white-haired man with open shirt": "white-haired injured man",
+    "white-haired man in grey shirt": "white-haired injured man",
+    "white-haired man in white shirt": "white-haired injured man",
+    "white-haired man with head bandage": "white-haired injured man",
+    "white-haired man holding a child": "NoCharacter",
+    "white-haired man with beard": "older white-haired bearded man",
+    "white-haired man with beard in brown suit": "older white-haired bearded man",
+    "blond boy": "blond boy in light robe",
+    "brown-haired man in white shirt": "brown-haired man with glasses in white shirt",
+    "brown-haired man with glasses": "brown-haired man with glasses in white shirt",
+    "middle-aged man in a suit": "middle-aged hotel manager in black suit",
+    "older woman in tan dress": "older woman in tan dress",
+    "woman with short blonde hair in brown jacket": "blond woman in brown jacket",
+    "person with light pink wavy hair on screen": "pink-haired person on screen",
+    "blond-haired person on screen": "pink-haired person on screen",
+    "dark-haired man in car": "dark-haired man in car",
+    "hand in brown suit sleeve": "NoCharacter",
+    "pink-haired person in light coat": "pink-haired person in light coat",
+    "woman in pink dress": "woman in pink dress",
+    "man in black suit": "man in black suit",
+    "NoCharacter": "NoCharacter",
+    "red-haired woman in red dress and woman with brown hair in orange dress": "NoCharacter"
+  },
+  "overrides": {
+    "sheet_004_segments_009-011::bbox3": "NoCharacter",
+    "sheet_016_segments_038-039::bbox8": "NoCharacter",
+    "sheet_021_segments_050-052::bbox5": "red-haired woman in red dress"
+  },
+  "results": [
+    {
+      "sheet_id": "sheet_001_segments_000-002",
+      "expected": 1,
+      "assigned": 1,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 0,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_002_segments_003-005",
+      "expected": 2,
+      "assigned": 2,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_003_segments_006-008",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 0,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_004_segments_009-011",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox1",
+        "bbox3",
+        "bbox4"
+      ],
+      "changed_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_005_segments_012-014",
+      "expected": 1,
+      "assigned": 1,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_006_segments_015-016",
+      "expected": 9,
+      "assigned": 9,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox6"
+      ],
+      "changed_count": 6,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_007_segments_017-018",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "changed_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_008_segments_019-020",
+      "expected": 6,
+      "assigned": 6,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox3",
+        "bbox6"
+      ],
+      "changed_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_009_segments_021-023",
+      "expected": 7,
+      "assigned": 7,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_010_segments_024-026",
+      "expected": 7,
+      "assigned": 7,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 6,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_011_segments_027-028",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox2"
+      ],
+      "changed_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_012_segments_029-031",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_013_segments_032-033",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_014_segments_034-035",
+      "expected": 3,
+      "assigned": 3,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox1"
+      ],
+      "changed_count": 3,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_015_segments_036-037",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_016_segments_038-039",
+      "expected": 8,
+      "assigned": 8,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox8"
+      ],
+      "changed_count": 8,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_017_segments_040-042",
+      "expected": 4,
+      "assigned": 4,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox3"
+      ],
+      "changed_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_018_segments_043-045",
+      "expected": 8,
+      "assigned": 8,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 0,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_019_segments_046-047",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [
+        "bbox4"
+      ],
+      "changed_count": 0,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_020_segments_048-049",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 1,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_021_segments_050-052",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_022_segments_053-054",
+      "expected": 5,
+      "assigned": 5,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 2,
+      "ok": true
+    },
+    {
+      "sheet_id": "sheet_023_segments_055-056",
+      "expected": 2,
+      "assigned": 2,
+      "missing": [],
+      "extra": [],
+      "nocharacter": [],
+      "changed_count": 1,
+      "ok": true
+    }
+  ]
+}

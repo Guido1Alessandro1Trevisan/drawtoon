@@ -1,0 +1,30 @@
+{
+  "sheet_id": "sheet_005_segments_012-014",
+  "bbox_assignments": {
+    "bbox1": "character0"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        17,
+        323,
+        464
+      ]
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "allowed_drop_label": "NoCharacter",
+    "usage": {
+      "input_tokens": 1531,
+      "output_tokens": 35,
+      "reasoning_tokens": 406,
+      "total_tokens": 1972
+    }
+  }
+}

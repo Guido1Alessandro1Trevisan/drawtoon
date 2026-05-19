@@ -1,0 +1,44 @@
+{
+  "mode": "full_audited_pass",
+  "sheet_count": 23,
+  "ok": 23,
+  "failed": [],
+  "total_boxes": 104,
+  "label_counts": {
+    "red-haired woman in red dress": 32,
+    "white-haired injured man": 15,
+    "woman in orange dress": 10,
+    "blond boy in light robe": 8,
+    "NoCharacter": 7,
+    "red-haired man in brown suit": 7,
+    "older woman in tan dress": 6,
+    "brown-haired man with glasses in white shirt": 5,
+    "middle-aged hotel manager in black suit": 4,
+    "older white-haired bearded man": 3,
+    "pink-haired person on screen": 2,
+    "blond woman in brown jacket": 2,
+    "dark-haired man in car": 1,
+    "pink-haired person in light coat": 1,
+    "woman in pink dress": 1
+  },
+  "decision_counts": {
+    "keep_prior": 80,
+    "correct_label": 19,
+    "drop_not_character": 5
+  },
+  "nocharacter_count": 7,
+  "changed_from_stable_count": 20,
+  "usage_total": {
+    "input_tokens": 83298,
+    "output_tokens": 8600,
+    "reasoning_tokens": 36105,
+    "total_tokens": 128003
+  },
+  "outputs": {
+    "json_dir": "artifacts/modal_length_probe/episode-000026-episode-26_raw_global_segments_2x2/gemini_audited_bbox_assignments/json",
+    "overlay_dir": "artifacts/modal_length_probe/episode-000026-episode-26_raw_global_segments_2x2/gemini_audited_bbox_assignments/overlays",
+    "contact_sheet": "artifacts/modal_length_probe/episode-000026-episode-26_raw_global_segments_2x2/gemini_audited_bbox_assignments/audited_assignments_contact_sheet.jpg",
+    "prompt": "artifacts/modal_length_probe/episode-000026-episode-26_raw_global_segments_2x2/gemini_audited_bbox_assignments/audit_prompt.md",
+    "audit_summary": "artifacts/modal_length_probe/episode-000026-episode-26_raw_global_segments_2x2/gemini_audited_bbox_assignments/audit_summary.md"
+  }
+}

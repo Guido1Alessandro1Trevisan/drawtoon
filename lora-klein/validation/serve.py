@@ -128,6 +128,7 @@ class FluxKleinServer:
         from validate_run import draw_text_layout_shape
 
         LAYOUT_BACKGROUND_COLOR = (0, 0, 0)
+        LAYOUT_TAIL_COLOR = (192, 192, 192)
 
         def materialize_layout_control_filled(layout_metadata, width, height):
             """Match training pipeline: SOLID FILLED character rectangles.
@@ -169,6 +170,23 @@ class FluxKleinServer:
                         height=height,
                         text_bubble_type=str(region.get("type") or "Speech Bubble"),
                     )
+            tail_payload = (
+                layout_metadata.get("tail")
+                if isinstance(layout_metadata.get("tail"), dict)
+                else {}
+            )
+            for region in tail_payload.get("regions") or []:
+                if not isinstance(region, dict):
+                    continue
+                box = region.get("bbox_norm")
+                if not isinstance(box, list) or len(box) != 4:
+                    continue
+                x0 = int(round(max(0.0, min(1.0, float(box[0]))) * width))
+                y0 = int(round(max(0.0, min(1.0, float(box[1]))) * height))
+                x1 = int(round(max(0.0, min(1.0, float(box[2]))) * width))
+                y1 = int(round(max(0.0, min(1.0, float(box[3]))) * height))
+                if x1 > x0 and y1 > y0:
+                    draw.rectangle((x0, y0, x1, y1), fill=LAYOUT_TAIL_COLOR)
             return img
 
         materialize_layout_control = materialize_layout_control_filled

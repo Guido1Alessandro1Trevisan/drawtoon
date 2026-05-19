@@ -1,0 +1,63 @@
+{
+  "sheet_id": "sheet_002_segments_003-005",
+  "local_characters": [
+    {
+      "local_character_id": "local_character_1",
+      "description": "A woman with reddish-brown hair and green eyes, wearing a grey face mask and a red dress.",
+      "distinguishing_features": [
+        "reddish-brown hair",
+        "green eyes",
+        "grey face mask",
+        "red dress"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_002_segments_003-005::char_1",
+        "sheet_002_segments_003-005::char_0"
+      ]
+    }
+  ],
+  "box_assignments": [
+    {
+      "magi_box_id": "sheet_002_segments_003-005::char_0",
+      "local_character_id": "local_character_1",
+      "confidence": 1.0,
+      "visible_extent": "head_and_shoulders",
+      "evidence": [
+        "consistent reddish-brown hair",
+        "green eyes",
+        "grey face mask",
+        "zoomed-in view of the character from the adjacent panel"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_002_segments_003-005::char_1",
+      "local_character_id": "local_character_1",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "reddish-brown hair",
+        "green eyes",
+        "grey face mask",
+        "red dress"
+      ]
+    }
+  ],
+  "ambiguous_assignments": [],
+  "quality_checks": {
+    "all_boxes_assigned_once": true,
+    "no_magi_id_global_assumption": true,
+    "uncertain_cases_marked": true,
+    "notes": "The character is clearly the same person in both panels, maintaining consistent features like hair color, eye color, and the grey face mask."
+  },
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "elapsed_sec": 9.48,
+    "usage": {
+      "input_tokens": 1981,
+      "output_tokens": 530,
+      "reasoning_tokens": 1390,
+      "total_tokens": 3901
+    }
+  }
+}

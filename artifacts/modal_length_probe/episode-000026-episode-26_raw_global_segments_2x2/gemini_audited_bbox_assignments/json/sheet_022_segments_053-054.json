@@ -1,0 +1,128 @@
+{
+  "sheet_id": "sheet_022_segments_053-054",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "white-haired injured man",
+    "bbox3": "white-haired injured man",
+    "bbox4": "red-haired woman in red dress",
+    "bbox5": "red-haired woman in red dress"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Matches the visible person and the known character label exactly."
+    },
+    "bbox2": {
+      "final_label": "white-haired injured man",
+      "decision": "keep_prior",
+      "reason": "Matches the visible person; although the bandage is clearer in other panels, the character identity is consistent."
+    },
+    "bbox3": {
+      "final_label": "white-haired injured man",
+      "decision": "keep_prior",
+      "reason": "Matches the visible person, seen from behind with head bandage visible."
+    },
+    "bbox4": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Matches the visible person and the known character label exactly."
+    },
+    "bbox5": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Matches the visible person and the known character label exactly."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        471,
+        70,
+        626,
+        542
+      ],
+      "area": 73160,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        388,
+        214,
+        481,
+        538
+      ],
+      "area": 30132,
+      "previous_named_label": "white-haired man in white shirt",
+      "previous_stable_label": "white-haired injured man"
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "1",
+      "bbox": [
+        473,
+        655,
+        630,
+        956
+      ],
+      "area": 47257,
+      "previous_named_label": "white-haired man in white shirt",
+      "previous_stable_label": "white-haired injured man"
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "0",
+      "bbox": [
+        351,
+        704,
+        450,
+        956
+      ],
+      "area": 24948,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        397,
+        323,
+        491
+      ],
+      "area": 30080,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 3607,
+      "output_tokens": 393,
+      "reasoning_tokens": 1218,
+      "total_tokens": 5218
+    }
+  }
+}

@@ -59,6 +59,8 @@ LAYOUT_TEXT_COLORS = {
     "Shout Bubble": (128, 0, 255),
 }
 LAYOUT_TEXT_COLOR = LAYOUT_TEXT_COLORS["Speech Bubble"]
+LAYOUT_TAIL_COLOR = (192, 192, 192)
+MAX_LAYOUT_TAIL_REGIONS = 14
 LAYOUT_BACKGROUND_COLOR = (0, 0, 0)
 LAYOUT_CHARACTER_COLORS = [
     (255, 0, 0),
@@ -506,6 +508,16 @@ def _layout_control_image_from_metadata(layout_metadata: dict[str, Any], width: 
             height=height,
             text_bubble_type=str(region.get("type") or "Speech Bubble"),
             line_width=int(region.get("line_width") or 0),
+        )
+    tail_payload = layout_metadata.get("tail") if isinstance(layout_metadata.get("tail"), dict) else {}
+    for region in tail_payload.get("regions") or []:
+        if not isinstance(region, dict):
+            continue
+        _draw_tail_layout_region(
+            draw,
+            region.get("bbox_norm"),
+            width=width,
+            height=height,
         )
     return layout
 
@@ -1742,7 +1754,7 @@ def _drawtoon_cache_key(drawtoon: dict[str, Any]) -> str:
         "max_pages": int(drawtoon["max_pages"]),
         "target_multiple": int(drawtoon["target_multiple"]),
         "exclude_sample_ids_path": drawtoon.get("exclude_sample_ids_path", ""),
-        "schema": "drawtoon_panel_cache_v8_lazy_page_crops_white_mask_text_shapes_none_skip_max5_character_refs",
+        "schema": "drawtoon_panel_cache_v12_with_tails_manga_suffix_real_dims_tail_region_index",
     }
     digest = hashlib.sha1(json.dumps(fingerprint_payload, sort_keys=True).encode("utf-8")).hexdigest()[:16]
     run_label = sanitize_filename(str(drawtoon["caption_run"]), fallback="caption_run")
@@ -1989,6 +2001,29 @@ def _draw_text_layout_region(
     return True
 
 
+def _draw_tail_layout_region(
+    draw: ImageDraw.ImageDraw,
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+    color: tuple[int, int, int] = LAYOUT_TAIL_COLOR,
+) -> bool:
+    pixel_box = _norm_box_to_pixel_box(box_norm, width=width, height=height)
+    if pixel_box is None:
+        return False
+    draw.rectangle(pixel_box, fill=color)
+    return True
+
+
+def _panel_tail_regions(panel: dict[str, Any]) -> list[Any]:
+    for field_name in ("tails", "speech_bubble_tails", "bubble_tails"):
+        regions = panel.get(field_name)
+        if isinstance(regions, list):
+            return regions
+    return []
+
+
 def _build_panel_layout_control(
     *,
     panel: dict[str, Any],
@@ -2081,6 +2116,42 @@ def _build_panel_layout_control(
             )
             text_count += 1
 
+    tail_count = 0
+    drawn_tail_regions: list[dict[str, Any]] = []
+    for tail_region in _panel_tail_regions(panel):
+        if tail_count >= MAX_LAYOUT_TAIL_REGIONS:
+            break
+        if not isinstance(tail_region, dict):
+            continue
+        tail_box = _coerce_pixel_box(tail_region.get("bbox"), width=page_width, height=page_height)
+        if tail_box is None:
+            tail_box = _coerce_pixel_box(tail_region.get("bbox_norm"), width=page_width, height=page_height)
+        if tail_box is None:
+            continue
+        tail_box_norm = _panel_relative_norm_box(
+            tail_box,
+            target_box,
+            padded_width=padded_width,
+            padded_height=padded_height,
+        )
+        if tail_box_norm is None:
+            continue
+        if _draw_tail_layout_region(
+            draw,
+            tail_box_norm,
+            width=padded_width,
+            height=padded_height,
+        ):
+            drawn_tail_regions.append(
+                {
+                    "tail_region_index": tail_region.get("tail_region_index", tail_region.get("tail_index")),
+                    "source_tail_index": tail_region.get("source_tail_index"),
+                    "bbox_norm": tail_box_norm,
+                    "shape": "filled_rectangle",
+                }
+            )
+            tail_count += 1
+
     metadata = {
         "control_slot": 1,
         "text": {
@@ -2097,9 +2168,23 @@ def _build_panel_layout_control(
             },
             "regions": drawn_text_regions,
         },
+        "tail": {
+            "color": "silver",
+            "rgb": list(LAYOUT_TAIL_COLOR),
+            "count": tail_count,
+            "shape": "filled_rectangle",
+            "regions": drawn_tail_regions,
+        },
         "characters": drawn_characters,
     }
     return layout, metadata
+
+
+def _chapter_storage_key(chapter: str) -> str:
+    """Caption JSON stores `chapter` unsuffixed (e.g. `*_mangazero`) but the
+    durable S3 layout under `pages/*/` and `annotations/magi_v3/` uses the
+    `*_mangazero_manga/` form. Idempotent for already-suffixed inputs."""
+    return chapter if chapter.endswith("_manga") else f"{chapter}_manga"
 
 
 def _caption_page_key(caption_payload: dict[str, Any], drawtoon: dict[str, Any]) -> str:
@@ -2110,10 +2195,11 @@ def _caption_page_key(caption_payload: dict[str, Any], drawtoon: dict[str, Any])
     if not chapter or not page_id:
         raise ValueError("Caption payload is missing sources.page_key and chapter/page_id fallback fields")
     pages_prefix = str(drawtoon["pages_prefix"]).strip().strip("/")
-    if page_key and page_key.startswith(f"{pages_prefix}/"):
+    chapter_storage = _chapter_storage_key(chapter)
+    if page_key.startswith(f"{pages_prefix}/{chapter_storage}/"):
         return page_key
     extension = ".png" if "text_removed" in pages_prefix.split("/") else (Path(page_key).suffix or ".jpg")
-    return f"{pages_prefix}/{chapter}/{page_id}{extension}"
+    return f"{pages_prefix}/{chapter_storage}/{page_id}{extension}"
 
 
 def _panel_character_contexts(
@@ -2214,6 +2300,112 @@ def _panel_caption(
     return str(value).strip()
 
 
+def _attach_panel_tails(
+    *,
+    s3_client,
+    bucket: str,
+    annotations_prefix: str,
+    chapter: str,
+    page_id: str,
+    panels: list[Any],
+    page_width: int,
+    page_height: int,
+) -> None:
+    """Read the magi_v3 annotation, group tail bboxes by enclosing panel, and
+    write each panel["tails"] in-place. Safe no-op if the annotation cannot be
+    loaded or no tails are present."""
+    if not annotations_prefix or not chapter or not page_id:
+        return
+
+    chapter_suffixed = _chapter_storage_key(chapter)
+    candidate_keys = [
+        f"{annotations_prefix}/{chapter_suffixed}/{page_id}.jsonl",
+    ]
+    if chapter_suffixed != chapter:
+        candidate_keys.append(f"{annotations_prefix}/{chapter}/{page_id}.jsonl")
+
+    annotation_payload: dict[str, Any] | None = None
+    for key in candidate_keys:
+        try:
+            obj = s3_client.get_object(Bucket=bucket, Key=key)
+        except Exception:
+            continue
+        try:
+            text = obj["Body"].read().decode("utf-8").strip()
+            annotation_payload = json.loads(text.splitlines()[0]) if text else None
+        except Exception:
+            annotation_payload = None
+        if annotation_payload is not None:
+            break
+    if not isinstance(annotation_payload, dict):
+        return
+
+    detections = annotation_payload.get("detections") if isinstance(annotation_payload.get("detections"), dict) else {}
+    raw_tails = detections.get("tails") if isinstance(detections.get("tails"), list) else []
+    if not raw_tails:
+        return
+
+    tail_records: list[tuple[tuple[int, int, int, int], tuple[float, float], dict[str, Any]]] = []
+    for source_index, tail in enumerate(raw_tails):
+        if not isinstance(tail, dict):
+            continue
+        box = _coerce_pixel_box(
+            tail.get("bbox") or tail.get("bbox_norm"),
+            width=page_width,
+            height=page_height,
+        )
+        if box is None:
+            continue
+        center = (0.5 * (box[0] + box[2]), 0.5 * (box[1] + box[3]))
+        tail_records.append((box, center, {"source_tail_index": source_index}))
+
+    if not tail_records:
+        return
+
+    for panel in panels:
+        if not isinstance(panel, dict):
+            continue
+        # Respect tails already present (e.g. future caption runs).
+        existing = panel.get("tails")
+        if isinstance(existing, list) and existing:
+            continue
+        panel_box = _coerce_pixel_box(
+            panel.get("bbox") or panel.get("bbox_norm"),
+            width=page_width,
+            height=page_height,
+        )
+        if panel_box is None:
+            continue
+        px0, py0, px1, py1 = panel_box
+        panel_tails: list[dict[str, Any]] = []
+        for tail_box, (cx, cy), meta in tail_records:
+            if not (px0 <= cx <= px1 and py0 <= cy <= py1):
+                continue
+            panel_relative = _panel_relative_norm_box(
+                tail_box,
+                (float(px0), float(py0), float(px1), float(py1)),
+                padded_width=max(1, px1 - px0),
+                padded_height=max(1, py1 - py0),
+            )
+            panel_tails.append(
+                {
+                    "id": f"Tail {len(panel_tails) + 1}",
+                    "tail_region_index": len(panel_tails),
+                    "source_tail_index": meta.get("source_tail_index"),
+                    "bbox": [int(round(v)) for v in tail_box],
+                    "bbox_norm": [
+                        tail_box[0] / page_width,
+                        tail_box[1] / page_height,
+                        tail_box[2] / page_width,
+                        tail_box[3] / page_height,
+                    ],
+                    "panel_bbox_norm": panel_relative,
+                }
+            )
+        if panel_tails:
+            panel["tails"] = panel_tails
+
+
 def _iter_panel_rows_for_caption(
     *,
     s3_client,
@@ -2234,13 +2426,29 @@ def _iter_panel_rows_for_caption(
         return [], {"skipped_no_panels": 1}
 
     page_key = _caption_page_key(caption_payload, drawtoon)
-    page_size = _caption_page_size(caption_payload)
-    if page_size is None:
-        page_bytes = s3_client.get_object(Bucket=bucket, Key=page_key)["Body"].read()
-        with Image.open(io.BytesIO(page_bytes)) as page_image:
-            page_width, page_height = page_image.size
-    else:
-        page_width, page_height = page_size
+    # Always measure dimensions from the *active* page (pages_prefix), not the
+    # caption's cached page_size — text_removed pages can be a few pixels off
+    # from the filtered originals used at caption time, which makes the
+    # manifest's crop_box / target_width drift and trips the loader's exact
+    # dimension check.
+    page_bytes = s3_client.get_object(Bucket=bucket, Key=page_key)["Body"].read()
+    with Image.open(io.BytesIO(page_bytes)) as page_image:
+        page_width, page_height = page_image.size
+
+    # Tails from MAGI v3 inference live in detections.tails, which the old
+    # caption runs do not surface. Pull them straight from the annotation file
+    # and attach to whichever panel encloses the tail centre. This is what
+    # makes the silver tail mask show up in the layout-control image.
+    _attach_panel_tails(
+        s3_client=s3_client,
+        bucket=bucket,
+        annotations_prefix=str(drawtoon.get("annotations_prefix") or "").strip().strip("/"),
+        chapter=chapter,
+        page_id=page_id,
+        panels=panels,
+        page_width=page_width,
+        page_height=page_height,
+    )
     target_multiple = int(drawtoon.get("target_multiple") or 16)
     caption_field = str(drawtoon.get("caption_field") or "caption").strip()
     caption_format = str(drawtoon.get("caption_format") or "text").strip().lower()
@@ -2355,7 +2563,7 @@ def _iter_panel_rows_for_caption(
                 "source_page": f"s3://{bucket}/{page_key}",
                 "source_caption": f"s3://{bucket}/{caption_key}",
                 "source_annotation": (
-                    f"s3://{bucket}/{drawtoon['annotations_prefix'].rstrip('/')}/{chapter}/{page_id}.jsonl"
+                    f"s3://{bucket}/{drawtoon['annotations_prefix'].rstrip('/')}/{_chapter_storage_key(chapter)}/{page_id}.jsonl"
                 ),
                 "target_panel": {
                     "image": f"s3://{bucket}/{page_key}",
@@ -3368,6 +3576,10 @@ def train_flux_lora_ddp8(
     env["NCCL_NVLS_ENABLE"] = "0"
     env["AITK_DDP_STATIC_GRAPH"] = "1"
     env["AITK_DDP_FIND_UNUSED_PARAMETERS"] = "0"
+    # Bump NCCL process-group timeout to 30 min so a single slow rank does not
+    # detonate the whole job after only 10 min (PyTorch default). Flows through
+    # `InitProcessGroupKwargs` in lora-klein/ai-toolkit/toolkit/accelerator.py.
+    env.setdefault("AITK_NCCL_TIMEOUT_SECONDS", "1800")
     env["S3_VALIDATION_UPLOAD_ROOT"] = s3_uri(model_prefix, "validate")
     if ddp_smoke:
         env["AITK_DDP_SMOKE"] = "1"

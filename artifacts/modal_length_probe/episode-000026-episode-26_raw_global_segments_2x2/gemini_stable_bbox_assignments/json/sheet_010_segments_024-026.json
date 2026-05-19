@@ -1,0 +1,129 @@
+{
+  "sheet_id": "sheet_010_segments_024-026",
+  "bbox_assignments": {
+    "bbox1": "red-haired man in brown suit",
+    "bbox2": "brown-haired man with glasses in white shirt",
+    "bbox3": "brown-haired man with glasses in white shirt",
+    "bbox4": "white-haired injured man",
+    "bbox5": "blond boy in light robe",
+    "bbox6": "brown-haired man with glasses in white shirt",
+    "bbox7": "blond boy in light robe"
+  },
+  "_source_assignment_file": "gemini_named_bbox_assignments/json/sheet_010_segments_024-026.json",
+  "_canonicalization": {
+    "method": "normalize_freeform_named_assignments_to_stable_descriptions",
+    "changed": {
+      "bbox2": {
+        "from": "brown-haired man in white shirt",
+        "to": "brown-haired man with glasses in white shirt"
+      },
+      "bbox3": {
+        "from": "brown-haired man in white shirt",
+        "to": "brown-haired man with glasses in white shirt"
+      },
+      "bbox4": {
+        "from": "white-haired man in blue suit",
+        "to": "white-haired injured man"
+      },
+      "bbox5": {
+        "from": "blond boy",
+        "to": "blond boy in light robe"
+      },
+      "bbox6": {
+        "from": "brown-haired man in white shirt",
+        "to": "brown-haired man with glasses in white shirt"
+      },
+      "bbox7": {
+        "from": "blond boy",
+        "to": "blond boy in light robe"
+      }
+    },
+    "note": "Same visible character should use the exact same description string across sheets. NoCharacter means drop the box."
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        494,
+        274,
+        636,
+        554
+      ],
+      "area": 39760
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "0",
+      "bbox": [
+        339,
+        175,
+        516,
+        554
+      ],
+      "area": 67083
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "0",
+      "bbox": [
+        162,
+        234,
+        300,
+        760
+      ],
+      "area": 72588
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "1",
+      "bbox": [
+        65,
+        305,
+        210,
+        760
+      ],
+      "area": 65975
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "2",
+      "bbox": [
+        42,
+        577,
+        148,
+        761
+      ],
+      "area": 19504
+    },
+    {
+      "bbox_id": "bbox6",
+      "character_index": 5,
+      "source_character_id": "0",
+      "bbox": [
+        464,
+        834,
+        647,
+        1262
+      ],
+      "area": 78324
+    },
+    {
+      "bbox_id": "bbox7",
+      "character_index": 6,
+      "source_character_id": "2",
+      "bbox": [
+        325,
+        1043,
+        446,
+        1262
+      ],
+      "area": 26499
+    }
+  ]
+}

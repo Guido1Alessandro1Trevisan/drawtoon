@@ -40,6 +40,7 @@ LAYOUT_TEXT_COLORS = {
 }
 LAYOUT_TEXT_COLOR = LAYOUT_TEXT_COLORS["Speech Bubble"]
 LAYOUT_BACKGROUND_COLOR = (0, 0, 0)
+LAYOUT_TAIL_COLOR = (192, 192, 192)
 LAYOUT_CHARACTER_OUTLINE_WIDTHS = [12, 10, 8, 6, 4]
 CHARACTER_REF_BORDER_WIDTH = 3
 REVIEW_CHARACTER_COLORS = [
@@ -266,6 +267,21 @@ def draw_text_layout_region(
     return True
 
 
+def draw_tail_layout_region(
+    draw: ImageDraw.ImageDraw,
+    box_norm: list[float],
+    *,
+    width: int,
+    height: int,
+    color: tuple[int, int, int] = LAYOUT_TAIL_COLOR,
+) -> bool:
+    pixel_box = norm_box_to_pixel_box(box_norm, width=width, height=height)
+    if pixel_box is None:
+        return False
+    draw.rectangle(pixel_box, fill=color)
+    return True
+
+
 def materialize_layout_control(
     layout_metadata: dict[str, Any],
     *,
@@ -305,6 +321,16 @@ def materialize_layout_control(
             height=height,
             text_bubble_type=str(region.get("type") or "Speech Bubble"),
             line_width=int(region.get("line_width") or 0),
+        )
+    tail_payload = layout_metadata.get("tail") if isinstance(layout_metadata.get("tail"), dict) else {}
+    for region in tail_payload.get("regions") or []:
+        if not isinstance(region, dict):
+            continue
+        draw_tail_layout_region(
+            draw,
+            region.get("bbox_norm"),
+            width=width,
+            height=height,
         )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     layout.save(output_path, format="PNG", optimize=True)

@@ -1,0 +1,48 @@
+{
+  "sheet_id": "sheet_001_segments_000-002",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "The visible character is a woman with red hair wearing a red dress, which matches the provided known character label."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        113,
+        881,
+        210,
+        1044
+      ],
+      "area": 15811,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 3166,
+      "output_tokens": 128,
+      "reasoning_tokens": 411,
+      "total_tokens": 3705
+    }
+  }
+}

@@ -1,38 +1,40 @@
 #!/usr/bin/env python3
+"""Launcher for the Drawtoon remove_text workflow.
+
+Lists filtered manga pages, skips pages that already have an output PNG, writes
+a manifest JSONL, and invokes ``modal run modal_klein.py::annotate_manifest_local``
+(or ``::annotate_manifest_spawn`` when ``--detach`` is set).
+"""
 from __future__ import annotations
 
 import argparse
 import datetime as dt
 import json
 import os
+import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 import boto3
 
 
-def load_dotenv(path: Path) -> None:
-    if not path.exists():
-        return
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
-
-
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-load_dotenv(Path.cwd() / ".env")
-
-DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_S3_REGION") or "us-east-1"
+WORKFLOW_DIR = Path(__file__).resolve().parent
+DEFAULT_REGION = os.environ.get("AWS_REGION") or "us-east-1"
 DEFAULT_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
-DEFAULT_INPUT_PREFIX = "datasets/pages/filtered"
-DEFAULT_OUTPUT_PREFIX = "datasets/pages/text_removed"
-DEFAULT_REMOVE_TEXT_RUN = "qwen2511_master_prompt_v1"
-DEFAULT_FAL_ENDPOINT = os.environ.get("DEFAULT_FAL_ENDPOINT", "fal-ai/qwen-image-edit-2511")
-DEFAULT_MAX_CONCURRENCY = 32
+DEFAULT_SOURCE_PREFIX = "datasets/pages/filtered"
+DEFAULT_OUTPUT_PREFIX_KLEIN_LOCAL = "datasets/pages/text_removed"
+SUPPORTED_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+NON_MANGA_SUFFIXES = ("_manwa", "_manhwa", "_manha", "_manhua", "_comic")
+KNOWN_PLAIN_MANGA_CHAPTERS = {
+    "jujutsu-kaisen",
+    "monster",
+    "my-hero-academia",
+    "the-fragrant-flower-blooms-with-dignity",
+    "vagabond",
+    "vinland-saga",
+}
 
 
 def boto3_session(profile: str) -> boto3.Session:
@@ -41,120 +43,173 @@ def boto3_session(profile: str) -> boto3.Session:
     return boto3.Session(region_name=DEFAULT_REGION)
 
 
-def cloudformation_output_map(session: boto3.Session, stack_name: str) -> dict[str, str]:
-    client = session.client("cloudformation", region_name=DEFAULT_REGION)
-    stack = client.describe_stacks(StackName=stack_name)["Stacks"][0]
-    outputs: dict[str, str] = {}
-    for output in stack.get("Outputs", []):
-        key = str(output.get("OutputKey") or "").strip()
-        value = str(output.get("OutputValue") or "").strip()
-        if key and value:
-            outputs[key] = value
-    return outputs
+def _list_existing(s3, bucket: str, output_prefix: str, chapter: str) -> set[str]:
+    prefix = f"{output_prefix.rstrip('/')}/{chapter}/"
+    paginator = s3.get_paginator("list_objects_v2")
+    seen: set[str] = set()
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+        for obj in page.get("Contents", []) or []:
+            key = str(obj.get("Key") or "")
+            if key.endswith(".png"):
+                seen.add(Path(key).stem)
+    return seen
 
 
-def infer_git_sha() -> str:
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        return result.stdout.strip()
-    except Exception:
-        return ""
+def normalize_manga_chapter_name(chapter: str) -> str:
+    if (
+        not chapter
+        or chapter.startswith("_")
+        or chapter.endswith("_manga")
+        or chapter.endswith(NON_MANGA_SUFFIXES)
+    ):
+        return chapter
+    if chapter.endswith(("_mangazero", "_manga109")) or chapter in KNOWN_PLAIN_MANGA_CHAPTERS:
+        return f"{chapter}_manga"
+    return chapter
 
 
-def default_execution_name(prefix: str) -> str:
-    normalized = prefix.replace("/", "-").replace("_", "-").replace(".", "-").strip("-")
-    timestamp = dt.datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    return f"{(normalized or 'remove-text')[:55]}-{timestamp}"
+def list_pages(
+    *,
+    session: boto3.Session,
+    bucket: str,
+    source_prefix: str,
+    output_prefix: str,
+    skip_existing_prefixes: list[str],
+    chapters: list[str],
+    chapter_regex: str,
+    overwrite: bool,
+    max_pages: int,
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    s3 = session.client("s3")
+    rows: list[dict[str, Any]] = []
+    stats = {"source_image_count": 0, "skipped_existing_count": 0, "chapter_count": 0}
+    include_re = re.compile(chapter_regex) if chapter_regex else None
+
+    if not chapters:
+        chapters = []
+        paginator = s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=bucket, Prefix=source_prefix.rstrip("/") + "/", Delimiter="/"):
+            for prefix in page.get("CommonPrefixes", []) or []:
+                chapter = str(prefix.get("Prefix") or "").rstrip("/").split("/")[-1]
+                if chapter and (not include_re or include_re.search(chapter)):
+                    chapters.append(chapter)
+    chapters = sorted(set(chapters))
+    stats["chapter_count"] = len(chapters)
+
+    for chapter in chapters:
+        output_chapter = normalize_manga_chapter_name(chapter)
+        chapter_prefix = f"{source_prefix.rstrip('/')}/{chapter}/"
+        existing_prefixes = [output_prefix] + [p.strip() for p in skip_existing_prefixes if p.strip()]
+        existing = set()
+        if not overwrite:
+            for existing_prefix in dict.fromkeys(existing_prefixes):
+                existing.update(_list_existing(s3, bucket, existing_prefix, output_chapter))
+        paginator = s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=bucket, Prefix=chapter_prefix):
+            for obj in page.get("Contents", []) or []:
+                key = str(obj.get("Key") or "")
+                if Path(key).suffix.lower() not in SUPPORTED_SUFFIXES:
+                    continue
+                stats["source_image_count"] += 1
+                page_id = Path(key).stem
+                if not overwrite and page_id in existing:
+                    stats["skipped_existing_count"] += 1
+                    continue
+                rows.append({
+                    "chapter": chapter,
+                    "output_chapter": output_chapter,
+                    "page_id": page_id,
+                    "sample_id": f"{output_chapter}__{page_id}",
+                    "page_key": key,
+                    "output_key": f"{output_prefix.rstrip('/')}/{output_chapter}/{page_id}.png",
+                })
+                if max_pages > 0 and len(rows) >= max_pages:
+                    return rows, stats
+    return rows, stats
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stack-name", required=True)
-    parser.add_argument("--profile", default="")
-    parser.add_argument("--job-name", default="")
-    parser.add_argument("--max-concurrency", type=int, default=DEFAULT_MAX_CONCURRENCY)
-    parser.add_argument("--tolerated-failure-count", type=int, default=0)
+    parser.add_argument("--profile", default="default")
+    parser.add_argument("--bucket", default=DEFAULT_BUCKET)
+    parser.add_argument("--source-prefix", default=DEFAULT_SOURCE_PREFIX)
+    parser.add_argument(
+        "--variant",
+        choices=["klein_local_9b_4step"],
+        default="klein_local_9b_4step",
+    )
+    parser.add_argument("--output-prefix", default="")
+    parser.add_argument(
+        "--skip-existing-prefix",
+        action="append",
+        default=[],
+        help="Optional S3 prefix to check for existing page IDs while writing outputs to --output-prefix.",
+    )
+    parser.add_argument("--chapters", nargs="*", default=[])
+    parser.add_argument("--chapter-regex", default="")
+    parser.add_argument("--max-pages", type=int, default=0)
+    parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--pages-per-shard", type=int, default=8)
+    parser.add_argument("--run-id", default="")
+    parser.add_argument("--manifest-path", default="")
+    parser.add_argument("--detach", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
-
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    remove_cmd = subparsers.add_parser("remove-pages")
-    remove_cmd.add_argument("--bucket", default=DEFAULT_BUCKET)
-    remove_cmd.add_argument("--input-prefix", default=DEFAULT_INPUT_PREFIX)
-    remove_cmd.add_argument("--output-prefix", default=DEFAULT_OUTPUT_PREFIX)
-    remove_cmd.add_argument("--remove-text-run", default=DEFAULT_REMOVE_TEXT_RUN)
-    remove_cmd.add_argument("--fal-endpoint", default=DEFAULT_FAL_ENDPOINT)
-    remove_cmd.add_argument("--prompt-filename", default="master_prompt.md")
-    remove_cmd.add_argument("--timeout-seconds", type=float, default=840.0)
-    remove_cmd.add_argument("--request-timeout-seconds", type=float, default=60.0)
-    remove_cmd.add_argument("--download-timeout-seconds", type=float, default=180.0)
-    remove_cmd.add_argument("--poll-interval-seconds", type=float, default=8.0)
-    remove_cmd.add_argument("--presign-expires-seconds", type=int, default=12 * 60 * 60)
-    remove_cmd.add_argument("--num-inference-steps", type=int, default=40)
-    remove_cmd.add_argument("--guidance-scale", type=float, default=4.5)
-    remove_cmd.add_argument("--num-images", type=int, default=1)
-    remove_cmd.add_argument("--output-format", default="png")
-    remove_cmd.add_argument("--acceleration", default="regular")
-    remove_cmd.add_argument("--include-relative-path-regex", default="")
-    remove_cmd.add_argument("--max-pages", type=int, default=0)
-    remove_cmd.add_argument("--run-id", default="")
-    remove_cmd.add_argument("--overwrite", action="store_true")
-    remove_cmd.add_argument(
-        "--no-fal-preflight",
-        action="store_true",
-        help="Skip the FAL key presence probe before Distributed Map fanout.",
-    )
-
     args = parser.parse_args()
-    if args.command != "remove-pages":
-        raise ValueError(f"Unsupported command={args.command!r}")
 
-    session = boto3_session(str(args.profile or "").strip())
-    outputs = cloudformation_output_map(session, args.stack_name)
-    payload: dict[str, Any] = {
-        "job_name": str(args.job_name or "").strip(),
-        "max_concurrency": max(1, int(args.max_concurrency)),
-        "tolerated_failure_count": max(0, int(args.tolerated_failure_count)),
-        "git_sha": infer_git_sha(),
-        "bucket": str(args.bucket).strip(),
-        "input_prefix": str(args.input_prefix).strip().strip("/"),
-        "output_prefix": str(args.output_prefix).strip().strip("/"),
-        "remove_text_run": str(args.remove_text_run or "").strip().strip("/"),
-        "fal_endpoint": str(args.fal_endpoint).strip().strip("/"),
-        "prompt_filename": str(args.prompt_filename).strip(),
-        "timeout_seconds": float(args.timeout_seconds),
-        "request_timeout_seconds": float(args.request_timeout_seconds),
-        "download_timeout_seconds": float(args.download_timeout_seconds),
-        "poll_interval_seconds": float(args.poll_interval_seconds),
-        "presign_expires_seconds": max(60, int(args.presign_expires_seconds)),
-        "num_inference_steps": max(1, int(args.num_inference_steps)),
-        "guidance_scale": float(args.guidance_scale),
-        "num_images": max(1, int(args.num_images)),
-        "output_format": str(args.output_format or "png").strip().lower(),
-        "acceleration": str(args.acceleration or "regular").strip(),
-        "include_relative_path_regex": str(args.include_relative_path_regex or "").strip(),
-        "max_pages": max(0, int(args.max_pages)),
-        "run_id": str(args.run_id or "").strip(),
-        "overwrite": bool(args.overwrite),
-        "fal_preflight": not bool(args.no_fal_preflight),
-    }
-    arn = outputs["RemoveTextPagesStateMachineArn"]
-    if args.dry_run:
-        print(json.dumps({"state_machine_arn": arn, "input": payload}, indent=2))
-        return
+    default_output_prefixes = {"klein_local_9b_4step": DEFAULT_OUTPUT_PREFIX_KLEIN_LOCAL}
+    output_prefix = args.output_prefix or default_output_prefixes[args.variant]
 
-    client = session.client("stepfunctions", region_name=DEFAULT_REGION)
-    response = client.start_execution(
-        stateMachineArn=arn,
-        name=default_execution_name(args.job_name or args.remove_text_run or "remove-text-pages"),
-        input=json.dumps(payload, ensure_ascii=False),
+    session = boto3_session(args.profile.strip())
+    run_id = args.run_id.strip() or dt.datetime.now(dt.UTC).strftime("%Y%m%dT%H%M%SZ")
+    rows, stats = list_pages(
+        session=session, bucket=args.bucket,
+        source_prefix=args.source_prefix,
+        output_prefix=output_prefix,
+        skip_existing_prefixes=args.skip_existing_prefix,
+        chapters=args.chapters, chapter_regex=args.chapter_regex,
+        overwrite=args.overwrite, max_pages=args.max_pages,
     )
-    print(json.dumps(response, indent=2, default=str))
+    if not rows:
+        print(json.dumps({"event": "noop", "stats": stats, "reason": "no pages to process"}, indent=2))
+        return 0
+
+    manifest_path = Path(args.manifest_path) if args.manifest_path else Path(f"/tmp/remove_text_{run_id}.jsonl")
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    with manifest_path.open("w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    print(json.dumps({
+        "event": "manifest_written", "manifest_path": str(manifest_path),
+        "run_id": run_id, "variant": args.variant, "output_prefix": output_prefix,
+        "page_count": len(rows), "stats": stats,
+        "chapters": sorted({row["chapter"] for row in rows}),
+    }, indent=2), flush=True)
+
+    if args.dry_run:
+        return 0
+
+    # .map() in detached mode prints a "calls may be cancelled" warning because
+    # the local caller goes away. Use the spawn-based entrypoint for --detach:
+    # it fires every shard via .spawn(), prints call IDs, and exits cleanly
+    # while Modal keeps running the shards.
+    entrypoint = "annotate_manifest_spawn" if args.detach else "annotate_manifest_local"
+    cmd = ["modal", "run"]
+    if args.detach:
+        cmd.append("--detach")
+    cmd.extend([
+        f"{WORKFLOW_DIR / 'modal_klein.py'}::{entrypoint}",
+        "--manifest-path", str(manifest_path),
+        "--variant", args.variant,
+        "--bucket", args.bucket,
+        "--run-id", run_id,
+        "--pages-per-shard", str(args.pages_per_shard),
+        "--trust-manifest",
+    ])
+    if args.overwrite:
+        cmd.append("--overwrite")
+    print(json.dumps({"event": "modal_run", "cmd": cmd}), flush=True)
+    return subprocess.call(cmd)
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

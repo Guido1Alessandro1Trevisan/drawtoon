@@ -1,0 +1,128 @@
+{
+  "sheet_id": "sheet_021_segments_050-052",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "white-haired injured man",
+    "bbox3": "red-haired woman in red dress",
+    "bbox4": "older woman in tan dress",
+    "bbox5": "red-haired woman in red dress"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Correct label for the back-facing woman in red dress."
+    },
+    "bbox2": {
+      "final_label": "white-haired injured man",
+      "decision": "keep_prior",
+      "reason": "Matches the white-haired man with the head bandage."
+    },
+    "bbox3": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Correct label for the woman in red dress next to the man."
+    },
+    "bbox4": {
+      "final_label": "older woman in tan dress",
+      "decision": "correct_label",
+      "reason": "This box primarily captures the older woman with glasses in the background of the panel, not the red-haired woman."
+    },
+    "bbox5": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Matches the red-haired woman reacting in the foreground of the bottom panel."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        447,
+        227,
+        527,
+        448
+      ],
+      "area": 17680,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        2,
+        187,
+        203,
+        582
+      ],
+      "area": 79395,
+      "previous_named_label": "white-haired man in grey shirt",
+      "previous_stable_label": "white-haired injured man"
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "0",
+      "bbox": [
+        174,
+        309,
+        294,
+        580
+      ],
+      "area": 32520,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "1",
+      "bbox": [
+        3,
+        654,
+        324,
+        1406
+      ],
+      "area": 241392,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "0",
+      "bbox": [
+        17,
+        1080,
+        262,
+        1407
+      ],
+      "area": 80115,
+      "previous_named_label": "woman in orange dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 3673,
+      "output_tokens": 400,
+      "reasoning_tokens": 2618,
+      "total_tokens": 6691
+    }
+  }
+}

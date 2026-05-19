@@ -1,0 +1,65 @@
+{
+  "sheet_id": "sheet_004_segments_009-011",
+  "bbox_assignments": {
+    "bbox1": "character0",
+    "bbox2": "character1",
+    "bbox3": "character0",
+    "bbox4": "character0"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        488,
+        130,
+        635,
+        485
+      ]
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "0",
+      "bbox": [
+        327,
+        155,
+        618,
+        486
+      ]
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        167,
+        323,
+        620
+      ]
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "0",
+      "bbox": [
+        4,
+        1090,
+        323,
+        1193
+      ]
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "usage": {
+      "input_tokens": 1616,
+      "output_tokens": 59,
+      "reasoning_tokens": 8715,
+      "total_tokens": 10390
+    }
+  }
+}

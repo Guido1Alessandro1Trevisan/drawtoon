@@ -1,0 +1,10 @@
+{
+  "mode": "target_smoke",
+  "sheet_count": 2,
+  "ok": 2,
+  "failed": [],
+  "target_sheets": [
+    "sheet_004_segments_009-011",
+    "sheet_006_segments_015-016"
+  ]
+}

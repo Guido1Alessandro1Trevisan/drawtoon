@@ -1,0 +1,102 @@
+{
+  "sheet_id": "sheet_019_segments_046-047",
+  "bbox_assignments": {
+    "bbox1": "woman in orange dress",
+    "bbox2": "woman in pink dress",
+    "bbox3": "man in black suit",
+    "bbox4": "red-haired man in brown suit",
+    "bbox5": "red-haired woman in red dress"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        415,
+        375,
+        563,
+        681
+      ],
+      "area": 45288
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        560,
+        477,
+        628,
+        682
+      ],
+      "area": 13940
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "2",
+      "bbox": [
+        325,
+        377,
+        478,
+        682
+      ],
+      "area": 46665
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "3",
+      "bbox": [
+        325,
+        376,
+        376,
+        444
+      ],
+      "area": 3468
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "4",
+      "bbox": [
+        3,
+        106,
+        324,
+        559
+      ],
+      "area": 145413
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "label_mode": "canonical_allowed_labels",
+    "allowed_labels": [
+      "red-haired woman in red dress",
+      "blond boy in light robe",
+      "white-haired injured man",
+      "woman in orange dress",
+      "red-haired man in brown suit",
+      "brown-haired man with glasses in white shirt",
+      "older white-haired bearded man",
+      "older blond woman with glasses",
+      "woman in pink dress",
+      "man in black suit",
+      "blond woman in brown jacket",
+      "pink-haired person in light coat",
+      "dark-haired man in car",
+      "pink-haired person on screen",
+      "NoCharacter"
+    ],
+    "allowed_drop_label": "NoCharacter",
+    "overlap_rule": "drop smaller duplicate same-character boxes",
+    "usage": {
+      "input_tokens": 2044,
+      "output_tokens": 104,
+      "reasoning_tokens": 1146,
+      "total_tokens": 3294
+    }
+  }
+}

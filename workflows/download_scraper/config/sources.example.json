@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "platform": "dc",
+      "source_type": "official_rights_holder_cdn_manifest",
+      "authorization_ref": "DC-DRAWTOON-CDN-INGEST-2026-05-18",
+      "output_root": "datasets/pages/single/dc",
+      "session_secret_name": "drawtoon/dc/browser-session",
+      "proxy_mode": "auto"
+    }
+  ]
+}
+

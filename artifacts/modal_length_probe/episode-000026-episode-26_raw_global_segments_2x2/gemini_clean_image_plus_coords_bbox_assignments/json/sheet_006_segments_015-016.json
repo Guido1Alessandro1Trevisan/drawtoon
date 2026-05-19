@@ -1,0 +1,187 @@
+{
+  "sheet_id": "sheet_006_segments_015-016",
+  "bbox_assignments": {
+    "bbox1": "white-haired injured man",
+    "bbox2": "red-haired woman in red dress",
+    "bbox3": "blond boy in light robe",
+    "bbox4": "red-haired woman in red dress",
+    "bbox5": "NoCharacter",
+    "bbox6": "blond boy in light robe",
+    "bbox7": "white-haired injured man",
+    "bbox8": "blond woman in tan dress",
+    "bbox9": "blond boy in blanket"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "white-haired injured man",
+      "decision": "keep_prior",
+      "reason": "Back view of the white-haired man in the blue suit."
+    },
+    "bbox2": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Visible face and torso of the red-haired woman."
+    },
+    "bbox3": {
+      "final_label": "blond boy in light robe",
+      "decision": "keep_prior",
+      "reason": "Back view of the blond boy in light-colored clothing."
+    },
+    "bbox4": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Red-haired woman shown from the waist up."
+    },
+    "bbox5": {
+      "final_label": "NoCharacter",
+      "decision": "drop_not_character",
+      "reason": "This region contains a duck, not a human character."
+    },
+    "bbox6": {
+      "final_label": "blond boy in light robe",
+      "decision": "correct_label",
+      "reason": "The blond boy reaching up toward the duck."
+    },
+    "bbox7": {
+      "final_label": "white-haired injured man",
+      "decision": "keep_prior",
+      "reason": "White-haired man with a head bandage and injured face."
+    },
+    "bbox8": {
+      "final_label": "blond woman in tan dress",
+      "decision": "correct_label",
+      "reason": "Blond woman in a tan dress shown from the back; previous label was incorrect."
+    },
+    "bbox9": {
+      "final_label": "blond boy in blanket",
+      "decision": "correct_label",
+      "reason": "Blond boy wrapped in a blanket; previous label was incorrect."
+    }
+  },
+  "_ignored_extra_bbox_ids": [],
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        325,
+        156,
+        525,
+        720
+      ],
+      "previous_stable_label": "white-haired injured man"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        508,
+        406,
+        639,
+        790
+      ],
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "2",
+      "bbox": [
+        332,
+        558,
+        510,
+        791
+      ],
+      "previous_stable_label": "blond boy in light robe"
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "1",
+      "bbox": [
+        516,
+        790,
+        647,
+        1345
+      ],
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "3",
+      "bbox": [
+        460,
+        1041,
+        619,
+        1285
+      ],
+      "previous_stable_label": "blond boy in light robe"
+    },
+    {
+      "bbox_id": "bbox6",
+      "character_index": 5,
+      "source_character_id": "2",
+      "bbox": [
+        342,
+        1112,
+        544,
+        1346
+      ],
+      "previous_stable_label": "NoCharacter"
+    },
+    {
+      "bbox_id": "bbox7",
+      "character_index": 6,
+      "source_character_id": "0",
+      "bbox": [
+        24,
+        380,
+        253,
+        904
+      ],
+      "previous_stable_label": "white-haired injured man"
+    },
+    {
+      "bbox_id": "bbox8",
+      "character_index": 7,
+      "source_character_id": "3",
+      "bbox": [
+        142,
+        516,
+        324,
+        975
+      ],
+      "previous_stable_label": "blond boy in light robe"
+    },
+    {
+      "bbox_id": "bbox9",
+      "character_index": 8,
+      "source_character_id": "2",
+      "bbox": [
+        7,
+        776,
+        155,
+        976
+      ],
+      "previous_stable_label": "red-haired woman in red dress"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_image_only"
+    ],
+    "uses_coordinate_metadata": true,
+    "usage": {
+      "input_tokens": 2364,
+      "output_tokens": 644,
+      "reasoning_tokens": 2881,
+      "total_tokens": 5889
+    }
+  }
+}

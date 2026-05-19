@@ -33,6 +33,66 @@ Primary active areas:
 - Keep Modal GPU work explicit about GPU, CPU, memory, timeout, and output S3 paths.
 - Preserve user or prior-agent changes in the working tree. Do not revert unrelated files.
 
+## WEBTOON / Manhwa Imports
+
+Active import workspace:
+
+```text
+artifacts/webtoon_manga/
+```
+
+Current direct-to-dataset importer:
+
+```text
+artifacts/webtoon_manga/direct_single_worker.py
+artifacts/webtoon_manga/deploy_direct_single.py
+artifacts/webtoon_manga/manifest/direct_single_series_3000.jsonl
+```
+
+Use this flow for authorized WEBTOON/manhwa imports that should land directly in the training page dataset:
+
+1. Put one title per line in `manifest/direct_single_series_3000.jsonl` as JSONL with `name`, `series_slug`, `title_no`, and `list_url`.
+2. Keep `series_slug` without `_manwa`; the worker writes to:
+
+```text
+s3://drawtoon/datasets/pages/single/<series_slug>_manwa/
+```
+
+3. Launch from `us-east-1` with a hard per-title cap and distributed parallelism:
+
+```bash
+python3 artifacts/webtoon_manga/deploy_direct_single.py \
+  --max-pages-per-series 3000 \
+  --max-concurrency 15 \
+  --image-workers 64 \
+  --lambda-memory 4096 \
+  --lambda-timeout 900 \
+  --proxy-mode auto \
+  --start
+```
+
+The deployer runs a dry smoke test before starting the Step Functions Distributed Map. The worker fetches direct first and falls back to Decodo proxies only for source HTML/image fetches when needed. S3 reads/writes must stay direct; do not route S3 through proxies and do not hardcode proxy credentials in repo files.
+
+The direct worker discovers episode URLs, shuffles episodes deterministically by seed, downloads candidate images in memory, applies the dimension/story-run filter immediately, and uploads only kept pages. It does not write raw pages to `s3://drawtoon/datasets/pages/source/`.
+
+Monitor active runs with:
+
+```bash
+aws stepfunctions describe-map-run --map-run-arn <map-run-arn> --region us-east-1
+aws s3 ls s3://drawtoon/datasets/pages/manifests/webtoon_manga_direct_single/status/<run-id>/ --region us-east-1
+```
+
+`s3://drawtoon/datasets/pages/single/` is the canonical output. Do not delete from `single/` unless the user explicitly asks. `s3://drawtoon/datasets/pages/source/` was used by an older raw-download flow and is disposable once cleaned.
+
+Recent completed direct import:
+
+```text
+run_id: 20260518T060621Z
+execution: arn:aws:states:us-east-1:274213480586:execution:webtoon_manga_direct_single_map:webtoon-manga-direct-single-20260518T060621Z
+output: s3://drawtoon/datasets/pages/single/*_manwa/
+result: 15/15 title workers succeeded, 41,045 filtered pages written, 0 worker errors
+```
+
 ## Validation
 
 Active validation script:

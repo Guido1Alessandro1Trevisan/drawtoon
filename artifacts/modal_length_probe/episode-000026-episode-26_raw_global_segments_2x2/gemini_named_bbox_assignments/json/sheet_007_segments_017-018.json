@@ -1,0 +1,59 @@
+{
+  "sheet_id": "sheet_007_segments_017-018",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "blond boy",
+    "bbox3": "NoCharacter"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        374,
+        59,
+        630,
+        695
+      ],
+      "area": 162816
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        3,
+        52,
+        324,
+        603
+      ],
+      "area": 176871
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "2",
+      "bbox": [
+        165,
+        413,
+        324,
+        603
+      ],
+      "area": 30210
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "label_mode": "direct_descriptive_labels",
+    "allowed_drop_label": "NoCharacter",
+    "overlap_rule": "drop smaller duplicate same-character boxes",
+    "usage": {
+      "input_tokens": 1889,
+      "output_tokens": 74,
+      "reasoning_tokens": 595,
+      "total_tokens": 2558
+    }
+  }
+}

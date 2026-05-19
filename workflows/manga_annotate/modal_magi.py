@@ -1,4 +1,4 @@
-"""Modal app: distributed Magi v3 annotation on 40 H100s.
+"""Modal app: distributed Magi v3 annotation on 40 H200s.
 
 Inspired by ``lineart2/6magi_3.py``. Loads ``ragavsachdeva/magiv3`` once per
 container (via ``@modal.enter(snap=True)`` so the load is captured in the
@@ -27,6 +27,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -47,6 +48,51 @@ MODAL_REGION = os.environ.get("DRAWTOON_MODAL_REGION", "us-east-1")
 DEFAULT_MAX_CONTAINERS = int(os.environ.get("MAGI_V3_MAX_CONTAINERS", "40"))
 DEFAULT_GPU_BATCH_SIZE = int(os.environ.get("MAGI_V3_BATCH_SIZE", "8"))
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+GEMINI_API_KEY_SECRET_NAME = os.environ.get("GEMINI_API_KEY_SECRET_NAME", "drawtoon/gemini-api-key")
+GEMINI_API_KEY_ENV = "GOOGLE_GENERATIVE_AI_API_KEY"
+DEFAULT_GEMINI_VERIFIER_MODEL = os.environ.get("GEMINI_VERIFIER_MODEL", "gemini-3-flash-preview")
+DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL = os.environ.get("GEMINI_VERIFIER_THINKING_LEVEL", "HIGH")
+GEMINI_VERIFIER_MAX_IMAGE_SIDE = int(os.environ.get("GEMINI_VERIFIER_MAX_IMAGE_SIDE", "2048"))
+GEMINI_VERIFIER_MAX_IMAGE_BYTES = int(os.environ.get("GEMINI_VERIFIER_MAX_IMAGE_BYTES", "8000000"))
+GEMINI_CHARACTER_VERIFIER_PROMPT_VERSION = "magi_v3_gemini_character_verifier_v2_clean_image_coords"
+
+GEMINI_CHARACTER_VERIFIER_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "character_boxes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "bbox_id": {"type": "string"},
+                    "final_label": {
+                        "type": "string",
+                        "description": "Short visible human description, or exactly NoCharacter.",
+                    },
+                    "decision": {
+                        "type": "string",
+                        "format": "enum",
+                        "enum": [
+                            "keep_magi",
+                            "correct_magi",
+                            "drop_not_character",
+                            "drop_duplicate",
+                            "drop_bystander_or_silhouette",
+                            "uncertain_keep",
+                        ],
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Short visible-evidence explanation, not hidden reasoning.",
+                    },
+                },
+                "required": ["bbox_id", "final_label", "decision", "reason"],
+            },
+        },
+        "notes": {"type": "string"},
+    },
+    "required": ["character_boxes"],
+}
 
 # `hf_transfer` accelerates HF Hub downloads ~3x on a cold volume; pinning
 # torch/torchvision so transformers==4.49.0 stays compatible.
@@ -64,6 +110,7 @@ image = (
         "pytorch-metric-learning==2.8.1",
         "safetensors==0.5.2",
         "shapely==2.0.6",
+        "google-genai>=1.0.0",
         "timm==1.0.13",
         "torch==2.5.1",
         "torchvision==0.20.1",
@@ -169,6 +216,337 @@ def _put_jsonl_object(bucket: str, key: str, payload: dict[str, Any]) -> None:
         Body=body,
         ContentType="application/x-ndjson; charset=utf-8",
     )
+
+
+# ---------------------------------------------------------------------------
+# Optional Gemini verifier
+# ---------------------------------------------------------------------------
+
+
+def _resolve_gemini_api_key() -> str:
+    env_value = os.environ.get(GEMINI_API_KEY_ENV, "").strip()
+    if env_value:
+        return env_value
+    for fallback_env in ("GOOGLE_API_KEY", "GEMINI_API_KEY"):
+        env_value = os.environ.get(fallback_env, "").strip()
+        if env_value:
+            return env_value
+
+    import boto3
+
+    response = boto3.client("secretsmanager", region_name=AWS_REGION_DEFAULT).get_secret_value(
+        SecretId=GEMINI_API_KEY_SECRET_NAME
+    )
+    value = str(response.get("SecretString") or "").strip()
+    if not value:
+        raise RuntimeError(f"empty Gemini API secret {GEMINI_API_KEY_SECRET_NAME!r}")
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return value
+    if isinstance(parsed, dict):
+        for key in (GEMINI_API_KEY_ENV, "GOOGLE_API_KEY", "GEMINI_API_KEY"):
+            if parsed.get(key):
+                return str(parsed[key]).strip()
+    return value
+
+
+def _gemini_client_cached() -> Any:
+    if not hasattr(_gemini_client_cached, "_client"):
+        from google import genai
+        from google.genai import types
+
+        _gemini_client_cached._client = genai.Client(  # type: ignore[attr-defined]
+            api_key=_resolve_gemini_api_key(),
+            http_options=types.HttpOptions(timeout=240000),
+        )
+    return _gemini_client_cached._client  # type: ignore[attr-defined]
+
+
+def _clean_verifier_label(value: object) -> str:
+    label = " ".join(str(value or "").strip().split())
+    if not label:
+        return "NoCharacter"
+    if re.sub(r"[^a-z]", "", label.lower()) in {"nocharacter", "none", "notcharacter"}:
+        return "NoCharacter"
+    return label[:160]
+
+
+def _encode_image_for_gemini(image_obj: Any, *, format_hint: str = "JPEG") -> tuple[bytes, str, dict[str, int]]:
+    from PIL import Image
+
+    image = image_obj.copy()
+    if max(image.size) > GEMINI_VERIFIER_MAX_IMAGE_SIDE:
+        image.thumbnail(
+            (GEMINI_VERIFIER_MAX_IMAGE_SIDE, GEMINI_VERIFIER_MAX_IMAGE_SIDE),
+            Image.Resampling.LANCZOS,
+        )
+    buffer = io.BytesIO()
+    if format_hint.upper() == "PNG":
+        image.save(buffer, format="PNG", optimize=True)
+        mime = "image/png"
+    else:
+        image.convert("RGB").save(buffer, format="JPEG", quality=90, optimize=True)
+        mime = "image/jpeg"
+    data = buffer.getvalue()
+    if len(data) > GEMINI_VERIFIER_MAX_IMAGE_BYTES and mime == "image/png":
+        buffer = io.BytesIO()
+        image.convert("RGB").save(buffer, format="JPEG", quality=88, optimize=True)
+        data = buffer.getvalue()
+        mime = "image/jpeg"
+    return data, mime, {"image_width": int(image.width), "image_height": int(image.height), "image_bytes": len(data)}
+
+
+def _build_gemini_verifier_prompt(metadata: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            "You are auditing Magi character detections on one manga/webtoon page.",
+            "",
+            "Input:",
+            "- Image 1 is the clean page with no boxes drawn.",
+            "- Metadata lists every bbox id and exact pixel coordinates in that image.",
+            "- Coordinates are [x0, y0, x1, y1] measured from the top-left of the image.",
+            "",
+            "Task:",
+            "For each bbox id, inspect the region described by its coordinates in the image and classify it.",
+            "",
+            "Rules:",
+            "- Use only bbox ids present in metadata. Do not invent extra bbox ids.",
+            "- Assign a HUMAN/PERSON character only.",
+            "- Use the same short visible description for the same person on this page.",
+            "- Prefer the original Magi label only if it visibly matches; correct it if wrong.",
+            "- Return exactly NoCharacter for animals, pets, objects, text, speech bubbles, effects, background, unusable body fragments, or duplicate smaller boxes.",
+            "- If two boxes overlap heavily on the same person, keep the larger/clearer box and mark the duplicate NoCharacter.",
+            "- Do not mark a visible secondary character NoCharacter just because another person is also nearby or partly inside the box.",
+            "- Mark silhouettes, tiny background bystanders, or crowd figures as NoCharacter only when they are not visually identifiable enough to track.",
+            "- Do not drop a real face, upper body, back view, masked person, occluded person, or close-up when the person is visually identifiable.",
+            "- Do not output story names. Use visual descriptions like 'red-haired woman in red dress'.",
+            "- The reason must be a short visible-evidence explanation.",
+            "",
+            "Return JSON only using the requested schema.",
+            "",
+            "Metadata JSON:",
+            json.dumps(metadata, ensure_ascii=False, indent=2),
+        ]
+    )
+
+
+def _normalize_gemini_verifier_payload(payload: dict[str, Any], *, expected_count: int) -> list[dict[str, str]]:
+    rows = payload.get("character_boxes")
+    if not isinstance(rows, list):
+        raise ValueError("Gemini verifier response missing character_boxes[]")
+    by_id: dict[str, dict[str, str]] = {}
+    valid_decisions = {
+        "keep_magi",
+        "correct_magi",
+        "drop_not_character",
+        "drop_duplicate",
+        "drop_bystander_or_silhouette",
+        "uncertain_keep",
+    }
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        bbox_id = str(row.get("bbox_id") or "").strip()
+        if not bbox_id:
+            continue
+        decision = str(row.get("decision") or "").strip()
+        if decision not in valid_decisions:
+            decision = "drop_not_character" if _clean_verifier_label(row.get("final_label")) == "NoCharacter" else "uncertain_keep"
+        by_id[bbox_id] = {
+            "bbox_id": bbox_id,
+            "final_label": _clean_verifier_label(row.get("final_label")),
+            "decision": decision,
+            "reason": " ".join(str(row.get("reason") or "").split())[:500],
+        }
+
+    expected_ids = [f"bbox{idx}" for idx in range(1, expected_count + 1)]
+    missing = [bbox_id for bbox_id in expected_ids if bbox_id not in by_id]
+    extra = sorted(set(by_id) - set(expected_ids))
+    if missing or extra:
+        raise ValueError(f"Gemini verifier bbox mismatch: missing={missing} extra={extra}")
+    return [by_id[bbox_id] for bbox_id in expected_ids]
+
+
+def _call_gemini_character_verifier(
+    *,
+    image_obj: Any,
+    characters: list[dict[str, Any]],
+    sample_id: str,
+    model: str,
+    thinking_level: str,
+) -> tuple[list[dict[str, str]], dict[str, int], dict[str, int]]:
+    from google.genai import types
+
+    metadata = {
+        "sample_id": sample_id,
+        "image_size": {"width": int(image_obj.width), "height": int(image_obj.height)},
+        "character_boxes_to_classify_exactly_once": [
+            {
+                "bbox_id": f"bbox{idx + 1}",
+                "character_index": idx,
+                "magi_source_character_id": str(character.get("source_character_id") or ""),
+                "bbox": character.get("bbox"),
+                "score": character.get("score"),
+            }
+            for idx, character in enumerate(characters)
+        ],
+    }
+    clean_bytes, clean_mime, clean_meta = _encode_image_for_gemini(image_obj)
+
+    thinking_enum = getattr(types.ThinkingLevel, str(thinking_level or "HIGH").upper(), types.ThinkingLevel.HIGH)
+    response = _gemini_client_cached().models.generate_content(
+        model=model,
+        contents=[
+            "IMAGE 1: clean page. Use metadata coordinates to locate each bbox region.",
+            types.Part.from_bytes(data=clean_bytes, mime_type=clean_mime),
+            _build_gemini_verifier_prompt(metadata),
+        ],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=GEMINI_CHARACTER_VERIFIER_SCHEMA,
+            media_resolution=types.MediaResolution.MEDIA_RESOLUTION_HIGH,
+            thinking_config=types.ThinkingConfig(
+                thinking_level=thinking_enum,
+                include_thoughts=False,
+            ),
+        ),
+    )
+    payload = json.loads(str(response.text or "{}"))
+    rows = _normalize_gemini_verifier_payload(payload, expected_count=len(characters))
+    usage_meta = getattr(response, "usage_metadata", None)
+    usage = {
+        "input_tokens": int(getattr(usage_meta, "prompt_token_count", 0) or 0) if usage_meta else 0,
+        "output_tokens": int(getattr(usage_meta, "candidates_token_count", 0) or 0) if usage_meta else 0,
+        "reasoning_tokens": int(getattr(usage_meta, "thoughts_token_count", 0) or 0) if usage_meta else 0,
+        "total_tokens": int(getattr(usage_meta, "total_token_count", 0) or 0) if usage_meta else 0,
+    }
+    image_meta = {
+        "input_images": ["clean_image_only"],
+        "uses_coordinate_metadata": True,
+        "clean_image_width": clean_meta["image_width"],
+        "clean_image_height": clean_meta["image_height"],
+        "clean_image_bytes": clean_meta["image_bytes"],
+    }
+    return rows, usage, image_meta
+
+
+def _remap_text_character_associations(associations: object, old_to_new: dict[int, int]) -> list[Any]:
+    remapped: list[Any] = []
+    if not isinstance(associations, list):
+        return remapped
+    for association in associations:
+        if isinstance(association, (list, tuple)) and len(association) >= 2:
+            try:
+                old_character_index = int(association[1])
+            except (TypeError, ValueError):
+                continue
+            if old_character_index not in old_to_new:
+                continue
+            updated = list(association)
+            updated[1] = old_to_new[old_character_index]
+            remapped.append(updated)
+        elif isinstance(association, dict):
+            raw_index = association.get("character_index", association.get("character"))
+            try:
+                old_character_index = int(raw_index)
+            except (TypeError, ValueError):
+                continue
+            if old_character_index not in old_to_new:
+                continue
+            updated = dict(association)
+            updated["character_index"] = old_to_new[old_character_index]
+            remapped.append(updated)
+    return remapped
+
+
+def _apply_gemini_character_verification(
+    *,
+    annotation: dict[str, Any],
+    image_obj: Any,
+    sample_id: str,
+    model: str,
+    thinking_level: str,
+) -> dict[str, Any]:
+    detections = annotation.get("detections") if isinstance(annotation.get("detections"), dict) else {}
+    characters = detections.get("characters") if isinstance(detections.get("characters"), list) else []
+    annotation["verification"] = {
+        "enabled": True,
+        "status": "skipped_no_characters" if not characters else "pending",
+        "provider": "gemini",
+        "model": model,
+        "thinking_level": str(thinking_level or "HIGH").upper(),
+        "prompt_version": GEMINI_CHARACTER_VERIFIER_PROMPT_VERSION,
+    }
+    if not characters:
+        return annotation
+
+    # Gemini verification is mandatory: any failure propagates to the caller's
+    # per-page try/except, which records the page as an error. No fallback to
+    # raw MAGI output.
+    verifier_rows, usage, image_meta = _call_gemini_character_verifier(
+        image_obj=image_obj,
+        characters=characters,
+        sample_id=sample_id,
+        model=model,
+        thinking_level=thinking_level,
+    )
+
+    kept_characters: list[dict[str, Any]] = []
+    old_to_new: dict[int, int] = {}
+    dropped: list[dict[str, Any]] = []
+    for old_index, (character, verifier_row) in enumerate(zip(characters, verifier_rows)):
+        label = verifier_row["final_label"]
+        decision = verifier_row["decision"]
+        should_drop = label == "NoCharacter" or decision.startswith("drop_")
+        audit = {
+            "bbox_id": verifier_row["bbox_id"],
+            "final_label": label,
+            "decision": decision,
+            "reason": verifier_row.get("reason") or "",
+        }
+        if should_drop:
+            dropped.append({"character_index": old_index, **audit})
+            continue
+        updated = dict(character)
+        raw_source_id = str(updated.get("source_character_id") or "")
+        updated["magi_source_character_id"] = raw_source_id
+        updated["source_character_id"] = label
+        updated["gemini_character_label"] = label
+        updated["gemini_verification"] = audit
+        old_to_new[old_index] = len(kept_characters)
+        kept_characters.append(updated)
+
+    detections["characters"] = kept_characters
+    detections["character_cluster_labels"] = [str(character.get("source_character_id") or "") for character in kept_characters]
+    detections["text_character_associations"] = _remap_text_character_associations(
+        detections.get("text_character_associations"), old_to_new
+    )
+    annotation["detections"] = detections
+    annotation["tasks"] = list(dict.fromkeys(list(annotation.get("tasks") or []) + ["gemini_character_verification"]))
+    summary = annotation.get("summary") if isinstance(annotation.get("summary"), dict) else {}
+    summary.update(
+        {
+            "raw_magi_character_count": len(characters),
+            "character_count": len(kept_characters),
+            "dropped_character_count": len(dropped),
+            "character_cluster_count": len(set(detections["character_cluster_labels"])),
+            "text_character_association_count": len(detections["text_character_associations"]),
+        }
+    )
+    annotation["summary"] = summary
+    annotation["verification"].update(
+        {
+            "status": "ok",
+            "character_boxes": verifier_rows,
+            "dropped_characters": dropped,
+            "kept_character_count": len(kept_characters),
+            "dropped_character_count": len(dropped),
+            "usage": usage,
+            "image": image_meta,
+        }
+    )
+    return annotation
 
 
 # ---------------------------------------------------------------------------
@@ -290,7 +668,7 @@ def _annotation_payload(
 
 @app.cls(
     region=MODAL_REGION,
-    gpu="H100",
+    gpu="H200",
     timeout=3600,
     startup_timeout=1500,
     cpu=8.0,
@@ -360,6 +738,12 @@ def _annotate_batch_impl(
     overwrite = bool(payload.get("overwrite", False))
     gpu_batch_size = max(1, int(payload.get("gpu_batch_size") or DEFAULT_GPU_BATCH_SIZE))
     failed_prefix = str(payload.get("failed_prefix") or "datasets/annotations/magi_v3/_failed").strip().strip("/")
+    # Gemini character verification is always-on and mandatory. The only knobs
+    # are the verifier model + thinking level.
+    gemini_verifier_model = str(payload.get("gemini_verifier_model") or DEFAULT_GEMINI_VERIFIER_MODEL).strip()
+    gemini_verifier_thinking_level = str(
+        payload.get("gemini_verifier_thinking_level") or DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL
+    ).strip()
 
     # Skip pages that already have an annotation when overwrite=False.
     todo: list[dict[str, Any]] = []
@@ -380,7 +764,7 @@ def _annotate_batch_impl(
         return {"ok": True, "annotated": [], "skipped": skipped, "errors": []}
 
     # Parallel S3 download — typical page is 100-400 KB, 32 threads keeps the
-    # H100 fed and overlaps with the previous batch's inference under
+    # H200 fed and overlaps with the previous batch's inference under
     # @modal.concurrent(target_inputs=1, max_inputs=2).
     download_start = time.perf_counter()
     images: list[Any] = []
@@ -430,6 +814,13 @@ def _annotate_batch_impl(
                 run_id=run_id,
                 git_sha=git_sha,
             )
+            annotation = _apply_gemini_character_verification(
+                annotation=annotation,
+                image_obj=image_obj,
+                sample_id=sample_id,
+                model=gemini_verifier_model,
+                thinking_level=gemini_verifier_thinking_level,
+            )
             _put_jsonl_object(bucket, output_key, annotation)
             annotated.append(
                 {
@@ -437,6 +828,7 @@ def _annotate_batch_impl(
                     "page_key": source.get("key"),
                     "output_key": output_key,
                     "status": "ok",
+                    "verification_status": annotation["verification"]["status"],
                     "summary": annotation["summary"],
                 }
             )
@@ -490,7 +882,7 @@ def _annotate_batch_impl(
 
 @app.function(
     region=MODAL_REGION,
-    gpu="H100",
+    gpu="H200",
     timeout=3600,
     startup_timeout=1500,
     cpu=8.0,
@@ -508,7 +900,7 @@ def benchmark_batch_sizes(
     warmup_batch_size: int = 1,
     candidate_repeats: int = 2,
 ) -> dict[str, Any]:
-    """Run a batch-size sweep on one H100 to find the throughput peak.
+    """Run a batch-size sweep on one H200 to find the throughput peak.
 
     Loads ``n_images`` real pages from S3, warms up, then times each batch
     size in ``batch_sizes`` for ``candidate_repeats`` iterations each.
@@ -637,8 +1029,17 @@ def run_benchmark(
 
 
 @app.local_entrypoint()
-def smoke_test(page_s3_uri: str = ""):
-    """Annotate one page end-to-end as a deploy sanity check."""
+def smoke_test(
+    page_s3_uri: str = "",
+    gemini_verifier_model: str = DEFAULT_GEMINI_VERIFIER_MODEL,
+    gemini_verifier_thinking_level: str = DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL,
+):
+    """Annotate one page end-to-end as a deploy sanity check.
+
+    Gemini character verification is always part of the pipeline; this entrypoint
+    exposes only the verifier model/thinking-level so the smoke test mirrors a
+    real production run.
+    """
     if not page_s3_uri:
         page_s3_uri = f"s3://{S3_BUCKET_DEFAULT}/datasets/pages/filtered/jujutsu-kaisen/0001.jpg"
     bucket, page_key = _parse_s3_uri(page_s3_uri)
@@ -650,6 +1051,8 @@ def smoke_test(page_s3_uri: str = ""):
         "run_id": "smoke",
         "overwrite": True,
         "gpu_batch_size": 1,
+        "gemini_verifier_model": gemini_verifier_model,
+        "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
         "pages": [
             {
                 "chapter": chapter,
@@ -674,8 +1077,14 @@ def annotate_manifest_local(
     overwrite: bool = False,
     gpu_batch_size: int = DEFAULT_GPU_BATCH_SIZE,
     pages_per_shard: int = 16,
+    gemini_verifier_model: str = DEFAULT_GEMINI_VERIFIER_MODEL,
+    gemini_verifier_thinking_level: str = DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL,
 ):
-    """Read a JSONL manifest of pages and fan them out across the H100 pool."""
+    """Read a JSONL manifest of pages and fan them out across the H200 pool.
+
+    Gemini character verification is a mandatory second stage. A Gemini failure
+    on a page fails that page; it is recorded in the per-run ``_failed/`` prefix.
+    """
     manifest = Path(manifest_path)
     if not manifest.exists():
         raise FileNotFoundError(f"manifest not found: {manifest}")
@@ -699,6 +1108,8 @@ def annotate_manifest_local(
             "git_sha": git_sha,
             "overwrite": overwrite,
             "gpu_batch_size": gpu_batch_size,
+            "gemini_verifier_model": gemini_verifier_model,
+            "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
             "pages": rows[start : start + shard_size],
         }
         for start in range(0, len(rows), shard_size)
@@ -713,6 +1124,8 @@ def annotate_manifest_local(
                 "shards": len(shards),
                 "shard_size": shard_size,
                 "gpu_batch_size": gpu_batch_size,
+                "gemini_verifier_model": gemini_verifier_model,
+                "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
                 "max_containers": DEFAULT_MAX_CONTAINERS,
             }
         ),

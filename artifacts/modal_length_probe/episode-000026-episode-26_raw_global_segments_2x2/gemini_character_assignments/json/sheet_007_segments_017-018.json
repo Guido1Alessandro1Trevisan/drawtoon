@@ -1,0 +1,92 @@
+{
+  "sheet_id": "sheet_007_segments_017-018",
+  "local_characters": [
+    {
+      "local_character_id": "local_character_1",
+      "description": "A young boy named Mikey with messy blond or light brown hair.",
+      "distinguishing_features": [
+        "blond hair",
+        "light-colored button-down shirt",
+        "somber expression"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_007_segments_017-018::char_1"
+      ]
+    },
+    {
+      "local_character_id": "local_character_2",
+      "description": "A woman with reddish-brown hair and a concerned expression.",
+      "distinguishing_features": [
+        "reddish-brown hair styled up",
+        "red dress",
+        "grey gloves",
+        "thin necklace"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_007_segments_017-018::char_0"
+      ]
+    },
+    {
+      "local_character_id": "local_character_3",
+      "description": "A small creature or stuffed animal with orange and grey/white fur.",
+      "distinguishing_features": [
+        "orange fur on top",
+        "grey/white fur on bottom",
+        "held by the boy"
+      ],
+      "representative_magi_box_ids": [
+        "sheet_007_segments_017-018::char_2"
+      ]
+    }
+  ],
+  "box_assignments": [
+    {
+      "magi_box_id": "sheet_007_segments_017-018::char_0",
+      "local_character_id": "local_character_2",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "red hair and red dress",
+        "speech bubble tails tail0 and tail1 point towards her"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_007_segments_017-018::char_1",
+      "local_character_id": "local_character_1",
+      "confidence": 1.0,
+      "visible_extent": "upper_body",
+      "evidence": [
+        "blond hair and light shirt",
+        "speech bubble tail tail2 points towards him"
+      ]
+    },
+    {
+      "magi_box_id": "sheet_007_segments_017-018::char_2",
+      "local_character_id": "local_character_3",
+      "confidence": 1.0,
+      "visible_extent": "full_body",
+      "evidence": [
+        "distinct orange and grey fur pattern",
+        "positioned in the boy's arms"
+      ]
+    }
+  ],
+  "ambiguous_assignments": [],
+  "quality_checks": {
+    "all_boxes_assigned_once": true,
+    "no_magi_id_global_assumption": true,
+    "uncertain_cases_marked": true,
+    "notes": "The characters are clearly distinct across the two panels. The creature held by the boy is assigned as a separate local character as it has its own Magi box."
+  },
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "elapsed_sec": 15.39,
+    "usage": {
+      "input_tokens": 1966,
+      "output_tokens": 822,
+      "reasoning_tokens": 1978,
+      "total_tokens": 4766
+    }
+  }
+}

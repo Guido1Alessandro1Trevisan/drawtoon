@@ -31,6 +31,7 @@ DEFAULT_MANGA_METADATA_REF = os.environ.get(
 DEFAULT_MAX_CONCURRENCY = int(os.environ.get("DEFAULT_MANGA_CAPTION_MAX_CONCURRENCY", "200"))
 MAX_CHARACTERS_PER_PANEL = 5
 MAX_TEXT_REGIONS_PER_PANEL = 7
+MAX_TAILS_PER_PANEL = 7
 MIN_PANEL_ENTITY_OVERLAP_RATIO = float(os.environ.get("MIN_PANEL_ENTITY_OVERLAP_RATIO", "0.05"))
 SUPPORTED_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 WORKFLOW_ROOT = Path(__file__).resolve().parents[1]
@@ -545,6 +546,23 @@ def _annotation_panels(annotation: dict[str, Any], *, width: int, height: int) -
             }
         )
 
+    raw_tails = detections.get("tails") if isinstance(detections.get("tails"), list) else []
+    tail_rows = []
+    for source_index, tail in enumerate(raw_tails):
+        if not isinstance(tail, dict):
+            continue
+        box = _coerce_pixel_box(tail.get("bbox") or tail.get("bbox_norm"), width=width, height=height)
+        if box is None:
+            continue
+        tail_rows.append(
+            {
+                "source_tail_index": source_index,
+                "bbox": [int(round(v)) for v in box],
+                "bbox_norm": _bbox_norm(box, width=width, height=height),
+                "_pixel_box": box,
+            }
+        )
+
     if not raw_panels:
         raw_panels = [{"bbox": [0, 0, width, height], "panel_id": "full_page"}]
 
@@ -589,6 +607,21 @@ def _annotation_panels(annotation: dict[str, Any], *, width: int, height: int) -
                     "panel_bbox_norm": panel_relative,
                 }
             )
+        panel_tails = []
+        for local_index, tail in enumerate(row for row in tail_rows if _entity_overlaps_panel(row["_pixel_box"], panel_box)):
+            if local_index >= MAX_TAILS_PER_PANEL:
+                break
+            panel_relative = _panel_relative_norm_box(tail["_pixel_box"], panel_box)
+            panel_tails.append(
+                {
+                    "id": f"Tail {local_index + 1}",
+                    "tail_region_index": local_index,
+                    "source_tail_index": tail["source_tail_index"],
+                    "bbox": tail["bbox"],
+                    "bbox_norm": tail["bbox_norm"],
+                    "panel_bbox_norm": panel_relative,
+                }
+            )
         panels.append(
             {
                 "panel_index": panel_index,
@@ -597,6 +630,7 @@ def _annotation_panels(annotation: dict[str, Any], *, width: int, height: int) -
                 "bbox_norm": _bbox_norm(panel_box, width=width, height=height),
                 "characters": panel_characters,
                 "text_bubbles": panel_texts,
+                "tails": panel_tails,
             }
         )
     return panels

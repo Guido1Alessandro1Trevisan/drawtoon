@@ -1,0 +1,11 @@
+{
+  "bucket": "drawtoon",
+  "dedupe_fields": [
+    "url"
+  ],
+  "output": "workflows/download_scraper/manifests/rfco_batman_marvel_issues_1_250_20260518.jsonl",
+  "prefix": "workflows/download_scraper/manifests/rfco_batman_marvel_listing_1_250_20260518T174314Z/issue_shards/",
+  "raw_count": 1138,
+  "row_count": 1135,
+  "shard_count": 269
+}

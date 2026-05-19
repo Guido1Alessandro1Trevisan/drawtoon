@@ -1657,8 +1657,11 @@ class BaseSDTrainProcess(BaseTrainProcess):
         return latest_path
 
     def load_training_state_from_metadata(self, path):
-        if not self.accelerator.is_main_process:
-            return
+        # Every DDP rank must run this so step_num/start_step stay in sync — the
+        # previous early-return on non-main ranks left ranks 1..N at step_num=0
+        # while rank 0 advanced to the resumed step. The result was a divergent
+        # `is_save_step` predicate and a 30-min ALLREDUCE barrier hang at the
+        # next save boundary.
         if path is not None and self.network_config is not None and path == self.network_config.pretrained_lora_path:
             # dont load metadata from pretrained lora
             return
@@ -1679,6 +1682,21 @@ class BaseSDTrainProcess(BaseTrainProcess):
                 self.epoch_num = meta['training_info']['epoch']
             self.start_step = self.step_num
             print_acc(f"Found step {self.step_num} in metadata, starting from there")
+
+        # Belt-and-braces: even if all ranks read the same metadata file off the
+        # same local disk, broadcast from rank 0 so any drift (e.g. NFS, partial
+        # writes, rank-only mounts) cannot desync the save predicate.
+        if self.accelerator.num_processes > 1:
+            import torch.distributed as dist
+            sync_tensor = torch.tensor(
+                [int(self.step_num), int(self.epoch_num), int(self.start_step)],
+                device=self.accelerator.device,
+                dtype=torch.long,
+            )
+            dist.broadcast(sync_tensor, src=0)
+            self.step_num = int(sync_tensor[0].item())
+            self.epoch_num = int(sync_tensor[1].item())
+            self.start_step = int(sync_tensor[2].item())
 
     def load_weights(self, path):
         if self.network is not None:

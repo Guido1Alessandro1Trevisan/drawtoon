@@ -1,0 +1,128 @@
+{
+  "sheet_id": "sheet_020_segments_048-049",
+  "bbox_assignments": {
+    "bbox1": "red-haired woman in red dress",
+    "bbox2": "white-haired injured man",
+    "bbox3": "red-haired woman in red dress",
+    "bbox4": "red-haired woman in red dress",
+    "bbox5": "red-haired woman in red dress"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the red-haired woman in the top panel."
+    },
+    "bbox2": {
+      "final_label": "white-haired injured man",
+      "decision": "correct_label",
+      "reason": "The previous label in metadata was wrong; this box clearly contains the white-haired man with injuries."
+    },
+    "bbox3": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "correct_label",
+      "reason": "The previous label in metadata was wrong; this box identifies the red-haired woman in the middle panel."
+    },
+    "bbox4": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the back of the red-haired woman in the elevator panel."
+    },
+    "bbox5": {
+      "final_label": "red-haired woman in red dress",
+      "decision": "keep_prior",
+      "reason": "Correctly identifies the red-haired woman in the bottom panel."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        355,
+        179,
+        618,
+        532
+      ],
+      "area": 92839,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        433,
+        765,
+        647,
+        1285
+      ],
+      "area": 111280,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "0",
+      "bbox": [
+        327,
+        878,
+        524,
+        1340
+      ],
+      "area": 91014,
+      "previous_named_label": "white-haired man with open shirt",
+      "previous_stable_label": "white-haired injured man"
+    },
+    {
+      "bbox_id": "bbox4",
+      "character_index": 3,
+      "source_character_id": "0",
+      "bbox": [
+        99,
+        532,
+        222,
+        1092
+      ],
+      "area": 68880,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    },
+    {
+      "bbox_id": "bbox5",
+      "character_index": 4,
+      "source_character_id": "0",
+      "bbox": [
+        325,
+        1471,
+        619,
+        1918
+      ],
+      "area": 131418,
+      "previous_named_label": "red-haired woman in red dress",
+      "previous_stable_label": "red-haired woman in red dress"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 3738,
+      "output_tokens": 413,
+      "reasoning_tokens": 1179,
+      "total_tokens": 5330
+    }
+  }
+}

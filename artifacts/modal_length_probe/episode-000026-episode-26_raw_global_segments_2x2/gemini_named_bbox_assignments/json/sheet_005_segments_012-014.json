@@ -1,0 +1,33 @@
+{
+  "sheet_id": "sheet_005_segments_012-014",
+  "bbox_assignments": {
+    "bbox1": "brown-haired woman with blue eyes and a white mask"
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        17,
+        323,
+        464
+      ],
+      "area": 143040
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "label_mode": "direct_descriptive_labels",
+    "allowed_drop_label": "NoCharacter",
+    "overlap_rule": "drop smaller duplicate same-character boxes",
+    "usage": {
+      "input_tokens": 1775,
+      "output_tokens": 44,
+      "reasoning_tokens": 776,
+      "total_tokens": 2595
+    }
+  }
+}

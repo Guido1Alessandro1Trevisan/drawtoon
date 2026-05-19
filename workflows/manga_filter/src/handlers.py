@@ -17,6 +17,20 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
+from .manhwa_raw_filter import (
+    DEFAULT_GEMINI_FILTER_MODEL,
+    DEFAULT_MANHWA_RAW_PROMPT_FILENAME,
+    classify_raw_page,
+)
+from .manhwa_raw_sheets import (
+    MANHWA_RAW_GUTTER_COLOR_TOLERANCE,
+    MANHWA_RAW_GUTTER_MIN_HEIGHT_PX,
+    MANHWA_RAW_MIN_SEGMENT_HEIGHT_PX,
+    MANHWA_RAW_SHEET_PADDING_PX,
+    MANHWA_RAW_SHEET_SPAN_THRESHOLD_PX,
+    build_and_write_chapter_sheets,
+)
+
 
 DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "us-east-1"
 DATASET_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
@@ -36,8 +50,44 @@ MANHWA_DIAGNOSTIC_WIDTH = int(os.environ.get("MANHWA_DIAGNOSTIC_WIDTH", "896"))
 MANHWA_FULL_THUMB_HEIGHT = int(os.environ.get("MANHWA_FULL_THUMB_HEIGHT", "640"))
 MANHWA_EDGE_CROP_SOURCE_PX = int(os.environ.get("MANHWA_EDGE_CROP_SOURCE_PX", "1536"))
 MANHWA_DIAGNOSTIC_JPEG_QUALITY = int(os.environ.get("MANHWA_DIAGNOSTIC_JPEG_QUALITY", "82"))
-MANHWA_CHAIN_CONFIDENCE_THRESHOLD = float(os.environ.get("MANHWA_CHAIN_CONFIDENCE_THRESHOLD", "0.75"))
+MANHWA_STRIP_JPEG_QUALITY = int(os.environ.get("MANHWA_STRIP_JPEG_QUALITY", "92"))
+MANHWA_WRITE_PAIR_ARTIFACTS = os.environ.get("MANHWA_WRITE_PAIR_ARTIFACTS", "0").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
+MANHWA_WRITE_STRIPS = os.environ.get("MANHWA_WRITE_STRIPS", "1").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
+MANHWA_WRITE_FILTERED_PAGES = os.environ.get("MANHWA_WRITE_FILTERED_PAGES", "0").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
+MANHWA_CLEANUP_INTERNAL_ARTIFACTS = os.environ.get(
+    "MANHWA_CLEANUP_INTERNAL_ARTIFACTS",
+    "1",
+).strip().lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
 SUPPORTED_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+NON_MANGA_SUFFIXES = ("_manwa", "_manhwa", "_manha", "_manhua", "_comic")
+KNOWN_PLAIN_MANGA_CHAPTERS = {
+    "jujutsu-kaisen",
+    "monster",
+    "my-hero-academia",
+    "the-fragrant-flower-blooms-with-dignity",
+    "vagabond",
+    "vinland-saga",
+}
 S3_MAX_ATTEMPTS = 10
 
 CLASSIFICATION_SCHEMA = {
@@ -70,55 +120,27 @@ CLASSIFICATION_SCHEMA = {
     "additionalProperties": False,
 }
 
-MANHWA_PAGE_TYPES = [
-    "story",
-    "title_or_chapter",
-    "cover_or_illustration",
-    "credits_or_text",
-    "blank_or_low_content",
-    "screenshot_or_ui",
-    "other_non_story",
-    "uncertain",
-]
+MANHWA_PAGE_DECISIONS = ["Pass", "Fail"]
 
 MANHWA_PAIR_SCHEMA = {
     "type": "object",
     "properties": {
-        "left_page_type": {"type": "string", "enum": MANHWA_PAGE_TYPES},
-        "right_page_type": {"type": "string", "enum": MANHWA_PAGE_TYPES},
-        "left_is_story_page": {"type": "boolean"},
-        "right_is_story_page": {"type": "boolean"},
-        "left_page_confidence": {"type": "number", "description": "0.0 to 1.0 confidence for the left page type."},
-        "right_page_confidence": {"type": "number", "description": "0.0 to 1.0 confidence for the right page type."},
-        "continues_same_panel": {
-            "type": "boolean",
-            "description": "True when the bottom of the left page and top of the right page are one continuous panel/artwork.",
-        },
-        "chain_break": {
-            "type": "boolean",
-            "description": "True when this pair should break hard same-panel chains.",
-        },
-        "confidence": {
-            "type": "number",
-            "description": "0.0 to 1.0 confidence for the same-panel continuation decision.",
-        },
-        "reason": {
+        "page_1": {
             "type": "string",
-            "description": "Short visual reason for the page-type and continuation decisions.",
+            "enum": MANHWA_PAGE_DECISIONS,
+            "description": "Pass if the left page is real story/comic content; Fail for title, credits, blank, UI, ads, or other non-story pages.",
+        },
+        "page_2": {
+            "type": "string",
+            "enum": MANHWA_PAGE_DECISIONS,
+            "description": "Pass if the right page is real story/comic content; Fail for title, credits, blank, UI, ads, or other non-story pages.",
+        },
+        "is_chain": {
+            "type": "boolean",
+            "description": "True only when both pages pass and the bottom/top boundary is the same split panel/artwork.",
         },
     },
-    "required": [
-        "left_page_type",
-        "right_page_type",
-        "left_is_story_page",
-        "right_is_story_page",
-        "left_page_confidence",
-        "right_page_confidence",
-        "continues_same_panel",
-        "chain_break",
-        "confidence",
-        "reason",
-    ],
+    "required": ["page_1", "page_2", "is_chain"],
     "additionalProperties": False,
 }
 
@@ -218,6 +240,15 @@ def put_s3_json(bucket: str, key: str, payload: object) -> None:
     )
 
 
+def put_s3_bytes(bucket: str, key: str, body: bytes, *, content_type: str) -> None:
+    _s3_client().put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType=content_type,
+    )
+
+
 def put_s3_jsonl(bucket: str, key: str, rows: list[dict[str, Any]]) -> None:
     body = "".join(_json_dumps(row) + "\n" for row in rows).encode("utf-8")
     _s3_client().put_object(
@@ -236,6 +267,32 @@ def head_s3_object(bucket: str, key: str) -> dict[str, Any] | None:
         if code in {"404", "NoSuchKey", "NotFound"}:
             return None
         raise
+
+
+def delete_s3_prefix(bucket: str, prefix: str) -> dict[str, Any]:
+    normalized_prefix = str(prefix or "").strip().lstrip("/")
+    if not normalized_prefix:
+        raise ValueError("Refusing to delete empty S3 prefix")
+    paginator = _s3_client().get_paginator("list_objects_v2")
+    deleted = 0
+    batches = 0
+    batch: list[dict[str, str]] = []
+    for page in paginator.paginate(Bucket=bucket, Prefix=normalized_prefix):
+        for item in page.get("Contents", []):
+            key = str(item.get("Key") or "")
+            if not key:
+                continue
+            batch.append({"Key": key})
+            if len(batch) >= 1000:
+                _s3_client().delete_objects(Bucket=bucket, Delete={"Objects": batch, "Quiet": True})
+                deleted += len(batch)
+                batches += 1
+                batch = []
+    if batch:
+        _s3_client().delete_objects(Bucket=bucket, Delete={"Objects": batch, "Quiet": True})
+        deleted += len(batch)
+        batches += 1
+    return {"prefix": normalized_prefix, "deleted_objects": deleted, "delete_batches": batches}
 
 
 def copy_s3_object(source_bucket: str, source_key: str, output_bucket: str, output_key: str) -> None:
@@ -507,6 +564,15 @@ def _bedrock_preflight_enabled(event: dict[str, Any]) -> bool:
     return str(value).strip().lower() not in {"0", "false", "no", "off"}
 
 
+def _bool_event(event: dict[str, Any], key: str, *, default: bool) -> bool:
+    value = event.get(key)
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() not in {"0", "false", "no", "off"}
+
+
 def bedrock_converse_tool(
     *,
     model: str,
@@ -593,16 +659,48 @@ def build_source_manifest(
 
 def _normalize_filter_mode(value: object) -> str:
     mode = str(value or DEFAULT_FILTER_MODE).strip().lower()
-    aliases = {"manwa": "manhwa", "webtoon": "manhwa"}
+    aliases = {
+        "manwa": "manhwa",
+        "manha": "manhwa",
+        "manhua": "manhwa",
+        "webtoon": "manhwa",
+        "raw_manwa": "manhwa_raw",
+        "raw_manhwa": "manhwa_raw",
+        "manwa_raw": "manhwa_raw",
+        "manhwa_raw": "manhwa_raw",
+        "raw_webtoon": "manhwa_raw",
+        "webtoon_raw": "manhwa_raw",
+    }
     mode = aliases.get(mode, mode)
-    if mode not in {"manga", "manhwa"}:
-        raise ValueError(f"Unsupported filter mode={mode!r}; expected manga or manhwa")
+    if mode not in {"manga", "manhwa", "manhwa_raw"}:
+        raise ValueError(f"Unsupported filter mode={mode!r}; expected manga, manhwa, or manhwa_raw")
     return mode
 
 
 def _natural_sort_key(value: object) -> list[object]:
     parts = re.split(r"(\d+)", str(value or ""))
     return [int(part) if part.isdigit() else part.lower() for part in parts]
+
+
+def normalize_manga_chapter_name(chapter: str) -> str:
+    if (
+        not chapter
+        or chapter.startswith("_")
+        or chapter.endswith("_manga")
+        or chapter.endswith(NON_MANGA_SUFFIXES)
+    ):
+        return chapter
+    if chapter.endswith(("_mangazero", "_manga109")) or chapter in KNOWN_PLAIN_MANGA_CHAPTERS:
+        return f"{chapter}_manga"
+    return chapter
+
+
+def normalize_manga_relative_path(relative_path: str) -> str:
+    parts = [part for part in Path(relative_path).as_posix().split("/") if part]
+    if not parts:
+        return relative_path
+    parts[0] = normalize_manga_chapter_name(parts[0])
+    return "/".join(parts)
 
 
 def _source_row_from_s3_obj(obj: dict[str, Any]) -> dict[str, Any]:
@@ -619,12 +717,21 @@ def _manhwa_chapter_key(relative_path: str) -> str:
     if len(parts) >= 3:
         return "/".join(parts[:-1])
     if len(parts) >= 2:
+        stem = Path(parts[-1]).stem
+        if "__page-" in stem:
+            episode_key = stem.split("__page-", 1)[0].strip()
+            if episode_key:
+                return f"{parts[0]}/{episode_key}"
         return parts[0]
     return "unknown"
 
 
 def _manhwa_pair_status_key(status_prefix: str, chapter_key: str, pair_index: int) -> str:
     return f"{status_prefix.rstrip('/')}/{chapter_key}/_pairs/pair_{int(pair_index):05d}.json"
+
+
+def _manhwa_pair_artifact_key(artifact_prefix: str, chapter_key: str, pair_index: int) -> str:
+    return f"{artifact_prefix.rstrip('/')}/adjacent_pairs/{chapter_key}/pair_{int(pair_index):05d}.jpg"
 
 
 def build_manhwa_pair_manifest(
@@ -665,7 +772,7 @@ def build_manhwa_pair_manifest(
         pages = sorted(chapter_pages[chapter_key], key=lambda item: _natural_sort_key(item["relative_path"]))
         if len(pages) < 2:
             continue
-        for pair_index, (left, right) in enumerate(zip(pages, pages[1:], strict=False)):
+        for pair_index, (left, right) in enumerate(zip(pages, pages[1:])):
             manifest_rows.append(
                 {
                     "row_type": "manhwa_page_pair",
@@ -692,18 +799,31 @@ def prepare_manga_filter_config(event: dict[str, Any], _context: Any) -> dict[st
 
     mode = _normalize_filter_mode(event.get("mode"))
     run_id = str(event.get("run_id") or "").strip() or make_run_token()
-    model = str(event.get("model") or DEFAULT_CLASSIFICATION_MODEL).strip()
-    default_prompt = DEFAULT_MANHWA_PROMPT_FILENAME if mode == "manhwa" else DEFAULT_PROMPT_FILENAME
+    requested_model = str(event.get("model") or "").strip()
+    if mode == "manhwa_raw" and (not requested_model or requested_model == DEFAULT_CLASSIFICATION_MODEL):
+        model = DEFAULT_GEMINI_FILTER_MODEL
+    else:
+        model = requested_model or DEFAULT_CLASSIFICATION_MODEL
+    if mode == "manhwa_raw":
+        default_prompt = DEFAULT_MANHWA_RAW_PROMPT_FILENAME
+    elif mode == "manhwa":
+        default_prompt = DEFAULT_MANHWA_PROMPT_FILENAME
+    else:
+        default_prompt = DEFAULT_PROMPT_FILENAME
     prompt_filename = str(event.get("prompt_filename") or default_prompt).strip()
     prompt = load_prompt_text(prompt_filename)
 
-    preflight = (
-        _bedrock_model_access_probe(model=model)
-        if _bedrock_preflight_enabled(event)
-        else {"status": "disabled", "model": model}
-    )
+    if mode == "manhwa_raw":
+        preflight = {"status": "not_applicable", "provider": "gemini", "model": model, "thinking": "none"}
+    else:
+        preflight = (
+            _bedrock_model_access_probe(model=model)
+            if _bedrock_preflight_enabled(event)
+            else {"status": "disabled", "model": model}
+        )
     status_prefix = f"{output_prefix.rstrip('/')}/_status"
     job_prefix = f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(run_id)}"
+    artifact_prefix = str(event.get("artifact_prefix") or f"{output_prefix.rstrip('/')}/_artifacts/{sanitize_s3_key_component(run_id)}").strip().strip("/")
     include_relative_path_regex = str(event.get("include_relative_path_regex") or "").strip()
     worker_config_key = f"{job_prefix}/worker_config.json"
     manifest_key = f"{job_prefix}/source_manifest.jsonl"
@@ -727,13 +847,17 @@ def prepare_manga_filter_config(event: dict[str, Any], _context: Any) -> dict[st
         "input_prefix": input_prefix,
         "output_prefix": output_prefix,
         "status_prefix": status_prefix,
+        "artifact_prefix": artifact_prefix,
         "include_relative_path_regex": include_relative_path_regex,
         "model": model,
         "prompt_filename": prompt_filename,
         "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
         "timeout_seconds": float(event.get("timeout_seconds") or 60.0),
         "retries": int(event["retries"]) if event.get("retries") is not None else 5,
-        "max_output_tokens": max(1, int(event.get("max_output_tokens") or (220 if mode == "manhwa" else 160))),
+        "max_output_tokens": max(
+            1,
+            int(event.get("max_output_tokens") or (16 if mode == "manhwa_raw" else 80 if mode == "manhwa" else 160)),
+        ),
         "overwrite": bool(event.get("overwrite", False)),
         "git_sha": str(event.get("git_sha") or "").strip(),
         "run_id": run_id,
@@ -743,12 +867,42 @@ def prepare_manga_filter_config(event: dict[str, Any], _context: Any) -> dict[st
             "full_thumb_height": max(128, int(event.get("manhwa_full_thumb_height") or MANHWA_FULL_THUMB_HEIGHT)),
             "edge_crop_source_px": max(256, int(event.get("manhwa_edge_crop_source_px") or MANHWA_EDGE_CROP_SOURCE_PX)),
             "jpeg_quality": max(40, min(95, int(event.get("manhwa_jpeg_quality") or MANHWA_DIAGNOSTIC_JPEG_QUALITY))),
-            "chain_confidence_threshold": max(
-                0.0,
-                min(
-                    1.0,
-                    float(event.get("manhwa_chain_confidence_threshold") or MANHWA_CHAIN_CONFIDENCE_THRESHOLD),
-                ),
+            "strip_jpeg_quality": max(
+                40,
+                min(95, int(event.get("manhwa_strip_jpeg_quality") or MANHWA_STRIP_JPEG_QUALITY)),
+            ),
+            "write_pair_artifacts": _bool_event(
+                event,
+                "manhwa_write_pair_artifacts",
+                default=MANHWA_WRITE_PAIR_ARTIFACTS,
+            ),
+            "write_strips": _bool_event(event, "manhwa_write_strips", default=MANHWA_WRITE_STRIPS),
+            "write_filtered_pages": _bool_event(
+                event,
+                "manhwa_write_filtered_pages",
+                default=MANHWA_WRITE_FILTERED_PAGES,
+            ),
+            "cleanup_internal_artifacts": _bool_event(
+                event,
+                "manhwa_cleanup_internal_artifacts",
+                default=MANHWA_CLEANUP_INTERNAL_ARTIFACTS,
+            ),
+            "raw_gutter_min_height_px": max(
+                4,
+                int(event.get("manhwa_raw_gutter_min_height_px") or MANHWA_RAW_GUTTER_MIN_HEIGHT_PX),
+            ),
+            "raw_gutter_color_tolerance": max(
+                0,
+                int(event.get("manhwa_raw_gutter_color_tolerance") or MANHWA_RAW_GUTTER_COLOR_TOLERANCE),
+            ),
+            "raw_min_segment_height_px": max(
+                16,
+                int(event.get("manhwa_raw_min_segment_height_px") or MANHWA_RAW_MIN_SEGMENT_HEIGHT_PX),
+            ),
+            "raw_sheet_padding_px": max(0, int(event.get("manhwa_raw_sheet_padding_px") or MANHWA_RAW_SHEET_PADDING_PX)),
+            "raw_sheet_span_threshold_px": max(
+                64,
+                int(event.get("manhwa_raw_sheet_span_threshold_px") or MANHWA_RAW_SHEET_SPAN_THRESHOLD_PX),
             ),
         },
     }
@@ -767,6 +921,7 @@ def prepare_manga_filter_config(event: dict[str, Any], _context: Any) -> dict[st
             "bucket": bucket,
             "output_prefix": output_prefix,
             "status_prefix": status_prefix,
+            "artifact_prefix": artifact_prefix,
         },
         "worker_config": {"bucket": bucket, "key": worker_config_key},
         "audit": {"bucket": audit_bucket, "prefix": audit_prefix},
@@ -991,6 +1146,102 @@ def _build_manhwa_pair_diagnostic_image(
     return {"image": {"format": "jpeg", "source": {"bytes": encoded}}}, meta
 
 
+def _build_manhwa_pair_review_sheet(
+    *,
+    left_bytes: bytes,
+    right_bytes: bytes,
+    pair: dict[str, Any],
+    config: dict[str, Any],
+) -> tuple[bytes, dict[str, Any]]:
+    from PIL import Image, ImageDraw
+
+    manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+    sheet_width = max(256, int(manhwa_config.get("diagnostic_width") or MANHWA_DIAGNOSTIC_WIDTH))
+    edge_crop_source_px = max(256, int(manhwa_config.get("edge_crop_source_px") or MANHWA_EDGE_CROP_SOURCE_PX))
+    jpeg_quality = max(40, min(95, int(manhwa_config.get("jpeg_quality") or MANHWA_DIAGNOSTIC_JPEG_QUALITY)))
+
+    with Image.open(io.BytesIO(left_bytes)) as left_image, Image.open(io.BytesIO(right_bytes)) as right_image:
+        left = left_image.convert("RGB")
+        right = right_image.convert("RGB")
+        left_size = left.size
+        right_size = right.size
+
+        gutter = max(8, sheet_width // 56)
+        label_height = 28
+        content_width = max(96, sheet_width - gutter * 2)
+        guide_width = max(4, content_width // 160)
+        crop_max_height = max(384, int(manhwa_config.get("review_crop_max_height") or MANHWA_FULL_THUMB_HEIGHT * 2))
+
+        left_bottom = _fit_rgb_image(
+            _edge_crop(left, edge="bottom", source_px=edge_crop_source_px),
+            max_width=content_width,
+            max_height=crop_max_height,
+        )
+        right_top = _fit_rgb_image(
+            _edge_crop(right, edge="top", source_px=edge_crop_source_px),
+            max_width=content_width,
+            max_height=crop_max_height,
+        )
+        ImageDraw.Draw(left_bottom).line(
+            [(0, left_bottom.height - 1), (left_bottom.width, left_bottom.height - 1)],
+            fill=(220, 0, 0),
+            width=guide_width,
+        )
+        ImageDraw.Draw(right_top).line(
+            [(0, 0), (right_top.width, 0)],
+            fill=(220, 0, 0),
+            width=guide_width,
+        )
+
+        left_name = Path(str(((pair.get("left") or {}) if isinstance(pair.get("left"), dict) else {}).get("relative_path") or "")).name
+        right_name = Path(str(((pair.get("right") or {}) if isinstance(pair.get("right"), dict) else {}).get("relative_path") or "")).name
+        sections = [
+            (f"left bottom edge: {left_name}", left_bottom),
+            (f"right top edge: {right_name}", right_top),
+        ]
+        canvas_height = gutter + sum(label_height + image.height + gutter for _, image in sections)
+        canvas = Image.new("RGB", (sheet_width, canvas_height), "white")
+        draw = ImageDraw.Draw(canvas)
+        y = gutter
+        for label, image in sections:
+            draw.text((gutter, y), label[:120], fill=(0, 0, 0))
+            y += label_height
+            x = max(0, (sheet_width - image.width) // 2)
+            canvas.paste(image, (x, y))
+            y += image.height + gutter
+
+    encoded = b""
+    used_quality = jpeg_quality
+    for quality in (jpeg_quality, 76, 70, 64, 58, 52):
+        output = io.BytesIO()
+        canvas.save(output, format="JPEG", quality=quality, optimize=True)
+        encoded = output.getvalue()
+        used_quality = quality
+        if len(encoded) <= BEDROCK_MAX_IMAGE_BYTES:
+            break
+    if len(encoded) > BEDROCK_MAX_IMAGE_BYTES:
+        raise RuntimeError(
+            f"Manhwa review sheet could not be encoded under Bedrock image limit "
+            f"({len(encoded)} bytes > {BEDROCK_MAX_IMAGE_BYTES} bytes)"
+        )
+    return encoded, {
+        "artifact_type": "adjacent_pair_boundary_review_sheet",
+        "image_format": "jpeg",
+        "image_bytes": len(encoded),
+        "image_width": canvas.width,
+        "image_height": canvas.height,
+        "jpeg_quality": used_quality,
+        "edge_crop_source_px": edge_crop_source_px,
+        "boundary_guide": "red line marks the bottom edge of the left page and top edge of the right page",
+        "left_source_width": left_size[0],
+        "left_source_height": left_size[1],
+        "right_source_width": right_size[0],
+        "right_source_height": right_size[1],
+        "full_page_overviews": False,
+        "aspect_ratio_preserved": True,
+    }
+
+
 def _classify_manhwa_pair(
     *,
     row_index: int,
@@ -1024,33 +1275,19 @@ def _classify_manhwa_pair(
                     "are connected parts of the same continuous panel."
                 ),
                 tool_schema=MANHWA_PAIR_SCHEMA,
-                max_output_tokens=max(1, int(config.get("max_output_tokens") or 220)),
+                max_output_tokens=max(1, int(config.get("max_output_tokens") or 80)),
                 timeout_seconds=float(config.get("timeout_seconds") or 60.0),
                 client_request_id=f"drawtoon-manhwa-filter-{chapter_key}-{pair_index}-{int(row_index)}-{attempt}",
             )
-            for key in ("left_page_type", "right_page_type"):
+            for key in ("page_1", "page_2"):
                 value = str(parsed.get(key) or "").strip()
-                if value not in MANHWA_PAGE_TYPES:
+                if value not in MANHWA_PAGE_DECISIONS:
                     raise ValueError(f"Bedrock classification returned invalid {key}={value!r}")
                 parsed[key] = value
-            for key in ("left_is_story_page", "right_is_story_page", "continues_same_panel", "chain_break"):
-                if not isinstance(parsed.get(key), bool):
-                    raise ValueError(f"Bedrock classification omitted boolean {key}")
-            for key in ("left_page_confidence", "right_page_confidence", "confidence"):
-                try:
-                    parsed[key] = max(0.0, min(1.0, float(parsed.get(key) or 0.0)))
-                except (TypeError, ValueError):
-                    parsed[key] = 0.0
-            parsed["left_is_story_page"] = bool(parsed["left_is_story_page"]) and parsed["left_page_type"] == "story"
-            parsed["right_is_story_page"] = bool(parsed["right_is_story_page"]) and parsed["right_page_type"] == "story"
-            if not bool(parsed["left_is_story_page"]) or not bool(parsed["right_is_story_page"]):
-                parsed["continues_same_panel"] = False
-                parsed["chain_break"] = True
-            else:
-                parsed["continues_same_panel"] = bool(parsed["continues_same_panel"])
-                parsed["chain_break"] = not parsed["continues_same_panel"]
-            reason = " ".join(str(parsed.get("reason") or "").split()).strip()
-            parsed["reason"] = (reason or "No reason returned by model.")[:500]
+            if not isinstance(parsed.get("is_chain"), bool):
+                raise ValueError("Bedrock classification omitted boolean is_chain")
+            if parsed["page_1"] != "Pass" or parsed["page_2"] != "Pass":
+                parsed["is_chain"] = False
             return parsed, usage
         except Exception as exc:
             last_error = str(exc)
@@ -1090,23 +1327,58 @@ def _copy_filtered_page_if_story(
     }
 
 
+def _write_manhwa_pair_artifact(
+    *,
+    bucket: str,
+    pair: dict[str, Any],
+    config: dict[str, Any],
+    left_bytes: bytes,
+    right_bytes: bytes,
+) -> dict[str, Any]:
+    manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+    if not bool(manhwa_config.get("write_pair_artifacts", False)):
+        return {}
+    image_bytes, image_meta = _build_manhwa_pair_review_sheet(
+        left_bytes=left_bytes,
+        right_bytes=right_bytes,
+        pair=pair,
+        config=config,
+    )
+    artifact_prefix = str(
+        config.get("artifact_prefix")
+        or f"{str(config['output_prefix']).rstrip('/')}/_artifacts/{sanitize_s3_key_component(config.get('run_id'))}"
+    )
+    artifact_key = _manhwa_pair_artifact_key(
+        artifact_prefix,
+        str(pair.get("chapter_key") or "unknown"),
+        int(pair.get("pair_index") or 0),
+    )
+    if bool(config.get("overwrite", False)) or head_s3_object(bucket, artifact_key) is None:
+        put_s3_bytes(bucket, artifact_key, image_bytes, content_type="image/jpeg")
+    return {
+        "bucket": bucket,
+        "key": artifact_key,
+        "s3_uri": join_s3_uri(bucket, artifact_key),
+        "content_type": "image/jpeg",
+        "image": image_meta,
+    }
+
+
 def _manhwa_page_payload(
     *,
     bucket: str,
     page: dict[str, Any],
     page_index: int,
-    page_type: str,
-    is_story_page: bool,
-    confidence: float,
+    decision: str,
     output: dict[str, Any],
     width: int = 0,
     height: int = 0,
 ) -> dict[str, Any]:
+    normalized_decision = decision if decision in MANHWA_PAGE_DECISIONS else "Fail"
     return {
         "page_index": int(page_index),
-        "page_type": page_type,
-        "is_story_page": bool(is_story_page),
-        "confidence": max(0.0, min(1.0, float(confidence or 0.0))),
+        "decision": normalized_decision,
+        "is_story_page": normalized_decision == "Pass",
         "width": int(width or 0),
         "height": int(height or 0),
         "source": {
@@ -1147,6 +1419,7 @@ def filter_manhwa_page_pair(row_index: int, pair: dict[str, Any], config: dict[s
     left = pair.get("left") if isinstance(pair.get("left"), dict) else {}
     right = pair.get("right") if isinstance(pair.get("right"), dict) else {}
     image_meta: dict[str, Any] = {}
+    pair_artifact: dict[str, Any] = {}
     try:
         left_bytes = get_s3_bytes(bucket, str(left["Key"]))
         right_bytes = get_s3_bytes(bucket, str(right["Key"]))
@@ -1155,6 +1428,13 @@ def filter_manhwa_page_pair(row_index: int, pair: dict[str, Any], config: dict[s
             right_bytes=right_bytes,
             config=config,
         )
+        pair_artifact = _write_manhwa_pair_artifact(
+            bucket=bucket,
+            pair=pair,
+            config=config,
+            left_bytes=left_bytes,
+            right_bytes=right_bytes,
+        )
         parsed, usage = _classify_manhwa_pair(
             row_index=row_index,
             pair=pair,
@@ -1162,20 +1442,27 @@ def filter_manhwa_page_pair(row_index: int, pair: dict[str, Any], config: dict[s
             image_meta=image_meta,
             config=config,
         )
-        left_output = _copy_filtered_page_if_story(
-            bucket=bucket,
-            source_page=left,
-            output_prefix=output_prefix,
-            is_story_page=bool(parsed["left_is_story_page"]),
-            overwrite=bool(config.get("overwrite", False)),
-        )
-        right_output = _copy_filtered_page_if_story(
-            bucket=bucket,
-            source_page=right,
-            output_prefix=output_prefix,
-            is_story_page=bool(parsed["right_is_story_page"]),
-            overwrite=bool(config.get("overwrite", False)),
-        )
+        left_pass = str(parsed["page_1"]) == "Pass"
+        right_pass = str(parsed["page_2"]) == "Pass"
+        manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+        if bool(manhwa_config.get("write_filtered_pages", MANHWA_WRITE_FILTERED_PAGES)):
+            left_output = _copy_filtered_page_if_story(
+                bucket=bucket,
+                source_page=left,
+                output_prefix=output_prefix,
+                is_story_page=left_pass,
+                overwrite=bool(config.get("overwrite", False)),
+            )
+            right_output = _copy_filtered_page_if_story(
+                bucket=bucket,
+                source_page=right,
+                output_prefix=output_prefix,
+                is_story_page=right_pass,
+                overwrite=bool(config.get("overwrite", False)),
+            )
+        else:
+            left_output = {"bucket": bucket, "key": "", "s3_uri": "", "copied": False}
+            right_output = {"bucket": bucket, "key": "", "s3_uri": "", "copied": False}
         kept_page_count = int(bool(left_output["copied"])) + int(bool(right_output["copied"]))
         payload = {
             "schema_version": 1,
@@ -1189,9 +1476,7 @@ def filter_manhwa_page_pair(row_index: int, pair: dict[str, Any], config: dict[s
                 bucket=bucket,
                 page=left,
                 page_index=int(pair.get("left_page_index") or 0),
-                page_type=str(parsed["left_page_type"]),
-                is_story_page=bool(parsed["left_is_story_page"]),
-                confidence=float(parsed["left_page_confidence"]),
+                decision=str(parsed["page_1"]),
                 output=left_output,
                 width=int(image_meta.get("left_source_width") or 0),
                 height=int(image_meta.get("left_source_height") or 0),
@@ -1200,24 +1485,23 @@ def filter_manhwa_page_pair(row_index: int, pair: dict[str, Any], config: dict[s
                 bucket=bucket,
                 page=right,
                 page_index=int(pair.get("right_page_index") or 0),
-                page_type=str(parsed["right_page_type"]),
-                is_story_page=bool(parsed["right_is_story_page"]),
-                confidence=float(parsed["right_page_confidence"]),
+                decision=str(parsed["page_2"]),
                 output=right_output,
                 width=int(image_meta.get("right_source_width") or 0),
                 height=int(image_meta.get("right_source_height") or 0),
             ),
-            "edge": {
-                "continues_same_panel": bool(parsed["continues_same_panel"]),
-                "chain_break": bool(parsed["chain_break"]),
-                "confidence": float(parsed["confidence"]),
-                "reason": str(parsed["reason"]),
+            "classification": {
+                "page_1": str(parsed["page_1"]),
+                "page_2": str(parsed["page_2"]),
+                "is_chain": bool(parsed["is_chain"]),
             },
+            "edge": {"is_chain": bool(parsed["is_chain"]), "chain_break": not bool(parsed["is_chain"])},
             "kept_page_count": kept_page_count,
             "model": str(config["model"]),
             "prompt_filename": str(config["prompt_filename"]),
             "prompt_sha256": str(config.get("prompt_sha256") or ""),
             "image": image_meta,
+            "pair_artifact": pair_artifact,
             "usage": usage,
             "run_id": str(config.get("run_id") or ""),
             "created_at": now_utc_iso(),
@@ -1236,7 +1520,127 @@ def filter_manhwa_page_pair(row_index: int, pair: dict[str, Any], config: dict[s
             "status_key": status_key,
             "error": str(exc),
             "image": image_meta,
+            "pair_artifact": pair_artifact,
             "usage": {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0},
+            "run_id": str(config.get("run_id") or ""),
+            "created_at": now_utc_iso(),
+        }
+        put_s3_json(bucket, status_key, payload)
+        return payload
+
+
+def filter_manhwa_raw_page(row_index: int, obj: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    bucket = str(config["bucket"])
+    input_prefix = str(config["input_prefix"])
+    status_prefix = str(config["status_prefix"])
+    source_key = _object_key(obj)
+    if not source_key or source_key.endswith("/"):
+        return {"row_index": int(row_index), "status": "skipped_non_object", "source_key": source_key}
+    if not source_key.startswith(input_prefix):
+        return {"row_index": int(row_index), "status": "skipped_outside_prefix", "source_key": source_key}
+    if Path(source_key).suffix.lower() not in SUPPORTED_SUFFIXES:
+        return {"row_index": int(row_index), "status": "skipped_non_image", "source_key": source_key}
+
+    relative_path = source_key[len(input_prefix) :].lstrip("/")
+    if not relative_path or relative_path.startswith("_"):
+        return {"row_index": int(row_index), "status": "skipped_internal", "source_key": source_key}
+    include_relative_path_regex = str(config.get("include_relative_path_regex") or "").strip()
+    if include_relative_path_regex and not re.search(include_relative_path_regex, relative_path):
+        return {"row_index": int(row_index), "status": "skipped_key_filter", "source_key": source_key}
+
+    chapter_key = _manhwa_chapter_key(relative_path)
+    status_key = _status_key_for_relative_path(status_prefix, relative_path)
+    if not bool(config.get("overwrite", False)) and head_s3_object(bucket, status_key) is not None:
+        existing = get_s3_json(bucket, status_key)
+        if str(existing.get("status") or "") == "ok":
+            return {
+                "row_index": int(row_index),
+                "status": "skipped_existing",
+                "row_type": "manhwa_raw_page",
+                "source_key": source_key,
+                "status_key": status_key,
+                "is_story_page": bool(existing.get("is_story_page", False)),
+                "decision": str(existing.get("decision") or ("Pass" if existing.get("is_story_page") else "Fail")),
+                "usage": {"input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "total_tokens": 0},
+            }
+
+    image_meta: dict[str, Any] = {}
+    try:
+        image_bytes = get_s3_bytes(bucket, source_key)
+        parsed, usage, image_meta = classify_raw_page(
+            image_bytes=image_bytes,
+            image_key=source_key,
+            prompt=load_prompt_text(str(config["prompt_filename"])),
+            model=str(config["model"]),
+            max_output_tokens=max(1, int(config.get("max_output_tokens") or 16)),
+            retries=int(config["retries"]) if config.get("retries") is not None else 5,
+            request_metadata={
+                "source_key": source_key,
+                "relative_path": relative_path,
+            },
+        )
+        is_story_page = bool(parsed["is_story_page"])
+        decision = "Pass" if is_story_page else "Fail"
+        payload = {
+            "schema_version": 1,
+            "mode": "manhwa_raw",
+            "row_type": "manhwa_raw_page",
+            "row_index": int(row_index),
+            "status": "ok",
+            "chapter_key": chapter_key,
+            "is_story_page": is_story_page,
+            "decision": decision,
+            "classification": {"is_story_page": is_story_page},
+            "source": {
+                "bucket": bucket,
+                "key": source_key,
+                "s3_uri": join_s3_uri(bucket, source_key),
+                "relative_path": relative_path,
+                "size": _object_size(obj),
+                "etag": _object_etag(obj),
+                "last_modified": _object_last_modified(obj),
+            },
+            "output": {"bucket": bucket, "key": "", "s3_uri": "", "copied": False},
+            "model": str(config["model"]),
+            "provider": "gemini",
+            "thinking_mode": "none",
+            "prompt_filename": str(config["prompt_filename"]),
+            "prompt_sha256": str(config.get("prompt_sha256") or ""),
+            "image": image_meta,
+            "usage": usage,
+            "run_id": str(config.get("run_id") or ""),
+            "created_at": now_utc_iso(),
+        }
+        put_s3_json(bucket, status_key, payload)
+        return payload
+    except Exception as exc:
+        payload = {
+            "schema_version": 1,
+            "mode": "manhwa_raw",
+            "row_type": "manhwa_raw_page",
+            "row_index": int(row_index),
+            "status": "error",
+            "chapter_key": chapter_key,
+            "is_story_page": False,
+            "decision": "Fail",
+            "error": str(exc),
+            "source": {
+                "bucket": bucket,
+                "key": source_key,
+                "s3_uri": join_s3_uri(bucket, source_key),
+                "relative_path": relative_path,
+                "size": _object_size(obj),
+                "etag": _object_etag(obj),
+                "last_modified": _object_last_modified(obj),
+            },
+            "output": {"bucket": bucket, "key": "", "s3_uri": "", "copied": False},
+            "model": str(config.get("model") or ""),
+            "provider": "gemini",
+            "thinking_mode": "none",
+            "prompt_filename": str(config.get("prompt_filename") or ""),
+            "prompt_sha256": str(config.get("prompt_sha256") or ""),
+            "image": image_meta,
+            "usage": {"input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "total_tokens": 0},
             "run_id": str(config.get("run_id") or ""),
             "created_at": now_utc_iso(),
         }
@@ -1267,8 +1671,13 @@ def filter_single_page(row_index: int, obj: dict[str, Any], config: dict[str, An
             "status": "skipped_key_filter",
             "source_key": source_key,
         }
-    output_key = f"{output_prefix.rstrip('/')}/{relative_path}"
-    status_key = _status_key_for_relative_path(status_prefix, relative_path)
+    output_relative_path = (
+        normalize_manga_relative_path(relative_path)
+        if str(config.get("mode") or "manga") == "manga"
+        else relative_path
+    )
+    output_key = f"{output_prefix.rstrip('/')}/{output_relative_path}"
+    status_key = _status_key_for_relative_path(status_prefix, output_relative_path)
 
     if not bool(config.get("overwrite", False)) and head_s3_object(bucket, status_key) is not None:
         existing = get_s3_json(bucket, status_key)
@@ -1314,6 +1723,7 @@ def filter_single_page(row_index: int, obj: dict[str, Any], config: dict[str, An
                 "key": source_key,
                 "s3_uri": join_s3_uri(bucket, source_key),
                 "relative_path": relative_path,
+                "output_relative_path": output_relative_path,
                 "size": _object_size(obj),
                 "etag": _object_etag(obj),
                 "last_modified": _object_last_modified(obj),
@@ -1402,6 +1812,8 @@ def filter_manga_page_batch(event: dict[str, Any], _context: Any) -> dict[str, A
         row_type = str(obj.get("row_type") or "").strip()
         if mode == "manhwa" or row_type == "manhwa_page_pair":
             payload = filter_manhwa_page_pair(row_index, obj, config)
+        elif mode == "manhwa_raw" or row_type == "manhwa_raw_page":
+            payload = filter_manhwa_raw_page(row_index, obj, config)
         else:
             payload = filter_single_page(row_index, obj, config)
         status = str(payload.get("status") or "")
@@ -1413,6 +1825,11 @@ def filter_manga_page_batch(event: dict[str, Any], _context: Any) -> dict[str, A
                 pair_kept_count = int(payload.get("kept_page_count") or 0)
                 kept_count += pair_kept_count
                 filtered_count += max(0, 2 - pair_kept_count)
+            elif str(payload.get("row_type") or "") == "manhwa_raw_page":
+                if bool(payload.get("is_story_page", False)):
+                    kept_count += 1
+                else:
+                    filtered_count += 1
             elif bool(payload.get("is_manga_panel_page", False)):
                 kept_count += 1
             else:
@@ -1457,30 +1874,181 @@ def _chapter_manifest_key(output_prefix: str, chapter_key: str) -> str:
     return f"{output_prefix.rstrip('/')}/{chapter_key.strip('/')}/manifest.json"
 
 
-def _select_page_vote(votes: list[dict[str, Any]]) -> tuple[str, float]:
-    clean_votes = [
-        vote
+def _chapter_strip_key(output_prefix: str, chapter_key: str, chain: dict[str, Any]) -> str:
+    page_indices = [int(index) for index in chain.get("page_indices", [])]
+    if page_indices:
+        page_span = f"pages_{page_indices[0] + 1:04d}-{page_indices[-1] + 1:04d}"
+    else:
+        page_span = "pages_unknown"
+    strip_id = sanitize_s3_key_component(chain.get("strip_id") or chain.get("chain_id") or "strip", fallback="strip")
+    length = max(1, int(chain.get("length") or len(page_indices) or 1))
+    return f"{output_prefix.rstrip('/')}/{chapter_key.strip('/')}/{strip_id}_{page_span}_len{length}.jpg"
+
+
+def _encode_manhwa_strip_image(
+    *,
+    bucket: str,
+    pages: list[dict[str, Any]],
+    jpeg_quality: int,
+) -> tuple[bytes, dict[str, Any]]:
+    from PIL import Image
+
+    if not pages:
+        raise ValueError("Cannot build strip with no pages")
+    images: list[Any] = []
+    source_sizes: list[dict[str, int]] = []
+    page_slices: list[dict[str, Any]] = []
+    try:
+        for page in pages:
+            source_key = str(page.get("source_key") or "").strip()
+            if not source_key:
+                raise ValueError(f"Page is missing source_key: {page}")
+            data = get_s3_bytes(bucket, source_key)
+            image = Image.open(io.BytesIO(data)).convert("RGB")
+            images.append(image)
+            source_sizes.append({"width": int(image.width), "height": int(image.height)})
+        target_width = max(int(image.width) for image in images)
+        resized: list[Any] = []
+        for image in images:
+            if int(image.width) != target_width:
+                target_height = max(1, int(round(float(image.height) * float(target_width) / float(image.width))))
+                image = image.resize((target_width, target_height), Image.Resampling.LANCZOS)
+            resized.append(image)
+        total_height = sum(int(image.height) for image in resized)
+        strip = Image.new("RGB", (target_width, total_height), "white")
+        y = 0
+        for page, image, source_size in zip(pages, resized, source_sizes):
+            y_start = y
+            strip.paste(image, (0, y))
+            y += int(image.height)
+            page_slices.append(
+                {
+                    "page_index": int(page.get("page_index") or 0),
+                    "relative_path": str(page.get("relative_path") or ""),
+                    "source_key": str(page.get("source_key") or ""),
+                    "y_start": int(y_start),
+                    "y_end": int(y),
+                    "x_start": 0,
+                    "x_end": int(target_width),
+                    "width": int(target_width),
+                    "height": int(image.height),
+                    "source_width": int(source_size["width"]),
+                    "source_height": int(source_size["height"]),
+                    "resized_for_strip": int(source_size["width"]) != int(target_width),
+                }
+            )
+        output = io.BytesIO()
+        quality = max(40, min(95, int(jpeg_quality)))
+        if strip.width > 65000 or strip.height > 65000:
+            strip.save(output, format="PNG", optimize=True)
+            image_format = "png"
+        else:
+            strip.save(output, format="JPEG", quality=quality, optimize=True)
+            image_format = "jpeg"
+        encoded = output.getvalue()
+        return encoded, {
+            "image_format": image_format,
+            "image_bytes": len(encoded),
+            "width": int(strip.width),
+            "height": int(strip.height),
+            "jpeg_quality": quality if image_format == "jpeg" else 0,
+            "source_page_sizes": source_sizes,
+            "page_slices": page_slices,
+        }
+    finally:
+        for image in images:
+            try:
+                image.close()
+            except Exception:
+                pass
+
+
+def _write_manhwa_chapter_strips(
+    *,
+    bucket: str,
+    output_prefix: str,
+    chapter_key: str,
+    manifest_pages: list[dict[str, Any]],
+    chains: list[dict[str, Any]],
+    config: dict[str, Any],
+) -> dict[str, Any]:
+    manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+    if not bool(manhwa_config.get("write_strips", MANHWA_WRITE_STRIPS)):
+        return {
+            "status": "skipped",
+            "reason": "manhwa_write_strips disabled",
+            "strip_count": 0,
+            "strips": [],
+            "strip_length_distribution": {},
+        }
+    jpeg_quality = max(40, min(95, int(manhwa_config.get("strip_jpeg_quality") or MANHWA_STRIP_JPEG_QUALITY)))
+    strips: list[dict[str, Any]] = []
+    distribution: dict[str, int] = {}
+    for strip_index, chain in enumerate(chains):
+        page_indices = [int(index) for index in chain.get("page_indices", [])]
+        if not page_indices:
+            continue
+        strip_id = f"strip_{strip_index:04d}"
+        chain = {**chain, "strip_id": strip_id}
+        chain_pages = [manifest_pages[index] for index in page_indices]
+        strip_key = _chapter_strip_key(output_prefix, chapter_key, chain)
+        encoded, image_meta = _encode_manhwa_strip_image(
+            bucket=bucket,
+            pages=chain_pages,
+            jpeg_quality=jpeg_quality,
+        )
+        image_format = str(image_meta.get("image_format") or "jpeg")
+        if image_format == "png":
+            strip_key = strip_key.rsplit(".", 1)[0] + ".png"
+        put_s3_bytes(
+            bucket,
+            strip_key,
+            encoded,
+            content_type="image/png" if image_format == "png" else "image/jpeg",
+        )
+        length = max(1, int(chain.get("length") or len(page_indices)))
+        distribution[str(length)] = distribution.get(str(length), 0) + 1
+        strips.append(
+            {
+                "strip_id": strip_id,
+                "chain_id": str(chain.get("chain_id") or ""),
+                "strip_key": strip_key,
+                "strip_uri": join_s3_uri(bucket, strip_key),
+                "page_indices": page_indices,
+                "relative_paths": [str(page.get("relative_path") or "") for page in chain_pages],
+                "length": length,
+                "is_multi_page_strip": length > 1,
+                **image_meta,
+            }
+        )
+    summary = {
+        "strip_count": len(strips),
+        "strip_length_distribution": distribution,
+        "single_page_strips": sum(1 for strip in strips if int(strip.get("length") or 0) == 1),
+        "multi_page_strips": sum(1 for strip in strips if int(strip.get("length") or 0) > 1),
+        "strip_pages": sum(int(strip.get("length") or 0) for strip in strips),
+    }
+    return {"status": "ok", "strips": strips, **summary}
+
+
+def _page_decision_from_payload(page: dict[str, Any]) -> str:
+    decision = str(page.get("decision") or "").strip()
+    if decision in MANHWA_PAGE_DECISIONS:
+        return decision
+    if bool(page.get("is_story_page")) or str(page.get("page_type") or "") == "story":
+        return "Pass"
+    return "Fail"
+
+
+def _select_page_vote(votes: list[dict[str, Any]]) -> str:
+    decisions = [
+        str(vote.get("decision") or "").strip()
         for vote in votes
-        if isinstance(vote, dict) and str(vote.get("page_type") or "") in MANHWA_PAGE_TYPES
+        if isinstance(vote, dict) and str(vote.get("decision") or "").strip() in MANHWA_PAGE_DECISIONS
     ]
-    if not clean_votes:
-        return "uncertain", 0.0
-    story_votes = [vote for vote in clean_votes if str(vote.get("page_type") or "") == "story"]
-    if story_votes:
-        confidence = max(float(vote.get("confidence") or 0.0) for vote in story_votes)
-        return "story", max(0.0, min(1.0, confidence))
-    type_votes = [str(vote.get("page_type") or "") for vote in clean_votes]
-    ranked = sorted(
-        ((type_votes.count(vote), vote) for vote in set(type_votes)),
-        key=lambda item: (-item[0], MANHWA_PAGE_TYPES.index(item[1])),
-    )
-    page_type = ranked[0][1]
-    confidence = max(
-        float(vote.get("confidence") or 0.0)
-        for vote in clean_votes
-        if str(vote.get("page_type") or "") == page_type
-    )
-    return page_type, max(0.0, min(1.0, confidence))
+    if not decisions:
+        return "Fail"
+    return "Pass" if "Pass" in decisions else "Fail"
 
 
 def _build_chain_components(story_page_indices: set[int], connected_edges: set[int]) -> list[list[int]]:
@@ -1509,6 +2077,237 @@ def _build_chain_components(story_page_indices: set[int], connected_edges: set[i
     return list(groups.values())
 
 
+def _manifest_key_from_event(event: dict[str, Any], config: dict[str, Any], output_prefix: str) -> str:
+    manifest_key = (
+        str((event.get("source") or {}).get("manifest_key") or "")
+        if isinstance(event.get("source"), dict)
+        else ""
+    )
+    if manifest_key:
+        return manifest_key
+    return f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(config['run_id'])}/source_manifest.jsonl"
+
+
+def _cleanup_manhwa_internals(
+    *,
+    bucket: str,
+    output_prefix: str,
+    status_prefix: str,
+    run_id: str,
+    written: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    cleanup_results = [delete_s3_prefix(bucket, f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(run_id)}/")]
+    series_names = sorted(
+        {
+            str(item.get("chapter_key") or "").split("/", 1)[0]
+            for item in written
+            if str(item.get("chapter_key") or "").split("/", 1)[0]
+        }
+    )
+    for series_name in series_names:
+        cleanup_results.append(delete_s3_prefix(bucket, f"{status_prefix.rstrip('/')}/{series_name}/"))
+    return cleanup_results
+
+
+def _finalize_manhwa_raw_run(event: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    bucket = str(config["bucket"])
+    input_prefix = str(config["input_prefix"])
+    output_prefix = str(config["output_prefix"])
+    status_prefix = str(config["status_prefix"])
+    manifest_key = _manifest_key_from_event(event, config, output_prefix)
+    rows = _load_jsonl_from_s3(bucket, manifest_key)
+
+    chapters: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        source_key = _object_key(row)
+        if not source_key or source_key.endswith("/") or not source_key.startswith(input_prefix):
+            continue
+        if Path(source_key).suffix.lower() not in SUPPORTED_SUFFIXES:
+            continue
+        relative_path = source_key[len(input_prefix) :].lstrip("/")
+        if not relative_path or relative_path.startswith("_"):
+            continue
+        chapter_key = _manhwa_chapter_key(relative_path)
+        chapters.setdefault(chapter_key, []).append(
+            {
+                "relative_path": relative_path,
+                "source_key": source_key,
+                "size": _object_size(row),
+                "etag": _object_etag(row),
+                "last_modified": _object_last_modified(row),
+                "status_key": _status_key_for_relative_path(status_prefix, relative_path),
+            }
+        )
+
+    written: list[dict[str, Any]] = []
+    total_pages = 0
+    total_story_pages = 0
+    total_segments = 0
+    total_sheets = 0
+    total_errors = 0
+    total_missing = 0
+    for chapter_key in sorted(chapters, key=_natural_sort_key):
+        chapter_rows = sorted(chapters[chapter_key], key=lambda item: _natural_sort_key(item["relative_path"]))
+        manifest_pages: list[dict[str, Any]] = []
+        errors = 0
+        missing = 0
+        usage_total = {"input_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "total_tokens": 0}
+        for page_index, page in enumerate(chapter_rows):
+            status_key = str(page["status_key"])
+            status_payload: dict[str, Any] = {}
+            status = "missing"
+            is_story = False
+            decision = "Fail"
+            image_meta: dict[str, Any] = {}
+            error = ""
+            try:
+                status_payload = get_s3_json(bucket, status_key)
+                status = str(status_payload.get("status") or "")
+            except ClientError as exc:
+                code = str(exc.response.get("Error", {}).get("Code") or "")
+                if code not in {"404", "NoSuchKey", "NotFound"}:
+                    raise
+            if status == "ok":
+                is_story = bool(status_payload.get("is_story_page", False))
+                decision = "Pass" if is_story else "Fail"
+                image_meta = status_payload.get("image") if isinstance(status_payload.get("image"), dict) else {}
+                usage = status_payload.get("usage") if isinstance(status_payload.get("usage"), dict) else {}
+                for key in usage_total:
+                    usage_total[key] += int(usage.get(key) or 0)
+            elif status == "missing":
+                missing += 1
+            else:
+                errors += 1
+                error = str(status_payload.get("error") or "")
+            width = int(image_meta.get("source_image_width") or image_meta.get("image_width") or 0)
+            height = int(image_meta.get("source_image_height") or image_meta.get("image_height") or 0)
+            manifest_pages.append(
+                {
+                    "page_index": int(page_index),
+                    "page_key": join_s3_uri(bucket, str(page["source_key"])),
+                    "relative_path": str(page["relative_path"]),
+                    "source_key": str(page["source_key"]),
+                    "width": width,
+                    "height": height,
+                    "decision": decision,
+                    "is_story_page": is_story,
+                    "status": status,
+                    "status_key": status_key,
+                    "error": error,
+                }
+            )
+
+        story_pages = [dict(page) for page in manifest_pages if bool(page.get("is_story_page"))]
+
+        def _get_bytes(key: str) -> bytes:
+            return get_s3_bytes(bucket, key)
+
+        def _put_bytes(key: str, body: bytes, content_type: str) -> None:
+            put_s3_bytes(bucket, key, body, content_type=content_type)
+
+        def _make_uri(key: str) -> str:
+            return join_s3_uri(bucket, key)
+
+        sheet_result = build_and_write_chapter_sheets(
+            output_prefix=output_prefix,
+            chapter_key=chapter_key,
+            pages=story_pages,
+            config=config,
+            get_bytes=_get_bytes,
+            put_bytes=_put_bytes,
+            make_uri=_make_uri,
+        )
+        story_by_index = {int(page["page_index"]): page for page in story_pages}
+        for page in manifest_pages:
+            story_page = story_by_index.get(int(page["page_index"]))
+            if not story_page:
+                continue
+            for key in ("accepted_page_index", "global_y_start", "global_y_end", "width", "height"):
+                if key in story_page:
+                    page[key] = story_page[key]
+
+        segments = sheet_result.get("segments") if isinstance(sheet_result.get("segments"), list) else []
+        sheets = sheet_result.get("sheets") if isinstance(sheet_result.get("sheets"), list) else []
+        segment_heights = [int(segment.get("rendered_height") or 0) for segment in segments if isinstance(segment, dict)]
+        summary_counts = {
+            "total_pages": len(manifest_pages),
+            "story_pages": len(story_pages),
+            "non_story_pages": max(0, len(manifest_pages) - len(story_pages)),
+            "segment_count": len(segments),
+            "sheet_count": len(sheets),
+            "missing_statuses": missing,
+            "error_statuses": errors,
+            "max_segment_height": max(segment_heights) if segment_heights else 0,
+            "avg_segment_height": round(sum(segment_heights) / len(segment_heights), 2) if segment_heights else 0,
+            "usage": usage_total,
+        }
+        chapter_manifest = {
+            "schema_version": 1,
+            "filter_mode": "manhwa_raw",
+            "status": "ok" if errors == 0 and missing == 0 else "incomplete",
+            "run_id": str(config.get("run_id") or ""),
+            "created_at": now_utc_iso(),
+            "chapter_key": chapter_key,
+            "source_prefix": str(config.get("input_prefix") or ""),
+            "output_prefix": output_prefix,
+            "pages": manifest_pages,
+            "segments": segments,
+            "sheets": sheets,
+            "segmentation": sheet_result.get("segmentation") if isinstance(sheet_result.get("segmentation"), dict) else {},
+            "summary": summary_counts,
+            "counts": summary_counts,
+        }
+        manifest_output_key = _chapter_manifest_key(output_prefix, chapter_key)
+        put_s3_json(bucket, manifest_output_key, chapter_manifest)
+        written.append(
+            {
+                "chapter_key": chapter_key,
+                "manifest_key": manifest_output_key,
+                "page_count": len(manifest_pages),
+                "story_pages": len(story_pages),
+                "segment_count": len(segments),
+                "sheet_count": len(sheets),
+                "status": chapter_manifest["status"],
+            }
+        )
+        total_pages += len(manifest_pages)
+        total_story_pages += len(story_pages)
+        total_segments += len(segments)
+        total_sheets += len(sheets)
+        total_errors += errors
+        total_missing += missing
+
+    summary = {
+        "schema_version": 1,
+        "mode": "manhwa_raw",
+        "status": "ok",
+        "run_id": str(config.get("run_id") or ""),
+        "created_at": now_utc_iso(),
+        "chapter_manifest_count": len(written),
+        "chapter_manifests": written,
+        "total_pages": total_pages,
+        "total_story_pages": total_story_pages,
+        "total_segments": total_segments,
+        "total_sheets": total_sheets,
+        "total_missing_statuses": total_missing,
+        "total_error_statuses": total_errors,
+    }
+    manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+    cleanup_internal = bool(manhwa_config.get("cleanup_internal_artifacts", MANHWA_CLEANUP_INTERNAL_ARTIFACTS))
+    if cleanup_internal:
+        cleanup_results = _cleanup_manhwa_internals(
+            bucket=bucket,
+            output_prefix=output_prefix,
+            status_prefix=status_prefix,
+            run_id=str(config.get("run_id") or ""),
+            written=written,
+        )
+        return {**summary, "summary_key": "", "cleanup_internal_artifacts": cleanup_results}
+    summary_key = f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(config['run_id'])}/manhwa_raw_manifest_summary.json"
+    put_s3_json(bucket, summary_key, summary)
+    return {**summary, "summary_key": summary_key, "cleanup_internal_artifacts": []}
+
+
 def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     config_ref = event.get("worker_config") if isinstance(event.get("worker_config"), dict) else {}
     if not config_ref:
@@ -1517,18 +2316,14 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
         raise ValueError("Missing worker_config")
     config = get_s3_json(str(config_ref["bucket"]), str(config_ref["key"]))
     mode = _normalize_filter_mode(config.get("mode"))
+    if mode == "manhwa_raw":
+        return _finalize_manhwa_raw_run(event, config)
     if mode != "manhwa":
         return {"status": "skipped", "mode": mode, "reason": "chapter manifests are only built for manhwa mode"}
 
     bucket = str(config["bucket"])
     output_prefix = str(config["output_prefix"])
-    manifest_key = (
-        str((event.get("source") or {}).get("manifest_key") or "")
-        if isinstance(event.get("source"), dict)
-        else ""
-    )
-    if not manifest_key:
-        manifest_key = f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(config['run_id'])}/source_manifest.jsonl"
+    manifest_key = _manifest_key_from_event(event, config, output_prefix)
     rows = _load_jsonl_from_s3(bucket, manifest_key)
     chapters: dict[str, dict[str, Any]] = {}
     for row in rows:
@@ -1553,8 +2348,6 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                 )
 
     written: list[dict[str, Any]] = []
-    manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
-    threshold = float(manhwa_config.get("chain_confidence_threshold") or MANHWA_CHAIN_CONFIDENCE_THRESHOLD)
     for chapter_key in sorted(chapters, key=_natural_sort_key):
         chapter = chapters[chapter_key]
         pages = sorted(chapter["pages"].values(), key=lambda item: _natural_sort_key(item["relative_path"]))
@@ -1565,8 +2358,8 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
         connected_edges: set[int] = set()
         errors = 0
         missing = 0
+        pair_artifact_count = 0
         candidate_continuation_edges = 0
-        low_confidence_continuation_edges = 0
         for row in sorted(chapter["rows"], key=lambda item: int(item.get("pair_index") or 0)):
             pair_index = int(row.get("pair_index") or 0)
             status_key = str(row.get("status_key") or _manhwa_pair_status_key(str(config["status_prefix"]), chapter_key, pair_index))
@@ -1581,12 +2374,14 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                 raise
             if str(status_payload.get("status") or "") != "ok":
                 errors += 1
+                pair_artifact = status_payload.get("pair_artifact") if isinstance(status_payload.get("pair_artifact"), dict) else {}
                 edges.append(
                     {
                         "left": pair_index,
                         "right": pair_index + 1,
                         "status": str(status_payload.get("status") or "error"),
                         "status_key": status_key,
+                        "pair_artifact": pair_artifact,
                         "error": status_payload.get("error"),
                     }
                 )
@@ -1598,10 +2393,10 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
             left_rel = str(left_source.get("relative_path") or "")
             right_rel = str(right_source.get("relative_path") or "")
             if left_rel in page_votes:
+                left_decision = _page_decision_from_payload(left)
                 page_votes[left_rel].append(
                     {
-                        "page_type": str(left.get("page_type") or "uncertain"),
-                        "confidence": float(left.get("confidence") or 0.0),
+                        "decision": left_decision,
                         "pair_index": pair_index,
                         "side": "left",
                     }
@@ -1611,10 +2406,10 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                     "height": int(left.get("height") or 0),
                 }
             if right_rel in page_votes:
+                right_decision = _page_decision_from_payload(right)
                 page_votes[right_rel].append(
                     {
-                        "page_type": str(right.get("page_type") or "uncertain"),
-                        "confidence": float(right.get("confidence") or 0.0),
+                        "decision": right_decision,
                         "pair_index": pair_index,
                         "side": "right",
                     }
@@ -1624,17 +2419,19 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                     "height": int(right.get("height") or 0),
                 }
             edge = status_payload.get("edge") if isinstance(status_payload.get("edge"), dict) else {}
-            confidence = float(edge.get("confidence") or 0.0)
+            pair_artifact = status_payload.get("pair_artifact") if isinstance(status_payload.get("pair_artifact"), dict) else {}
+            if pair_artifact.get("key"):
+                pair_artifact_count += 1
             left_index = page_index_by_relative.get(left_rel, int(status_payload.get("pair_index") or 0))
             right_index = page_index_by_relative.get(right_rel, int(left_index) + 1)
-            left_is_story = bool(left.get("is_story_page")) and str(left.get("page_type") or "") == "story"
-            right_is_story = bool(right.get("is_story_page")) and str(right.get("page_type") or "") == "story"
-            raw_continues_same_panel = bool(edge.get("continues_same_panel"))
-            if raw_continues_same_panel and left_is_story and right_is_story:
+            left_decision = _page_decision_from_payload(left)
+            right_decision = _page_decision_from_payload(right)
+            left_pass = left_decision == "Pass"
+            right_pass = right_decision == "Pass"
+            raw_is_chain = bool(edge.get("is_chain", edge.get("continues_same_panel", False)))
+            if raw_is_chain and left_pass and right_pass:
                 candidate_continuation_edges += 1
-            is_chain_edge = raw_continues_same_panel and confidence >= threshold and left_is_story and right_is_story
-            if raw_continues_same_panel and left_is_story and right_is_story and not is_chain_edge:
-                low_confidence_continuation_edges += 1
+            is_chain_edge = raw_is_chain and left_pass and right_pass
             if is_chain_edge:
                 connected_edges.add(int(left_index))
             edges.append(
@@ -1644,28 +2441,26 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                     "status": "ok",
                     "left_relative_path": left_rel,
                     "right_relative_path": right_rel,
-                    "left_page_type": str(left.get("page_type") or "uncertain"),
-                    "right_page_type": str(right.get("page_type") or "uncertain"),
-                    "left_is_story_page": left_is_story,
-                    "right_is_story_page": right_is_story,
-                    "continues_same_panel": is_chain_edge,
+                    "page_1": left_decision,
+                    "page_2": right_decision,
+                    "is_chain": is_chain_edge,
                     "chain_break": not is_chain_edge,
-                    "raw_continues_same_panel": raw_continues_same_panel,
-                    "raw_chain_break": bool(edge.get("chain_break", not raw_continues_same_panel)),
-                    "confidence": confidence,
-                    "reason": str(edge.get("reason") or ""),
+                    "raw_is_chain": raw_is_chain,
+                    "pair_artifact": pair_artifact,
                     "status_key": status_key,
                 }
             )
 
         manifest_pages: list[dict[str, Any]] = []
         story_count = 0
+        manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+        write_filtered_pages = bool(manhwa_config.get("write_filtered_pages", MANHWA_WRITE_FILTERED_PAGES))
         for index, page in enumerate(pages):
             relative_path = str(page["relative_path"])
-            page_type, page_confidence = _select_page_vote(page_votes.get(relative_path, []))
-            is_story = page_type == "story"
+            decision = _select_page_vote(page_votes.get(relative_path, []))
+            is_story = decision == "Pass"
             story_count += int(is_story)
-            output_key = f"{output_prefix.rstrip('/')}/{relative_path}" if is_story else ""
+            output_key = f"{output_prefix.rstrip('/')}/{relative_path}" if is_story and write_filtered_pages else ""
             dimensions = page_dimensions.get(relative_path) or {}
             manifest_pages.append(
                 {
@@ -1675,9 +2470,8 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                     "source_key": page["source_key"],
                     "width": int(dimensions.get("width") or 0),
                     "height": int(dimensions.get("height") or 0),
-                    "page_type": page_type,
+                    "decision": decision,
                     "is_story_page": is_story,
-                    "confidence": page_confidence,
                     "output_key": output_key,
                     "votes": page_votes.get(str(page["relative_path"]), []),
                 }
@@ -1693,6 +2487,48 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
             }
             for chain_index, component in enumerate(_build_chain_components(story_page_indices, connected_edges))
         ]
+        strip_result = _write_manhwa_chapter_strips(
+            bucket=bucket,
+            output_prefix=output_prefix,
+            chapter_key=chapter_key,
+            manifest_pages=manifest_pages,
+            chains=chains,
+            config=config,
+        )
+        strips = strip_result.get("strips") if isinstance(strip_result.get("strips"), list) else []
+        strip_by_id = {
+            str(strip.get("strip_id") or ""): strip
+            for strip in strips
+            if isinstance(strip, dict) and str(strip.get("strip_id") or "")
+        }
+        for chain in chains:
+            chain_number = str(chain.get("chain_id") or "").rsplit("_", 1)[-1]
+            strip = strip_by_id.get(f"strip_{chain_number}")
+            if not strip:
+                continue
+            chain["strip_id"] = str(strip.get("strip_id") or "")
+            chain["strip_key"] = str(strip.get("strip_key") or "")
+            chain["strip_uri"] = str(strip.get("strip_uri") or "")
+            chain["strip_width"] = int(strip.get("width") or 0)
+            chain["strip_height"] = int(strip.get("height") or 0)
+            chain["strip_image_bytes"] = int(strip.get("image_bytes") or 0)
+            for page_slice in strip.get("page_slices") or []:
+                if not isinstance(page_slice, dict):
+                    continue
+                page_index = int(page_slice.get("page_index") or 0)
+                if page_index < 0 or page_index >= len(manifest_pages):
+                    continue
+                manifest_pages[page_index]["strip_id"] = str(strip.get("strip_id") or "")
+                manifest_pages[page_index]["strip_key"] = str(strip.get("strip_key") or "")
+                manifest_pages[page_index]["strip_uri"] = str(strip.get("strip_uri") or "")
+                manifest_pages[page_index]["strip_slice"] = {
+                    "x_start": int(page_slice.get("x_start") or 0),
+                    "x_end": int(page_slice.get("x_end") or 0),
+                    "y_start": int(page_slice.get("y_start") or 0),
+                    "y_end": int(page_slice.get("y_end") or 0),
+                    "width": int(page_slice.get("width") or 0),
+                    "height": int(page_slice.get("height") or 0),
+                }
         chain_lengths = [int(chain["length"]) for chain in chains]
         chain_length_distribution: dict[str, int] = {}
         for length in chain_lengths:
@@ -1712,9 +2548,14 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
             "chained_pages": sum(length for length in chain_lengths if length > 1),
             "accepted_chain_edges": len(connected_edges),
             "candidate_continuation_edges": candidate_continuation_edges,
-            "low_confidence_continuation_edges": low_confidence_continuation_edges,
+            "pair_artifacts": pair_artifact_count,
             "missing_pair_statuses": missing,
             "error_pair_statuses": errors,
+            "strip_count": int(strip_result.get("strip_count") or 0),
+            "strip_length_distribution": dict(strip_result.get("strip_length_distribution") or {}),
+            "single_page_strips": int(strip_result.get("single_page_strips") or 0),
+            "multi_page_strips": int(strip_result.get("multi_page_strips") or 0),
+            "strip_pages": int(strip_result.get("strip_pages") or 0),
         }
         chapter_manifest = {
             "schema_version": 1,
@@ -1725,10 +2566,16 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
             "chapter_key": chapter_key,
             "source_prefix": str(config.get("input_prefix") or ""),
             "output_prefix": output_prefix,
-            "chain_confidence_threshold": threshold,
+            "artifact_prefix": str(config.get("artifact_prefix") or ""),
             "pages": manifest_pages,
             "edges": edges,
             "chains": chains,
+            "strips": strips,
+            "strip_summary": {
+                "status": str(strip_result.get("status") or ""),
+                "strip_count": int(strip_result.get("strip_count") or 0),
+                "strip_length_distribution": dict(strip_result.get("strip_length_distribution") or {}),
+            },
             "summary": summary_counts,
             "counts": summary_counts,
         }
@@ -1740,6 +2587,8 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
                 "manifest_key": manifest_output_key,
                 "page_count": len(manifest_pages),
                 "chain_count": len(chains),
+                "strip_count": int(strip_result.get("strip_count") or 0),
+                "pair_artifacts": pair_artifact_count,
                 "status": chapter_manifest["status"],
             }
         )
@@ -1752,7 +2601,24 @@ def finalize_manga_filter_run(event: dict[str, Any], _context: Any) -> dict[str,
         "created_at": now_utc_iso(),
         "chapter_manifest_count": len(written),
         "chapter_manifests": written,
+        "total_strips": sum(int(item.get("strip_count") or 0) for item in written),
     }
+    manhwa_config = config.get("manhwa") if isinstance(config.get("manhwa"), dict) else {}
+    cleanup_internal = bool(manhwa_config.get("cleanup_internal_artifacts", MANHWA_CLEANUP_INTERNAL_ARTIFACTS))
+    cleanup_results: list[dict[str, Any]] = []
+    if cleanup_internal:
+        job_prefix = f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(config['run_id'])}/"
+        cleanup_results.append(delete_s3_prefix(bucket, job_prefix))
+        series_names = sorted(
+            {
+                str(item.get("chapter_key") or "").split("/", 1)[0]
+                for item in written
+                if str(item.get("chapter_key") or "").split("/", 1)[0]
+            }
+        )
+        for series_name in series_names:
+            cleanup_results.append(delete_s3_prefix(bucket, f"{str(config['status_prefix']).rstrip('/')}/{series_name}/"))
+        return {**summary, "summary_key": "", "cleanup_internal_artifacts": cleanup_results}
     summary_key = f"{output_prefix.rstrip('/')}/_jobs/{sanitize_s3_key_component(config['run_id'])}/manhwa_manifest_summary.json"
     put_s3_json(bucket, summary_key, summary)
-    return {**summary, "summary_key": summary_key}
+    return {**summary, "summary_key": summary_key, "cleanup_internal_artifacts": []}

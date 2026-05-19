@@ -44,6 +44,15 @@ Each `.jsonl` file is one JSON object compatible with the existing
 `source_character_id` mirrors `character_cluster_labels[i]` so the caption
 pipeline groups recurring characters correctly.
 
+Every page is annotated in two mandatory stages:
+
+1. Magi v3 detects panels, text, tails, and raw character boxes.
+2. Gemini receives the clean page image plus the raw Magi character box coordinates,
+   then returns a verified character label, drop/keep decision, and short visible
+   evidence reason for each box.
+
+Annotations always include a top-level `verification` object and `detections.characters[].source_character_id` is rewritten to the verified visual character label. Boxes marked `NoCharacter` are dropped. If Gemini fails on a page, that page is recorded under `datasets/annotations/magi_v3/_failed/<run_id>/<sample_id>.json` and not written to the output prefix.
+
 ## One-time setup
 
 ```bash
@@ -57,7 +66,7 @@ already populated. AWS access uses Modal secret `lineart2-aws-s3`.
 
 ## Run
 
-A single chapter:
+A single chapter (always runs Magi + Gemini):
 
 ```bash
 python3 start.py --chapters jujutsu-kaisen --gpu-batch-size 8

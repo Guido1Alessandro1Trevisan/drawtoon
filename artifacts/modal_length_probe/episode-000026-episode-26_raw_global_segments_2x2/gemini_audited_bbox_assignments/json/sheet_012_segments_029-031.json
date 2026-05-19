@@ -1,0 +1,88 @@
+{
+  "sheet_id": "sheet_012_segments_029-031",
+  "bbox_assignments": {
+    "bbox1": "pink-haired person on screen",
+    "bbox2": "dark-haired man in car",
+    "bbox3": "older white-haired bearded man"
+  },
+  "bbox_audit": {
+    "bbox1": {
+      "final_label": "pink-haired person on screen",
+      "decision": "keep_prior",
+      "reason": "Visible person with pink hair on a monitor screen, matches the provided label."
+    },
+    "bbox2": {
+      "final_label": "dark-haired man in car",
+      "decision": "keep_prior",
+      "reason": "Visible profile of a dark-haired man driving a car."
+    },
+    "bbox3": {
+      "final_label": "older white-haired bearded man",
+      "decision": "keep_prior",
+      "reason": "Visible side profile of an older man with white hair and a beard in the back seat of a car."
+    }
+  },
+  "_input_boxes": [
+    {
+      "bbox_id": "bbox1",
+      "character_index": 0,
+      "source_character_id": "0",
+      "bbox": [
+        408,
+        631,
+        618,
+        875
+      ],
+      "area": 51240,
+      "previous_named_label": "person with light pink wavy hair on screen",
+      "previous_stable_label": "pink-haired person on screen"
+    },
+    {
+      "bbox_id": "bbox2",
+      "character_index": 1,
+      "source_character_id": "1",
+      "bbox": [
+        138,
+        708,
+        323,
+        948
+      ],
+      "area": 44400,
+      "previous_named_label": "dark-haired man in car",
+      "previous_stable_label": "dark-haired man in car"
+    },
+    {
+      "bbox_id": "bbox3",
+      "character_index": 2,
+      "source_character_id": "0",
+      "bbox": [
+        3,
+        610,
+        124,
+        913
+      ],
+      "area": 36663,
+      "previous_named_label": "white-haired man with beard",
+      "previous_stable_label": "older white-haired bearded man"
+    }
+  ],
+  "_gemini_meta": {
+    "model": "gemini-3-flash-preview",
+    "thinking_level": "HIGH",
+    "media_resolution": "HIGH",
+    "input_images": [
+      "clean_sheet",
+      "magi_overlay"
+    ],
+    "prompt_file": "audit_prompt.md",
+    "uses_magi_as_detector_default": true,
+    "source_character_id_is_weak_hint_only": true,
+    "stores_visible_evidence_reasons": true,
+    "usage": {
+      "input_tokens": 3481,
+      "output_tokens": 262,
+      "reasoning_tokens": 641,
+      "total_tokens": 4384
+    }
+  }
+}
