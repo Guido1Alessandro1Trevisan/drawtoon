@@ -6,8 +6,11 @@ import hashlib
 import json
 import math
 import os
+import pickle
 import tempfile
 import time
+
+import numpy as np
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -36,6 +39,82 @@ LAYOUT_TEXT_COLORS = {
     "Narration Bubble": (255, 128, 0),
     "Shout Bubble": (128, 0, 255),
 }
+
+
+class _TorchSerializedList:
+    """Memory-efficient list replacement that fixes the classic CoW-defeat leak
+    in fork-based DataLoader workers (PyTorch issue #13246, Yuxin Wu / Detectron2
+    pattern).
+
+    Holding a Python ``list[dict]`` or ``list[FileItemDTO]`` of N items means
+    every worker that even READS an entry bumps a Py_REFCNT, writes the page
+    header, and triggers glibc to copy the 4KB page out of CoW into the
+    worker's private memory. Over an epoch, all workers end up with private
+    copies of the full manifest → slow ~10 GB/hr RSS creep with 32 workers.
+
+    Wrapping the list in this class stores all entries as one contiguous
+    ``torch.Tensor`` of uint8 bytes. PyTorch's tensor pickler relocates
+    storage to ``/dev/shm``, so workers genuinely share one buffer across
+    ranks instead of materializing private copies. Per-item access pays a
+    microsecond ``pickle.loads`` — vastly cheaper than image I/O.
+
+    Returned items are independent fresh copies, so callers can mutate them
+    freely without affecting the underlying store.
+    """
+
+    def __init__(self, lst):
+        serialized = [
+            np.frombuffer(pickle.dumps(item, protocol=-1), dtype=np.uint8)
+            for item in lst
+        ]
+        sizes = np.asarray([len(b) for b in serialized], dtype=np.int64)
+        self._addr = torch.from_numpy(np.cumsum(sizes))
+        self._lst = torch.from_numpy(np.concatenate(serialized)) if serialized else torch.empty(0, dtype=torch.uint8)
+
+    def __len__(self) -> int:
+        return len(self._addr)
+
+    def __getitem__(self, idx: int):
+        start = 0 if idx == 0 else int(self._addr[idx - 1])
+        end = int(self._addr[idx])
+        return pickle.loads(memoryview(self._lst[start:end].numpy()))
+
+    def __iter__(self):
+        for idx in range(len(self)):
+            yield self[idx]
+
+
+def _normalize_slice_entry(raw: Any) -> Dict[str, Any]:
+    """Coerce a manwa-sheet slice into the canonical dict shape.
+
+    Each slice describes one band of a stitched manwa sheet:
+      - ``source_page_key``: S3 key (or s3:// URI) of the raw source page
+      - ``source_y_start`` / ``source_y_end``: y-range cropped from that page
+      - ``sheet_y_start`` / ``sheet_y_end``: where the cropped band lands in
+        the final sheet image. The reconstructor pastes at ``sheet_y_start``
+        exactly and asserts the slice plan is contiguous, so any future drift
+        between annotation-time and train-time surfaces immediately rather
+        than producing a silently shifted sheet.
+      - ``source_page_width`` / ``source_page_height`` / ``source_page_etag``
+        (optional): captured at annotation-time. If present and the reloaded
+        page disagrees, the reconstructor raises rather than producing a
+        sheet whose pixel coords no longer match the annotation bboxes.
+    """
+    if not isinstance(raw, dict):
+        raise ValueError(f"manwa-sheet slice must be a dict, got {type(raw).__name__}")
+    key = str(raw.get("source_page_key") or raw.get("page_key") or "").strip()
+    if not key:
+        raise ValueError(f"manwa-sheet slice missing source_page_key: {raw}")
+    return {
+        "source_page_key": key,
+        "source_y_start": int(raw.get("source_y_start") or 0),
+        "source_y_end": int(raw.get("source_y_end") or 0),
+        "sheet_y_start": int(raw.get("sheet_y_start") or 0),
+        "sheet_y_end": int(raw.get("sheet_y_end") or 0),
+        "source_page_width": int(raw.get("source_page_width") or 0),
+        "source_page_height": int(raw.get("source_page_height") or 0),
+        "source_page_etag": str(raw.get("source_page_etag") or ""),
+    }
 
 
 class ManifestDataset(BucketsMixin, Dataset):
@@ -121,6 +200,19 @@ class ManifestDataset(BucketsMixin, Dataset):
 
         self._expand_flips()
         self.setup_epoch()
+
+        # Swap the Python list manifest for a shared-memory tensor-backed store
+        # to fix the fork-CoW refcount memory leak (PyTorch #13246).
+        # `self.samples` is dead after the init loop above — only referenced
+        # at init time — so wrapping it is always safe.
+        self.samples = _TorchSerializedList(self.samples)
+        # `self.file_list` is read-only post-init ONLY in native mode without
+        # latent caching: `_get_single_item` already deepcopies before mutating
+        # (line ~1238), so workers never write the underlying entries. Latent
+        # caching (`cache_latents_all_latents`) and POI-rebuild bucketing both
+        # mutate file_items in place — keep them on the plain list.
+        if not self.is_caching_latents and not self.use_bucket_batches:
+            self.file_list = _TorchSerializedList(self.file_list)
 
     def _build_manifest_file_item(
         self,
@@ -326,6 +418,13 @@ class ManifestDataset(BucketsMixin, Dataset):
         pad_multiple = raw_value.get("pad_multiple")
         if pad_multiple is not None:
             options["pad_multiple"] = max(1, int(pad_multiple))
+        # Border options used when a control image needs a coloured frame.
+        border_width = raw_value.get("border_width")
+        if border_width is not None:
+            options["border_width"] = max(0, int(border_width))
+        border_rgb = raw_value.get("border_rgb")
+        if isinstance(border_rgb, (list, tuple)) and len(border_rgb) == 3:
+            options["border_rgb"] = [int(v) for v in border_rgb]
         return options
 
     def _parse_source_ref(self, path_or_key: Any, allow_relative: bool = True) -> Dict[str, str]:
@@ -335,6 +434,34 @@ class ManifestDataset(BucketsMixin, Dataset):
             if source_options:
                 source_ref.update(source_options)
             return source_ref
+
+        # Manwa sheet refs carry a ``slices`` list instead of a single
+        # ``image``/``path``. Each slice points at one source page that
+        # contributes a vertical band to the sheet image. The materializer
+        # downloads each source page once, crops per slice, and stitches the
+        # band stack to a cached JPEG on disk.
+        if isinstance(path_or_key, dict) and isinstance(path_or_key.get("slices"), list) and path_or_key["slices"]:
+            slices = [_normalize_slice_entry(s) for s in path_or_key["slices"]]
+            bucket_hint = None
+            for s in slices:
+                src_key = s.get("source_page_key") or ""
+                if src_key.startswith("s3://"):
+                    bucket_hint, _, _ = src_key[5:].partition("/")
+                    break
+            if bucket_hint is None:
+                if self.dataset_root_ref is not None and self.dataset_root_ref["kind"] == "s3":
+                    bucket_hint = self.dataset_root_ref["bucket"]
+                elif self.manifest_ref["kind"] == "s3":
+                    bucket_hint = self.manifest_ref["bucket"]
+            canonical = "manwa_sheet:" + hashlib.sha1(
+                json.dumps(slices, sort_keys=True, ensure_ascii=False).encode("utf-8")
+            ).hexdigest()
+            return with_options({
+                "kind": "manwa_sheet",
+                "slices": slices,
+                "bucket": bucket_hint,
+                "canonical": canonical,
+            })
 
         if isinstance(path_or_key, dict):
             path_or_key = path_or_key.get("image") or path_or_key.get("path")
@@ -430,6 +557,9 @@ class ManifestDataset(BucketsMixin, Dataset):
         if source_ref["kind"] == "local":
             return source_ref["path"]
 
+        if source_ref["kind"] == "manwa_sheet":
+            return self._materialize_manwa_sheet(source_ref)
+
         mounted_path = self._mounted_path_for_s3_ref(source_ref)
         if mounted_path and os.path.exists(mounted_path) and not source_ref.get("crop_box"):
             return mounted_path
@@ -470,6 +600,116 @@ class ManifestDataset(BucketsMixin, Dataset):
                 tmp_path.unlink()
         return str(local_path)
 
+    def _materialize_manwa_sheet(self, source_ref: Dict[str, Any]) -> str:
+        """Reconstruct a manwa sheet image from its slice plan and cache to disk.
+
+        The sheet is produced once per slice-plan hash and reused across
+        epochs. Each slice's source page is downloaded once (boto3 reads),
+        cropped to its y-band, and pasted into a vertically stacked canvas.
+        The resulting JPEG path is returned for downstream PIL.Image.open.
+        """
+        slices = source_ref.get("slices") or []
+        if not slices:
+            raise ValueError("manwa-sheet source_ref carries no slices")
+        digest = hashlib.sha1(
+            json.dumps(slices, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        local_path = self.sample_cache_dir / digest[:2] / f"manwa_sheet_{digest}.jpg"
+        if local_path.exists():
+            return str(local_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+
+        bucket = source_ref.get("bucket") or (
+            self.dataset_root_ref.get("bucket") if self.dataset_root_ref else None
+        )
+        if not bucket:
+            raise ValueError("manwa-sheet source_ref has no resolvable bucket")
+
+        # Download each unique source page once (s3 mounted fast-path if
+        # available), then crop per-slice.
+        source_images: Dict[str, Image.Image] = {}
+        for entry in slices:
+            key = entry["source_page_key"]
+            if key in source_images:
+                continue
+            if key.startswith("s3://"):
+                key_no_scheme = key[5:]
+                _, _, page_key = key_no_scheme.partition("/")
+            else:
+                page_key = key
+            mounted_path = None
+            if hasattr(self, "_mounted_path_for_s3_ref"):
+                mounted_path = self._mounted_path_for_s3_ref({"bucket": bucket, "key": page_key})
+            if mounted_path and os.path.exists(mounted_path):
+                with Image.open(mounted_path) as im:
+                    source_images[key] = im.convert("RGB")
+            else:
+                response = self.s3_client.get_object(Bucket=bucket, Key=page_key)
+                data = response["Body"].read()
+                from io import BytesIO
+
+                with Image.open(BytesIO(data)) as im:
+                    source_images[key] = im.convert("RGB")
+
+        # Drift guard: every slice carries the dimensions the annotator saw.
+        # If the underlying page changed (re-encoded, resized, swapped) the
+        # bboxes in the annotation no longer line up with reconstructed
+        # coordinates, so refuse to silently emit a mismatched sheet.
+        for s in slices:
+            recorded_w = int(s.get("source_page_width") or 0)
+            recorded_h = int(s.get("source_page_height") or 0)
+            src = source_images[s["source_page_key"]]
+            if recorded_w and recorded_h and (src.width != recorded_w or src.height != recorded_h):
+                raise ValueError(
+                    "manwa sheet source-page dimension drift: "
+                    f"{s['source_page_key']} recorded={recorded_w}x{recorded_h} "
+                    f"observed={src.width}x{src.height}"
+                )
+
+        target_width = max(im.width for im in source_images.values())
+        sorted_slices = sorted(slices, key=lambda s: int(s["sheet_y_start"]))
+        # Slice plan must be contiguous and cover [0, total_h).
+        expected = 0
+        for s in sorted_slices:
+            sy0 = int(s["sheet_y_start"])
+            sy1 = int(s["sheet_y_end"])
+            if sy0 != expected:
+                raise ValueError(
+                    f"manwa sheet slice plan non-contiguous: expected sheet_y_start={expected}, got {sy0}"
+                )
+            if sy1 <= sy0:
+                raise ValueError(f"manwa sheet slice has non-positive height: {s}")
+            expected = sy1
+        total_h = expected
+        sheet = Image.new("RGB", (int(target_width), int(total_h)), (255, 255, 255))
+        for s in sorted_slices:
+            src = source_images[s["source_page_key"]]
+            crop = src.crop((0, int(s["source_y_start"]), src.width, int(s["source_y_end"])))
+            try:
+                if crop.width != target_width:
+                    new_h = int(round(crop.height * target_width / crop.width))
+                    crop = crop.resize((target_width, new_h), Image.BICUBIC)
+                sheet.paste(crop, (0, int(s["sheet_y_start"])))
+            finally:
+                crop.close()
+        fd, tmp_name = tempfile.mkstemp(
+            suffix=local_path.suffix + ".tmp",
+            prefix=local_path.stem + ".",
+            dir=local_path.parent,
+        )
+        os.close(fd)
+        tmp_path = Path(tmp_name)
+        try:
+            sheet.save(tmp_path, format="JPEG", quality=92, optimize=True)
+            os.replace(tmp_path, local_path)
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()
+            sheet.close()
+            for im in source_images.values():
+                im.close()
+        return str(local_path)
+
     def _source_signature(self, source_ref: Dict[str, str]) -> Dict[str, Any]:
         if source_ref["kind"] == "s3":
             head, resolved_key = self._resolve_s3_object(source_ref)
@@ -483,6 +723,19 @@ class ManifestDataset(BucketsMixin, Dataset):
                 "last_modified": head.get("LastModified").isoformat()
                 if head.get("LastModified")
                 else "",
+            }
+
+        if source_ref["kind"] == "manwa_sheet":
+            # The slice plan itself is the deterministic identity. We hash
+            # the canonical JSON so cache keys are stable across processes.
+            slice_blob = json.dumps(source_ref.get("slices") or [], sort_keys=True, ensure_ascii=False)
+            digest = hashlib.sha1(slice_blob.encode("utf-8")).hexdigest()
+            return {
+                "kind": "manwa_sheet",
+                "bucket": source_ref.get("bucket"),
+                "slice_count": len(source_ref.get("slices") or []),
+                "slice_digest": digest,
+                "canonical": source_ref.get("canonical"),
             }
 
         local_path = os.path.abspath(source_ref["path"])
@@ -611,9 +864,17 @@ class ManifestDataset(BucketsMixin, Dataset):
 
     def _load_image(self, source_ref: Dict[str, str]) -> Image.Image:
         local_path = self._materialize_ref(source_ref)
-        image = Image.open(local_path)
-        image = exif_transpose(image)
-        image = image.convert("RGB")
+        # Context-managed open + explicit close on the rotated intermediate
+        # releases the file descriptor and the PNG tile decoder's internal
+        # buffers immediately. Without this, 32 worker procs accumulate
+        # un-closed lazy Image fps + tile state, contributing to the slow
+        # host RAM creep documented in production runs (Pillow #7961, #5180).
+        with Image.open(local_path) as src:
+            src.load()
+            rotated = exif_transpose(src)
+            image = rotated.convert("RGB")
+            if rotated is not src:
+                rotated.close()
         return self._apply_source_ref_geometry(image, source_ref)
 
     @staticmethod

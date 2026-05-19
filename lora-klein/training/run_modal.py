@@ -1754,7 +1754,7 @@ def _drawtoon_cache_key(drawtoon: dict[str, Any]) -> str:
         "max_pages": int(drawtoon["max_pages"]),
         "target_multiple": int(drawtoon["target_multiple"]),
         "exclude_sample_ids_path": drawtoon.get("exclude_sample_ids_path", ""),
-        "schema": "drawtoon_panel_cache_v12_with_tails_manga_suffix_real_dims_tail_region_index",
+        "schema": "drawtoon_panel_cache_v13_with_tails_real_dims_chapter_manga_native",
     }
     digest = hashlib.sha1(json.dumps(fingerprint_payload, sort_keys=True).encode("utf-8")).hexdigest()[:16]
     run_label = sanitize_filename(str(drawtoon["caption_run"]), fallback="caption_run")
@@ -2180,26 +2180,18 @@ def _build_panel_layout_control(
     return layout, metadata
 
 
-def _chapter_storage_key(chapter: str) -> str:
-    """Caption JSON stores `chapter` unsuffixed (e.g. `*_mangazero`) but the
-    durable S3 layout under `pages/*/` and `annotations/magi_v3/` uses the
-    `*_mangazero_manga/` form. Idempotent for already-suffixed inputs."""
-    return chapter if chapter.endswith("_manga") else f"{chapter}_manga"
-
-
 def _caption_page_key(caption_payload: dict[str, Any], drawtoon: dict[str, Any]) -> str:
-    sources = caption_payload.get("sources") if isinstance(caption_payload.get("sources"), dict) else {}
-    page_key = str(sources.get("page_key") or "").strip()
     chapter = str(caption_payload.get("chapter") or "").strip()
     page_id = str(caption_payload.get("page_id") or "").strip()
     if not chapter or not page_id:
-        raise ValueError("Caption payload is missing sources.page_key and chapter/page_id fallback fields")
+        raise ValueError("Caption payload is missing chapter/page_id")
     pages_prefix = str(drawtoon["pages_prefix"]).strip().strip("/")
-    chapter_storage = _chapter_storage_key(chapter)
-    if page_key.startswith(f"{pages_prefix}/{chapter_storage}/"):
+    sources = caption_payload.get("sources") if isinstance(caption_payload.get("sources"), dict) else {}
+    page_key = str(sources.get("page_key") or "").strip()
+    if page_key.startswith(f"{pages_prefix}/{chapter}/"):
         return page_key
     extension = ".png" if "text_removed" in pages_prefix.split("/") else (Path(page_key).suffix or ".jpg")
-    return f"{pages_prefix}/{chapter_storage}/{page_id}{extension}"
+    return f"{pages_prefix}/{chapter}/{page_id}{extension}"
 
 
 def _panel_character_contexts(
@@ -2317,26 +2309,16 @@ def _attach_panel_tails(
     if not annotations_prefix or not chapter or not page_id:
         return
 
-    chapter_suffixed = _chapter_storage_key(chapter)
-    candidate_keys = [
-        f"{annotations_prefix}/{chapter_suffixed}/{page_id}.jsonl",
-    ]
-    if chapter_suffixed != chapter:
-        candidate_keys.append(f"{annotations_prefix}/{chapter}/{page_id}.jsonl")
-
-    annotation_payload: dict[str, Any] | None = None
-    for key in candidate_keys:
-        try:
-            obj = s3_client.get_object(Bucket=bucket, Key=key)
-        except Exception:
-            continue
-        try:
-            text = obj["Body"].read().decode("utf-8").strip()
-            annotation_payload = json.loads(text.splitlines()[0]) if text else None
-        except Exception:
-            annotation_payload = None
-        if annotation_payload is not None:
-            break
+    annotation_key = f"{annotations_prefix}/{chapter}/{page_id}.jsonl"
+    try:
+        obj = s3_client.get_object(Bucket=bucket, Key=annotation_key)
+    except Exception:
+        return
+    try:
+        text = obj["Body"].read().decode("utf-8").strip()
+        annotation_payload: dict[str, Any] | None = json.loads(text.splitlines()[0]) if text else None
+    except Exception:
+        annotation_payload = None
     if not isinstance(annotation_payload, dict):
         return
 
@@ -2563,7 +2545,7 @@ def _iter_panel_rows_for_caption(
                 "source_page": f"s3://{bucket}/{page_key}",
                 "source_caption": f"s3://{bucket}/{caption_key}",
                 "source_annotation": (
-                    f"s3://{bucket}/{drawtoon['annotations_prefix'].rstrip('/')}/{_chapter_storage_key(chapter)}/{page_id}.jsonl"
+                    f"s3://{bucket}/{drawtoon['annotations_prefix'].rstrip('/')}/{chapter}/{page_id}.jsonl"
                 ),
                 "target_panel": {
                     "image": f"s3://{bucket}/{page_key}",
@@ -2762,7 +2744,27 @@ def build_drawtoon_panel_cache_shard(spec: dict[str, Any]) -> dict[str, Any]:
         except Exception as exc:
             stats["errors"] += 1
             if len(error_samples) < 20:
-                error_samples.append({"caption_key": str(caption_key), "error": str(exc)})
+                err_payload = {"caption_key": str(caption_key), "error": str(exc), "type": type(exc).__name__}
+                # On botocore ClientError, surface the full response — the
+                # boto error message only says "NoSuchKey" without telling you
+                # WHICH key was actually requested (the failing GET may have
+                # been a downstream page/annotation, not the caption).
+                resp = getattr(exc, "response", None)
+                if isinstance(resp, dict):
+                    err_payload["s3_error"] = resp.get("Error")
+                    err_payload["s3_request_id"] = resp.get("ResponseMetadata", {}).get("RequestId")
+                    err_payload["s3_host_id"] = resp.get("ResponseMetadata", {}).get("HostId")
+                    err_payload["s3_http_status"] = resp.get("ResponseMetadata", {}).get("HTTPStatusCode")
+                # Also try fetching just the caption — if THAT succeeds, the
+                # failure is in a downstream get inside _iter_panel_rows_for_caption.
+                try:
+                    probe = s3_client.head_object(Bucket=bucket, Key=str(caption_key))
+                    err_payload["caption_head_ok"] = True
+                    err_payload["caption_size"] = probe.get("ContentLength")
+                except Exception as probe_exc:
+                    err_payload["caption_head_ok"] = False
+                    err_payload["caption_head_error"] = str(probe_exc)
+                error_samples.append(err_payload)
 
     _jsonl_write(output_jsonl, rows)
     stats_payload = {
@@ -3768,11 +3770,17 @@ def main(
     ddp_smoke: bool = False,
     max_train_steps: int = 0,
     sample_every: int = 0,
-    drawtoon_bucket: str = S3_BUCKET,
+    # CLI overrides: leave the path defaults BLANK so the config's drawtoon
+    # block wins. _drawtoon_config_from_parsed writes any non-empty override
+    # over the config value, so non-empty defaults here would silently clobber
+    # config-driven prefixes (e.g. config says `pages_prefix: text_removed`
+    # but the CLI default `datasets/pages/filtered` quietly overrode it,
+    # which caused every cache-shard GetObject to NoSuchKey).
+    drawtoon_bucket: str = "",
     drawtoon_caption_run: str = "",
-    drawtoon_pages_prefix: str = DEFAULT_DRAWTOON_PAGES_PREFIX,
-    drawtoon_annotations_prefix: str = DEFAULT_DRAWTOON_ANNOTATIONS_PREFIX,
-    drawtoon_captions_prefix: str = DEFAULT_DRAWTOON_CAPTIONS_PREFIX,
+    drawtoon_pages_prefix: str = "",
+    drawtoon_annotations_prefix: str = "",
+    drawtoon_captions_prefix: str = "",
     drawtoon_include_chapter_regex: str = "",
     drawtoon_max_pages: int = 0,
     drawtoon_shard_count: int = 0,

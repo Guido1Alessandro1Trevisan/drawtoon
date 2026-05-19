@@ -1,0 +1,33 @@
+{
+  "overview": "LayouSyn page-layout fine-tune for drawtoon (panel rects on the page).",
+  "save_embed": true,
+  "embed_dir": "/cache/embeds/page_v1",
+  "result_dir": "/cache/results/page_v1",
+  "datasets": {
+    "MangaLayout": {
+      "jsonl_path": "/data/train.jsonl",
+      "shuffle_bbox": false,
+      "crop_augment": false
+    }
+  },
+  "concept_embedder_batch_size": 256,
+  "caption_embedder_batch_size": 256,
+  "model": "DiT-S",
+  "t5_size": "base",
+  "in_channel": 4,
+  "concept_in_channel": 768,
+  "y_in_channel": 768,
+  "max_in_len": 60,
+  "max_y_len": 120,
+  "diffusion_steps": 100,
+  "epochs": 20,
+  "scale": 2.0,
+  "noise_schedule": "linear",
+  "global_batch_size": 256,
+  "global_seed": 0,
+  "num_workers": 4,
+  "log_every": 100,
+  "ckpt_every": 5000,
+  "lr": 1e-4,
+  "layout_type": "xyxy"
+}

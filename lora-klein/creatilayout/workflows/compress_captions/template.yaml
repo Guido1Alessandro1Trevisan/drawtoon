@@ -1,0 +1,146 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon panel-caption compression workflow (Gemini vision + thinking). Reads source captions + page images from drawtoon; writes compressed captions to drawtoon-layousyn.
+
+Parameters:
+  SourceBucketName:
+    Type: String
+    Default: drawtoon
+    Description: Bucket containing source caption JSONs and page images (read-only).
+  OutputBucketName:
+    Type: String
+    Default: drawtoon-layousyn
+    Description: Bucket where compressed-caption JSONs are written.
+  PythonRuntime:
+    Type: String
+    Default: python3.12
+  DefaultGeminiModel:
+    Type: String
+    Default: gemini-3-flash-preview
+  GeminiApiKeySecretName:
+    Type: String
+    Default: drawtoon/gemini-api-key
+  CompressThinkingLevel:
+    Type: String
+    Default: high
+    Description: Gemini reasoning level. One of `low|medium|high` or `off` to disable thinking entirely.
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Architectures:
+      - arm64
+    Timeout: 900
+    MemorySize: 1536
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        SOURCE_BUCKET_NAME: !Ref SourceBucketName
+        OUTPUT_BUCKET_NAME: !Ref OutputBucketName
+        DEFAULT_GEMINI_MODEL: !Ref DefaultGeminiModel
+        GEMINI_API_KEY_SECRET_NAME: !Ref GeminiApiKeySecretName
+        COMPRESS_THINKING_LEVEL: !Ref CompressThinkingLevel
+
+Resources:
+  PrepareCompressConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.prepare_compress_config
+      MemorySize: 1536
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${SourceBucketName}
+                - !Sub arn:aws:s3:::${SourceBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${OutputBucketName}
+                - !Sub arn:aws:s3:::${OutputBucketName}/*
+
+  CompressCaptionPageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.compress_caption_page
+      MemorySize: 3072
+      Timeout: 900
+      EphemeralStorage:
+        Size: 2048
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${SourceBucketName}
+                - !Sub arn:aws:s3:::${SourceBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${OutputBucketName}
+                - !Sub arn:aws:s3:::${OutputBucketName}/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${GeminiApiKeySecretName}-*
+
+  CompressCaptionsStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/compress_panel_captions.asl.json
+      DefinitionSubstitutions:
+        PrepareCompressConfigArn: !GetAtt PrepareCompressConfigFunction.Arn
+        CompressCaptionPageArn: !GetAtt CompressCaptionPageFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PrepareCompressConfigFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CompressCaptionPageFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${SourceBucketName}
+                - !Sub arn:aws:s3:::${SourceBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${OutputBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${OutputBucketName}
+
+Outputs:
+  CompressCaptionsStateMachineArn:
+    Value: !Ref CompressCaptionsStateMachine

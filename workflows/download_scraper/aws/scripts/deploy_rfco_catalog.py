@@ -154,8 +154,15 @@ def ensure_lambda(client, *, role_arn: str, args: argparse.Namespace) -> str:
         )
         client.get_waiter("function_active").wait(FunctionName=FUNCTION_NAME)
         arn = response["FunctionArn"]
+    # Repo policy: no per-function reserved concurrency — every Lambda shares
+    # the account's unreserved pool. Pass --reserved-concurrency to opt back in.
     if args.reserved_concurrency > 0:
         client.put_function_concurrency(FunctionName=FUNCTION_NAME, ReservedConcurrentExecutions=args.reserved_concurrency)
+    else:
+        try:
+            client.delete_function_concurrency(FunctionName=FUNCTION_NAME)
+        except client.exceptions.ClientError:
+            pass
     return arn
 
 
@@ -247,7 +254,7 @@ def main() -> int:
     parser.add_argument("--proxy-mode", choices=["direct", "proxy", "auto"], default="auto")
     parser.add_argument("--proxy-env-source-function", default=DEFAULT_PROXY_ENV_SOURCE_FUNCTION)
     parser.add_argument("--max-concurrency", type=int, default=10)
-    parser.add_argument("--reserved-concurrency", type=int, default=20)
+    parser.add_argument("--reserved-concurrency", type=int, default=0)
     parser.add_argument("--tolerated-failure-percentage", type=float, default=2.0)
     parser.add_argument("--http-timeout", type=float, default=45.0)
     parser.add_argument("--html-retries", type=int, default=4)

@@ -53,4 +53,4 @@ drawtoon:
   caption_run: gemini3_flash_page_panel_v1
   caption_field: caption
   caption_format: text
-  include_chapter_regex: _mangazero$
+  include_chapter_regex: _mangazero_manga$

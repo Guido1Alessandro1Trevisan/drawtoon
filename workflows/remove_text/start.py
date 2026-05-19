@@ -154,6 +154,11 @@ def main() -> int:
     parser.add_argument("--manifest-path", default="")
     parser.add_argument("--detach", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--prompt-override-file",
+        default="",
+        help="Path to a prompt .md file that overrides prompts/master_prompt.md for this run (e.g. prompts/comic_prompt.md).",
+    )
     args = parser.parse_args()
 
     default_output_prefixes = {"klein_local_9b_4step": DEFAULT_OUTPUT_PREFIX_KLEIN_LOCAL}
@@ -207,6 +212,8 @@ def main() -> int:
     ])
     if args.overwrite:
         cmd.append("--overwrite")
+    if args.prompt_override_file:
+        cmd.extend(["--prompt-override-file", args.prompt_override_file])
     print(json.dumps({"event": "modal_run", "cmd": cmd}), flush=True)
     return subprocess.call(cmd)
 

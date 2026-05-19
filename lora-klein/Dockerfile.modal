@@ -1,18 +1,35 @@
 FROM python:3.11-slim
 
+# Glibc allocator tuning — safe to set unconditionally because they're env vars
+# that glibc reads on demand. With 32 DataLoader worker processes, default
+# arena hoarding causes ~12 GB/hr RSS creep; capping arenas + lowering trim
+# thresholds forces freed pages back to the OS.
 ENV HF_HOME=/root/.cache/huggingface \
     HUGGINGFACE_HUB_CACHE=/root/.cache/huggingface/hub \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     NO_ALBUMENTATIONS_UPDATE=1 \
     DISABLE_TELEMETRY=YES \
-    PYTHONPATH=/root/ai-toolkit
+    PYTHONPATH=/root/ai-toolkit \
+    MALLOC_ARENA_MAX=2 \
+    MALLOC_TRIM_THRESHOLD_=131072 \
+    MALLOC_MMAP_THRESHOLD_=131072
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
+    libjemalloc2 \
     git \
     rsync \
     && rm -rf /var/lib/apt/lists/*
+
+# NOTE: jemalloc preloading was tried (LD_PRELOAD + MALLOC_CONF), but it broke
+# boto3 GetObject in cache-shard workers — every fetch returned NoSuchKey even
+# though the keys exist and an isolated probe in the same Modal secret context
+# succeeded. Reverting to glibc tuning only (above) — that still addresses
+# the dominant worker arena-hoarding cause of the memory creep. If you want to
+# try jemalloc again later, do it as a sidecar test, not on the training image.
+# ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 \
+#     MALLOC_CONF="background_thread:true,dirty_decay_ms:20000,muzzy_decay_ms:20000"
 
 WORKDIR /root
 

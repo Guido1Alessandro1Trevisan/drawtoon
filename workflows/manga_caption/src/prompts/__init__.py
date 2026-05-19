@@ -1,1 +1,1 @@
-from . import prompt1, prompt2
+from . import prompt2

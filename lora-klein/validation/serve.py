@@ -17,23 +17,67 @@ Test:
          -d '{"prompt":"...","width":696,"height":446,"layout_metadata":{...},"character_ref_urls":["..."]}'
 """
 
+import hmac
 import io
+import ipaddress
 import json
 import os
+import socket
 import time
 import uuid
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import modal
-from fastapi import Response
+from fastapi import Request, Response
 from pydantic import BaseModel, Field
+
+
+def _is_disallowed_host(hostname: str) -> bool:
+    """Reject hostnames that resolve to private / link-local / metadata IPs to
+    prevent SSRF into AWS IMDS or Modal-internal services from inside the
+    serving container."""
+    if not hostname:
+        return True
+    try:
+        addrinfo = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        return True
+    for entry in addrinfo:
+        addr = entry[4][0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            return True
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_multicast
+            or ip.is_reserved
+            or ip.is_unspecified
+        ):
+            return True
+    return False
+
+
+def _validate_character_ref_url(url: str) -> tuple[bool, str]:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        return False, f"scheme not allowed: {parsed.scheme!r}"
+    hostname = parsed.hostname or ""
+    if _is_disallowed_host(hostname):
+        return False, f"host not allowed: {hostname!r}"
+    return True, ""
 
 
 APP_NAME = os.environ.get("DRAWTOON_SERVE_APP_NAME", "drawtoon-flux2-klein-serve")
 
 
 class GenerateRequest(BaseModel):
+    # auth_token retained for backwards-compatibility only — prefer the
+    # Authorization: Bearer <token> header (constant-time-compared) below.
     auth_token: str = ""
     prompt: str = ""
     width: int = 0
@@ -120,7 +164,7 @@ class FluxKleinServer:
         )
 
     @modal.fastapi_endpoint(method="POST", docs=False)
-    def generate(self, payload: GenerateRequest):
+    def generate(self, payload: GenerateRequest, request: Request):
         import boto3
         import requests
         import torch
@@ -192,7 +236,23 @@ class FluxKleinServer:
         materialize_layout_control = materialize_layout_control_filled
 
         expected = os.environ.get("DRAWTOON_SERVE_AUTH_TOKEN") or ""
-        if not expected or payload.auth_token != expected:
+        if not expected:
+            # Fail closed: never run authenticated endpoint with empty server token.
+            return Response(
+                content=json.dumps({"error": "server-misconfigured: no auth token set"}),
+                status_code=503,
+                media_type="application/json",
+            )
+        # Prefer Authorization: Bearer <token>; fall back to JSON body for
+        # backwards compatibility. Always compare in constant time.
+        header_token = ""
+        auth_header = request.headers.get("authorization") or request.headers.get("Authorization") or ""
+        if auth_header.lower().startswith("bearer "):
+            header_token = auth_header[7:].strip()
+        elif auth_header:
+            header_token = auth_header.strip()
+        candidate = header_token or (payload.auth_token or "")
+        if not candidate or not hmac.compare_digest(candidate.encode("utf-8"), expected.encode("utf-8")):
             return Response(
                 content=json.dumps({"error": "unauthorized"}),
                 status_code=401,
@@ -222,6 +282,13 @@ class FluxKleinServer:
         layout_bytes = layout_buf.getvalue()
         control_images = [layout_image]
         for url in character_ref_urls:
+            ok, reason = _validate_character_ref_url(str(url))
+            if not ok:
+                return Response(
+                    content=json.dumps({"error": f"invalid character_ref_url: {reason}"}),
+                    status_code=400,
+                    media_type="application/json",
+                )
             res = requests.get(url, timeout=60)
             res.raise_for_status()
             img = Image.open(io.BytesIO(res.content)).convert("RGB")

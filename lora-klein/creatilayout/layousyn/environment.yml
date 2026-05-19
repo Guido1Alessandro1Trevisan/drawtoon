@@ -1,0 +1,25 @@
+name: LayYourScene
+dependencies:
+  - python=3.12
+  - pip:
+    - timm
+    - sentence_transformers
+    - diffusers
+    - transformers
+    - bs4
+    - torch 
+    - torchvision
+    - git+https://github.com/openai/CLIP.git
+    - pytorch_fid
+    - pycocotools
+    - tiktoken
+    - protobuf
+    - blobfile
+    - sentencepiece==0.2.0
+    - accelerate
+    - openai
+    - requests
+    - pyarrow
+    - comet_ml
+    - tensorboard
+    - pandas

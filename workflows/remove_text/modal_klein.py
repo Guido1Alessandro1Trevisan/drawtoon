@@ -442,6 +442,7 @@ def _build_shards(
     overwrite: bool,
     pages_per_shard: int,
     trust_manifest: bool,
+    prompt_override: str = "",
 ) -> tuple[str, list[dict[str, Any]]]:
     if variant != "klein_local_9b_4step":
         raise ValueError("Only production variant is 'klein_local_9b_4step'")
@@ -463,6 +464,7 @@ def _build_shards(
             "run_id": effective_run_id,
             "overwrite": overwrite,
             "trust_manifest": trust_manifest,
+            "prompt_override": prompt_override,
             "pages": rows[start : start + shard_size],
         }
         for start in range(0, len(rows), shard_size)
@@ -479,7 +481,9 @@ def annotate_manifest_local(
     overwrite: bool = False,
     pages_per_shard: int = 8,
     trust_manifest: bool = False,
+    prompt_override_file: str = "",
 ):
+    prompt_override = Path(prompt_override_file).read_text(encoding="utf-8") if prompt_override_file else ""
     effective_run_id, shards = _build_shards(
         manifest_path=manifest_path,
         variant=variant,
@@ -488,6 +492,7 @@ def annotate_manifest_local(
         overwrite=overwrite,
         pages_per_shard=pages_per_shard,
         trust_manifest=trust_manifest,
+        prompt_override=prompt_override,
     )
     if not shards:
         print("manifest is empty; nothing to do")
@@ -557,6 +562,7 @@ def annotate_manifest_spawn(
     overwrite: bool = False,
     pages_per_shard: int = 8,
     trust_manifest: bool = False,
+    prompt_override_file: str = "",
 ):
     """Detach-safe variant: submit every shard with .spawn() and exit.
 
@@ -565,6 +571,7 @@ def annotate_manifest_spawn(
     so we can fire all shards and exit cleanly while Modal keeps running them.
     Progress is visible at the printed dashboard URL.
     """
+    prompt_override = Path(prompt_override_file).read_text(encoding="utf-8") if prompt_override_file else ""
     effective_run_id, shards = _build_shards(
         manifest_path=manifest_path,
         variant=variant,
@@ -573,6 +580,7 @@ def annotate_manifest_spawn(
         overwrite=overwrite,
         pages_per_shard=pages_per_shard,
         trust_manifest=trust_manifest,
+        prompt_override=prompt_override,
     )
     if not shards:
         print("manifest is empty; nothing to do")

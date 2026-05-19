@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon full-page caption workflow for the LayouSyn page-layout model.
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.12
+  DefaultGeminiModel:
+    Type: String
+    Default: gemini-3-flash-preview
+  GeminiApiKeySecretName:
+    Type: String
+    Default: drawtoon/gemini-api-key
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Architectures:
+      - arm64
+    Timeout: 900
+    MemorySize: 2048
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+        DEFAULT_GEMINI_MODEL: !Ref DefaultGeminiModel
+        GEMINI_API_KEY_SECRET_NAME: !Ref GeminiApiKeySecretName
+
+Resources:
+  PreparePageCaptionConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.prepare_page_caption_config
+      MemorySize: 1536
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+  CaptionFullPageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.caption_full_page
+      MemorySize: 3072
+      Timeout: 900
+      EphemeralStorage:
+        Size: 2048
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${GeminiApiKeySecretName}-*
+
+  PageCaptionStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/caption_full_pages.asl.json
+      DefinitionSubstitutions:
+        PreparePageCaptionConfigArn: !GetAtt PreparePageCaptionConfigFunction.Arn
+        CaptionFullPageArn: !GetAtt CaptionFullPageFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PreparePageCaptionConfigFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref CaptionFullPageFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}
+
+Outputs:
+  PageCaptionStateMachineArn:
+    Value: !Ref PageCaptionStateMachine

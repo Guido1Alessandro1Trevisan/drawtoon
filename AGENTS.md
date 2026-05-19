@@ -33,6 +33,44 @@ Primary active areas:
 - Keep Modal GPU work explicit about GPU, CPU, memory, timeout, and output S3 paths.
 - Preserve user or prior-agent changes in the working tree. Do not revert unrelated files.
 
+## AWS Lambda Concurrency Policy — DO NOT use Reserved Concurrency
+
+**Never set `ReservedConcurrentExecutions` on any Lambda in this account.** Every function must share the account's unreserved pool.
+
+Why: the account-level quota is `ConcurrentExecutions = 3000`. Each function that reserves N takes N out of the shared pool, even when idle. Tonight we found 8 functions had quietly reserved 2,870 of the 3,000 between them — leaving only **130 unreserved** for everything else. That cap silently throttled the manga-caption Distributed Map at ~130 concurrent and gave a 40% Map-item failure rate (Lambda `TooManyRequestsException` after exhausted retries), even though the Map asked for 500 and Gemini was at 17% of its quota.
+
+Rules:
+
+- **Never call `put_function_concurrency(ReservedConcurrentExecutions=…)`** in deploy scripts, CDK, SAM, Terraform, or by hand in the console. The two deploy scripts in `workflows/download_scraper/aws/scripts/deploy*.py` default `--reserved-concurrency 0` and actively `delete_function_concurrency` on every redeploy — keep that behaviour when copying them.
+- **Never put `ReservedConcurrentExecutions:` in a SAM/CFN template.** Step Functions Distributed Maps drive every Lambda in this repo, and they assume the unreserved pool is the full 3,000.
+- If a workload genuinely needs guaranteed capacity, raise the account quota (Service Quotas `L-B99A9384`, Concurrent executions) rather than carve it out of the shared pool. Talk to the user first.
+- When auditing concurrency: `aws lambda get-account-settings --region us-east-1` must show `UnreservedConcurrentExecutions == ConcurrentExecutions` (i.e. nothing reserved). If it doesn't, run `aws lambda list-functions` and `aws lambda get-function-concurrency --function-name <fn>` per function, then `aws lambda delete-function-concurrency --function-name <fn>` on any with a reservation.
+- All Step Functions Distributed Map launchers in this repo (e.g. `workflows/manga_caption/start.py --max-concurrency …`) should be safe to set up to ~2,500 concurrent; any throttling you see at lower numbers means somebody re-introduced reserved concurrency — find it and remove it.
+
+## Suffix Distribution Reporting
+
+When the user asks for "suffix distribution" (or anything equivalent like "show me the suffix split", "how many manga / manwa / manhua / comic per bucket"), always present the answer as this exact table, populated with the live counts you just measured. Do not summarise as bullets — render the table.
+
+```text
+Suffix distribution:
+
+┌──────────────────────────────────────┬───────┬───────┬────────┬───────┐
+│                Prefix                │ manga │ manwa │ manhua │ comic │
+├──────────────────────────────────────┼───────┼───────┼────────┼───────┤
+│ pages/filtered                       │   ... │   ... │    ... │   ... │
+├──────────────────────────────────────┼───────┼───────┼────────┼───────┤
+│ pages/text_removed                   │   ... │   ... │    ... │   ... │
+├──────────────────────────────────────┼───────┼───────┼────────┼───────┤
+│ pages/single                         │   ... │   ... │    ... │   ... │
+├──────────────────────────────────────┼───────┼───────┼────────┼───────┤
+│ annotations/magi_v3                  │   ... │   ... │    ... │   ... │
+├──────────────────────────────────────┼───────┼───────┼────────┼───────┤
+│ captions/gemini3_flash_page_panel_v1 │   ... │   ... │    ... │   ... │
+└──────────────────────────────────────┴───────┴───────┴────────┴───────┘
+```
+
+Use `–` (en-dash) for any cell where the count is zero — it reads more clearly than `0`. After the table, add one short "key observation" paragraph that flags any pipeline gap (e.g. chapters that exist in `pages/single` but have never been filtered, annotated, or captioned). To measure: list `s3://drawtoon/<prefix>/` with `aws s3 ls`, group by suffix (`_manga | _manwa | _manhua | _manha | _comic`), and count distinct chapter dirs.
+
 ## WEBTOON / Manhwa Imports
 
 Active import workspace:

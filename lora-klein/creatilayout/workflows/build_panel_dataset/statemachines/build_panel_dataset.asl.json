@@ -1,0 +1,129 @@
+{
+  "Comment": "Build the LayouSyn panel-layout training JSONL by joining manga_caption geometry + compress_captions short_caption per panel. Distributed Map writes per-page fragments; Finalize concatenates to train.jsonl + val.jsonl.",
+  "StartAt": "PrepareConfig",
+  "States": {
+    "PrepareConfig": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${PrepareBuildConfigArn}",
+        "Payload.$": "$"
+      },
+      "ResultPath": "$.prepared",
+      "OutputPath": "$.prepared.Payload",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.TooManyRequestsException",
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "BuildPages"
+    },
+    "BuildPages": {
+      "Type": "Map",
+      "Label": "BuildPages",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "Parameters": {
+          "Bucket.$": "$.source.bucket",
+          "Key.$": "$.source.page_manifest_key"
+        },
+        "ReaderConfig": {
+          "InputType": "JSONL"
+        }
+      },
+      "ItemSelector": {
+        "row_index.$": "$$.Map.Item.Index",
+        "page.$": "$$.Map.Item.Value",
+        "config_ref": {
+          "bucket.$": "$.worker_config.bucket",
+          "key.$": "$.worker_config.key"
+        }
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "BuildPage",
+        "States": {
+          "BuildPage": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${BuildPagePanelsArn}",
+              "Payload.$": "$"
+            },
+            "TimeoutSeconds": 300,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "OutputPath": "$.Payload",
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrencyPath": "$.batch.max_concurrency",
+      "ToleratedFailureCountPath": "$.failure.tolerated_failure_count",
+      "ResultWriter": {
+        "Resource": "arn:aws:states:::s3:putObject",
+        "Parameters": {
+          "Bucket.$": "$.audit.bucket",
+          "Prefix.$": "$.audit.prefix"
+        },
+        "WriterConfig": {
+          "OutputType": "JSONL",
+          "Transformation": "COMPACT"
+        }
+      },
+      "ResultPath": "$.map_result",
+      "Next": "Finalize"
+    },
+    "Finalize": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${FinalizeDatasetArn}",
+        "Payload": {
+          "worker_config": {
+            "bucket.$": "$.worker_config.bucket",
+            "key.$": "$.worker_config.key"
+          }
+        }
+      },
+      "TimeoutSeconds": 900,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.TooManyRequestsException",
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "OutputPath": "$.Payload",
+      "End": true
+    }
+  }
+}

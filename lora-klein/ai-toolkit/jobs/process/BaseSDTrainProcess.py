@@ -67,7 +67,7 @@ from toolkit.logging_aitk import create_logger
 from diffusers import FluxTransformer2DModel
 from toolkit.accelerator import get_accelerator, unwrap_model
 from toolkit.print import print_acc
-from accelerate import Accelerator
+from accelerate import Accelerator, skip_first_batches
 import transformers
 import diffusers
 import hashlib
@@ -75,6 +75,26 @@ import hashlib
 from toolkit.util.blended_blur_noise import get_blended_blur_noise
 from toolkit.util.get_model import get_model_class
 from toolkit.basic import flush
+
+
+def _set_dataloader_epoch(dl, epoch: int) -> None:
+    """Set the deterministic shuffle seed on a (possibly accelerate-wrapped)
+    DataLoader's underlying sampler. Mirrors the lookup order in
+    ``trigger_dataloader_setup_epoch`` so the same DistributedSampler /
+    BatchSampler / wrapper shapes are reached."""
+    if hasattr(dl, "set_epoch"):
+        dl.set_epoch(epoch)
+        return
+    sampler = getattr(dl, "sampler", None)
+    if hasattr(sampler, "set_epoch"):
+        sampler.set_epoch(epoch)
+        return
+    batch_sampler = getattr(dl, "batch_sampler", None)
+    if hasattr(batch_sampler, "set_epoch"):
+        batch_sampler.set_epoch(epoch)
+        return
+    if batch_sampler is not None and hasattr(batch_sampler, "sampler") and hasattr(batch_sampler.sampler, "set_epoch"):
+        batch_sampler.sampler.set_epoch(epoch)
 
 
 class BaseSDTrainProcess(BaseTrainProcess):
@@ -2918,16 +2938,53 @@ class BaseSDTrainProcess(BaseTrainProcess):
         else:
             self.progress_bar = None
 
+        # When resuming mid-epoch, replay the broken epoch's shuffle (via
+        # set_epoch on the underlying DistributedSampler) and fast-forward past
+        # the already-consumed batches with accelerate.skip_first_batches. The
+        # save path persists step_num + epoch_num in aitk_meta.yaml (see
+        # load_training_state_from_metadata above), so on resume we can compute
+        # how many dataloader batches sit between the start of epoch_num and
+        # step_num and skip exactly those — landing on the next unseen page.
+        # Without this, a fresh iter on a fresh shuffle would re-show some
+        # already-trained pages and miss some unseen ones.
+        gradient_accumulation_steps = int(self.train_config.gradient_accumulation_steps or 1)
+
+        def _init_resumable_iterator(dl):
+            if dl is None:
+                return None, None
+            _set_dataloader_epoch(dl, self.epoch_num)
+            # Pre-arm trigger_dataloader_setup_epoch so the *next* exhaust
+            # advances to (epoch_num + 1) instead of restarting from 0.
+            dl._aitk_sampler_epoch = self.epoch_num + 1
+            try:
+                n_batches_per_epoch = len(dl)
+            except (TypeError, AttributeError):
+                n_batches_per_epoch = 0
+            steps_per_epoch = (
+                n_batches_per_epoch // gradient_accumulation_steps if n_batches_per_epoch else 0
+            )
+            n_skip = 0
+            if self.start_step > 0 and steps_per_epoch > 0:
+                n_skip = (self.start_step % steps_per_epoch) * gradient_accumulation_steps
+            if n_skip > 0:
+                print_acc(
+                    f"[resume] step={self.start_step} epoch={self.epoch_num}: "
+                    f"replaying shuffle via set_epoch({self.epoch_num}) and skipping "
+                    f"first {n_skip} dataloader batches"
+                )
+                return iter(skip_first_batches(dl, n_skip)), dl
+            return iter(dl), dl
+
         if self.data_loader is not None:
             dataloader = self.data_loader
-            dataloader_iterator = iter(dataloader)
+            dataloader_iterator, dataloader = _init_resumable_iterator(dataloader)
         else:
             dataloader = None
             dataloader_iterator = None
 
         if self.data_loader_reg is not None:
             dataloader_reg = self.data_loader_reg
-            dataloader_iterator_reg = iter(dataloader_reg)
+            dataloader_iterator_reg, dataloader_reg = _init_resumable_iterator(dataloader_reg)
         else:
             dataloader_reg = None
             dataloader_iterator_reg = None
