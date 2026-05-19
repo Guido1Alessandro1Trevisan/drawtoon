@@ -4,6 +4,7 @@ import io
 import json
 import os
 import random
+import threading
 import time
 from typing import Any
 
@@ -31,11 +32,11 @@ MANHWA_RAW_PAGE_SCHEMA = {
         },
     },
     "required": ["is_story_page"],
-    "additionalProperties": False,
 }
 
 _GENAI_CLIENT: Any = None
 _GENAI_API_KEY: str | None = None
+_GENAI_CLIENT_LOCK = threading.Lock()
 
 
 def _resolve_gemini_api_key() -> str:
@@ -75,22 +76,25 @@ def _gemini_filter_client():
     global _GENAI_CLIENT
     if _GENAI_CLIENT is not None:
         return _GENAI_CLIENT
-    try:
-        from google import genai  # type: ignore
-        from google.genai import types  # type: ignore
-    except ImportError as exc:
-        raise RuntimeError("google-genai package not installed; add it to the Lambda dependencies.") from exc
-    _GENAI_CLIENT = genai.Client(
-        api_key=_resolve_gemini_api_key(),
-        http_options=types.HttpOptions(
-            timeout=GEMINI_FILTER_TIMEOUT_MS,
-            retry_options=types.HttpRetryOptions(
-                attempts=GEMINI_FILTER_RETRY_ATTEMPTS,
-                max_delay=GEMINI_FILTER_RETRY_MAX_DELAY_S,
+    with _GENAI_CLIENT_LOCK:
+        if _GENAI_CLIENT is not None:
+            return _GENAI_CLIENT
+        try:
+            from google import genai  # type: ignore
+            from google.genai import types  # type: ignore
+        except ImportError as exc:
+            raise RuntimeError("google-genai package not installed; add it to the Lambda dependencies.") from exc
+        _GENAI_CLIENT = genai.Client(
+            api_key=_resolve_gemini_api_key(),
+            http_options=types.HttpOptions(
+                timeout=GEMINI_FILTER_TIMEOUT_MS,
+                retry_options=types.HttpRetryOptions(
+                    attempts=GEMINI_FILTER_RETRY_ATTEMPTS,
+                    max_delay=GEMINI_FILTER_RETRY_MAX_DELAY_S,
+                ),
             ),
-        ),
-    )
-    return _GENAI_CLIENT
+        )
+        return _GENAI_CLIENT
 
 
 def _prepare_image_part(image_bytes: bytes, image_key: str) -> tuple[Any, dict[str, Any]]:
@@ -172,7 +176,7 @@ def classify_raw_page(
     last_error = ""
     for attempt in range(max(0, int(retries)) + 1):
         try:
-            # Deliberately no thinking_config: this is the cheap keep/drop raw-page pass.
+            # Cheap keep/drop pass: disable thinking so output tokens aren't consumed by reasoning.
             response = _gemini_filter_client().models.generate_content(
                 model=model,
                 contents=[prompt, request_text, image_part],
@@ -182,6 +186,7 @@ def classify_raw_page(
                     media_resolution=types.MediaResolution.MEDIA_RESOLUTION_MEDIUM,
                     temperature=0,
                     max_output_tokens=max(1, int(max_output_tokens)),
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 ),
             )
             parsed = json.loads(str(response.text or "{}"))

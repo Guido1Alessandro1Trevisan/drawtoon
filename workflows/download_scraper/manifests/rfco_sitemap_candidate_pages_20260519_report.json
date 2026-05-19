@@ -1,0 +1,11 @@
+{
+  "bucket": "drawtoon",
+  "dedupe_fields": [
+    "image_url"
+  ],
+  "output": "workflows/download_scraper/manifests/rfco_sitemap_candidate_pages_20260519.jsonl",
+  "prefix": "workflows/download_scraper/manifests/rfco_sitemap_candidate_pages_20260519T094805Z/page_shards/",
+  "raw_count": 434,
+  "row_count": 434,
+  "shard_count": 17
+}

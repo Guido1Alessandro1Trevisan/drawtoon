@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import concurrent.futures
 import datetime as dt
 import hashlib
 import io
@@ -43,6 +44,7 @@ DEFAULT_OUTPUT_PREFIX = "datasets/pages/filtered"
 DEFAULT_PROMPT_FILENAME = "classify_manga_pages.md"
 DEFAULT_MANHWA_PROMPT_FILENAME = "classify_manhwa_page_pairs.md"
 DEFAULT_MAX_CONCURRENCY = int(os.environ.get("DEFAULT_MANGA_FILTER_MAX_CONCURRENCY", "64"))
+MANGA_FILTER_BATCH_PARALLEL = max(1, int(os.environ.get("MANGA_FILTER_BATCH_PARALLEL", "8")))
 BEDROCK_MAX_IMAGE_BYTES = int(os.environ.get("BEDROCK_MAX_IMAGE_BYTES", "3600000"))
 BEDROCK_MAX_IMAGE_SIDE = int(os.environ.get("BEDROCK_MAX_IMAGE_SIDE", "8000"))
 DEFAULT_FILTER_MODE = "manga"
@@ -856,7 +858,7 @@ def prepare_manga_filter_config(event: dict[str, Any], _context: Any) -> dict[st
         "retries": int(event["retries"]) if event.get("retries") is not None else 5,
         "max_output_tokens": max(
             1,
-            int(event.get("max_output_tokens") or (16 if mode == "manhwa_raw" else 80 if mode == "manhwa" else 160)),
+            int(event.get("max_output_tokens") or (256 if mode == "manhwa_raw" else 80 if mode == "manhwa" else 160)),
         ),
         "overwrite": bool(event.get("overwrite", False)),
         "git_sha": str(event.get("git_sha") or "").strip(),
@@ -1803,19 +1805,39 @@ def filter_manga_page_batch(event: dict[str, Any], _context: Any) -> dict[str, A
     total_tokens = 0
     error_examples: list[dict[str, Any]] = []
     mode = _normalize_filter_mode(config.get("mode"))
-    for item in items:
-        row_index = int(item.get("row_index") or 0)
-        obj = item.get("object")
-        if not isinstance(obj, dict):
+
+    def _process_item(item: dict[str, Any]) -> dict[str, Any] | None:
+        row_index_local = int(item.get("row_index") or 0)
+        obj_local = item.get("object")
+        if not isinstance(obj_local, dict):
+            return None
+        row_type_local = str(obj_local.get("row_type") or "").strip()
+        if mode == "manhwa" or row_type_local == "manhwa_page_pair":
+            return filter_manhwa_page_pair(row_index_local, obj_local, config)
+        if mode == "manhwa_raw" or row_type_local == "manhwa_raw_page":
+            return filter_manhwa_raw_page(row_index_local, obj_local, config)
+        return filter_single_page(row_index_local, obj_local, config)
+
+    workers = max(1, min(int(MANGA_FILTER_BATCH_PARALLEL), len(items)))
+    if workers <= 1:
+        payloads_ordered: list[dict[str, Any] | None] = [_process_item(item) for item in items]
+    else:
+        payloads_ordered = [None] * len(items)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            future_to_index = {
+                executor.submit(_process_item, item): index for index, item in enumerate(items)
+            }
+            for future in concurrent.futures.as_completed(future_to_index):
+                index = future_to_index[future]
+                try:
+                    payloads_ordered[index] = future.result()
+                except Exception as exc:
+                    payloads_ordered[index] = {"status": "error", "error": str(exc)}
+
+    for payload in payloads_ordered:
+        if payload is None:
             error_count += 1
             continue
-        row_type = str(obj.get("row_type") or "").strip()
-        if mode == "manhwa" or row_type == "manhwa_page_pair":
-            payload = filter_manhwa_page_pair(row_index, obj, config)
-        elif mode == "manhwa_raw" or row_type == "manhwa_raw_page":
-            payload = filter_manhwa_raw_page(row_index, obj, config)
-        else:
-            payload = filter_single_page(row_index, obj, config)
         status = str(payload.get("status") or "")
         usage = payload.get("usage") if isinstance(payload.get("usage"), dict) else {}
         total_tokens += int(usage.get("total_tokens") or 0)

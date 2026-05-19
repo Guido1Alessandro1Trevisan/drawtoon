@@ -28,8 +28,9 @@ import io
 import json
 import os
 import re
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -54,6 +55,12 @@ DEFAULT_GEMINI_VERIFIER_MODEL = os.environ.get("GEMINI_VERIFIER_MODEL", "gemini-
 DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL = os.environ.get("GEMINI_VERIFIER_THINKING_LEVEL", "HIGH")
 GEMINI_VERIFIER_MAX_IMAGE_SIDE = int(os.environ.get("GEMINI_VERIFIER_MAX_IMAGE_SIDE", "2048"))
 GEMINI_VERIFIER_MAX_IMAGE_BYTES = int(os.environ.get("GEMINI_VERIFIER_MAX_IMAGE_BYTES", "8000000"))
+# How many pages in a shard run their Gemini verifier in parallel. Gemini calls
+# are I/O-bound (multi-second LLM latency) so a thread pool yields near-linear
+# speedup. Matches the shard size (16) so every page in a shard fires its
+# Gemini call concurrently — 16 workers x 40 containers = up to 640 in-flight
+# calls cluster-wide.
+GEMINI_VERIFIER_PARALLELISM = int(os.environ.get("GEMINI_VERIFIER_PARALLELISM", "16"))
 GEMINI_CHARACTER_VERIFIER_PROMPT_VERSION = "magi_v3_gemini_character_verifier_v2_clean_image_coords"
 
 GEMINI_CHARACTER_VERIFIER_SCHEMA = {
@@ -251,16 +258,26 @@ def _resolve_gemini_api_key() -> str:
     return value
 
 
+# Per-thread genai client. Sharing one client across the verifier ThreadPool
+# (16 workers per shard) caused `[SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC]`
+# read errors — the underlying httpx connection's TLS state is not safe to
+# multiplex across concurrent threads. Each thread now gets its own client
+# (and therefore its own connection pool); construction is cheap.
+_gemini_client_tls = threading.local()
+
+
 def _gemini_client_cached() -> Any:
-    if not hasattr(_gemini_client_cached, "_client"):
+    client = getattr(_gemini_client_tls, "client", None)
+    if client is None:
         from google import genai
         from google.genai import types
 
-        _gemini_client_cached._client = genai.Client(  # type: ignore[attr-defined]
+        client = genai.Client(
             api_key=_resolve_gemini_api_key(),
             http_options=types.HttpOptions(timeout=240000),
         )
-    return _gemini_client_cached._client  # type: ignore[attr-defined]
+        _gemini_client_tls.client = client
+    return client
 
 
 def _clean_verifier_label(value: object) -> str:
@@ -722,6 +739,83 @@ class MagiAnnotator:
         return _annotate_batch_impl(payload, model=self.model, processor=self.processor)
 
 
+def _verify_and_persist_page(
+    *,
+    image_obj: Any,
+    source: dict[str, Any],
+    sample_id: str,
+    output_key: str,
+    raw: Any,
+    bucket: str,
+    run_id: str,
+    git_sha: str,
+    failed_prefix: str,
+    gemini_verifier_model: str,
+    gemini_verifier_thinking_level: str,
+) -> tuple[str, dict[str, Any]]:
+    """Run Gemini verification on one page and write either the verified annotation
+    or a failure record to S3. Designed to be called concurrently from a
+    ThreadPoolExecutor: every dependency (boto3 + genai clients) is module-level
+    and thread-safe, and exceptions are caught here so one bad page does not
+    poison the rest of the shard.
+    """
+    try:
+        annotation = _annotation_payload(
+            sample_id=sample_id,
+            image_obj=image_obj,
+            source=source,
+            raw_detections=raw or {},
+            run_id=run_id,
+            git_sha=git_sha,
+        )
+        annotation = _apply_gemini_character_verification(
+            annotation=annotation,
+            image_obj=image_obj,
+            sample_id=sample_id,
+            model=gemini_verifier_model,
+            thinking_level=gemini_verifier_thinking_level,
+        )
+        _put_jsonl_object(bucket, output_key, annotation)
+        return (
+            "ok",
+            {
+                "sample_id": sample_id,
+                "page_key": source.get("key"),
+                "output_key": output_key,
+                "status": "ok",
+                "verification_status": annotation["verification"]["status"],
+                "summary": annotation["summary"],
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        failure_key = f"{failed_prefix}/{run_id}/{sample_id}.json"
+        try:
+            _put_jsonl_object(
+                bucket,
+                failure_key,
+                {
+                    "sample_id": sample_id,
+                    "page_key": source.get("key"),
+                    "output_key": output_key,
+                    "run_id": run_id,
+                    "error": repr(exc)[:1000],
+                },
+            )
+        except Exception:
+            pass
+        return (
+            "error",
+            {
+                "sample_id": sample_id,
+                "page_key": source.get("key"),
+                "output_key": output_key,
+                "failure_key": failure_key,
+                "status": "error",
+                "error": repr(exc)[:500],
+            },
+        )
+
+
 def _annotate_batch_impl(
     payload: dict[str, Any],
     *,
@@ -802,63 +896,40 @@ def _annotate_batch_impl(
 
     annotated: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
-    for image_obj, source, sample_id, output_key, raw in zip(
-        images, sources, sample_ids, output_keys, detections
-    ):
-        try:
-            annotation = _annotation_payload(
-                sample_id=sample_id,
-                image_obj=image_obj,
-                source=source,
-                raw_detections=raw or {},
+
+    # Fan out per-page Gemini verification + S3 write across a thread pool.
+    # Each Gemini call blocks on multi-second LLM latency; the only shared
+    # state (boto3 + genai clients, cached module-level) is thread-safe, and
+    # _verify_and_persist_page handles its own try/except so a failure on one
+    # page does not affect the others. Results are collected as they complete
+    # so the slowest page does not block reporting.
+    workers = min(GEMINI_VERIFIER_PARALLELISM, max(1, len(images)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [
+            pool.submit(
+                _verify_and_persist_page,
+                image_obj=img,
+                source=src,
+                sample_id=sid,
+                output_key=okey,
+                raw=raw,
+                bucket=bucket,
                 run_id=run_id,
                 git_sha=git_sha,
+                failed_prefix=failed_prefix,
+                gemini_verifier_model=gemini_verifier_model,
+                gemini_verifier_thinking_level=gemini_verifier_thinking_level,
             )
-            annotation = _apply_gemini_character_verification(
-                annotation=annotation,
-                image_obj=image_obj,
-                sample_id=sample_id,
-                model=gemini_verifier_model,
-                thinking_level=gemini_verifier_thinking_level,
+            for img, src, sid, okey, raw in zip(
+                images, sources, sample_ids, output_keys, detections
             )
-            _put_jsonl_object(bucket, output_key, annotation)
-            annotated.append(
-                {
-                    "sample_id": sample_id,
-                    "page_key": source.get("key"),
-                    "output_key": output_key,
-                    "status": "ok",
-                    "verification_status": annotation["verification"]["status"],
-                    "summary": annotation["summary"],
-                }
-            )
-        except Exception as exc:  # noqa: BLE001
-            # Persist failures so they're visible after the run finishes.
-            failure_key = f"{failed_prefix}/{run_id}/{sample_id}.json"
-            try:
-                _put_jsonl_object(
-                    bucket,
-                    failure_key,
-                    {
-                        "sample_id": sample_id,
-                        "page_key": source.get("key"),
-                        "output_key": output_key,
-                        "run_id": run_id,
-                        "error": repr(exc)[:1000],
-                    },
-                )
-            except Exception:
-                pass
-            errors.append(
-                {
-                    "sample_id": sample_id,
-                    "page_key": source.get("key"),
-                    "output_key": output_key,
-                    "failure_key": failure_key,
-                    "status": "error",
-                    "error": repr(exc)[:500],
-                }
-            )
+        ]
+        for fut in as_completed(futures):
+            status, entry = fut.result()
+            if status == "ok":
+                annotated.append(entry)
+            else:
+                errors.append(entry)
 
     return {
         "ok": not errors,

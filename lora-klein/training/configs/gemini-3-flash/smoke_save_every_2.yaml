@@ -1,0 +1,56 @@
+job: extension
+config:
+  name: drawtoon_flux2_klein9b_smoke_save_every_2
+  process:
+  - type: sd_trainer
+    name: drawtoon_flux2_klein9b_smoke_save_every_2
+    save:
+      dtype: bf16
+      save_every: 2
+      max_step_saves_to_keep: 8
+      save_format: diffusers
+    logging:
+      use_ui_logger: false
+      log_step_timing: true
+    datasets:
+    - type: manifest
+      local_cache_dir: /root/training/datasets_cache/drawtoon_panel_sample_cache
+      resolution: 768
+      buckets: false
+      num_workers: 4
+      max_character_refs: 5
+    train:
+      batch_size: 1
+      gradient_accumulation_steps: 8
+      attention_backend: flash
+      noise_scheduler: flowmatch
+      timestep_type: shift
+      optimizer: adafactor
+      lr: 2.8e-06
+      lr_scheduler: constant_with_warmup
+      dtype: bf16
+    model:
+      name_or_path: black-forest-labs/FLUX.2-klein-base-9B
+      arch: flux2_klein_9b
+      only_if_contains:
+      - transformer.double_blocks.
+      - transformer.single_blocks.
+    sample:
+      sample_every: 9999
+      guidance_scale: 4.0
+      sample_steps: 50
+      seed: 42
+      walk_seed: true
+meta:
+  name: drawtoon_flux2_klein9b_smoke_save_every_2
+  version: '1.0'
+  description: Smoke training for the NCCL broadcast fix. DDP-8 H200, save_every=2, capped dataset, no validation. Verifies that saves complete and upload after the BaseSDTrainProcess.load_training_state_from_metadata broadcast change.
+drawtoon:
+  bucket: drawtoon
+  pages_prefix: datasets/pages/text_removed
+  annotations_prefix: datasets/annotations/magi_v3
+  captions_prefix: captions
+  caption_run: gemini3_flash_page_panel_v1
+  caption_field: caption
+  caption_format: text
+  include_chapter_regex: _mangazero$
