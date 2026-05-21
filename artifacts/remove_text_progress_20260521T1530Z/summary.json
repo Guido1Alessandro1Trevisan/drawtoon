@@ -1,0 +1,17 @@
+{
+  "measured_at_utc": "2026-05-21T16:04:24+00:00",
+  "manifest_total": 91604,
+  "completed_exact": 30425,
+  "remaining": 61179,
+  "percent": 33.21,
+  "failure_count": 1,
+  "chapter_count": 33,
+  "sample_count": 27,
+  "artifact": "artifacts/remove_text_progress_20260521T1530Z/index.html",
+  "failure_samples": [
+    {
+      "key": "datasets/pages/text_removed/_failed/20260521T124026Z/eleceed_manwa__episode-000102-episode-102__slice-0024.json",
+      "body": "{\"sample_id\": \"eleceed_manwa__episode-000102-episode-102__slice-0024\", \"page_key\": \"datasets/pages/filtered/eleceed_manwa/episode-000102-episode-102/slice-0024.jpg\", \"output_key\": \"datasets/pages/text_removed/eleceed_manwa/episode-000102-episode-102/slice-0024.png\", \"run_id\": \"20260521T124026Z\", \"variant\": \"klein_local_9b_4step\", \"error\": \"ValueError('Aspect ratio too extreme: 700\u00d75605 (ratio: 8.0:1). Maximum allowed ratio is 8:1')\"}\n"
+    }
+  ]
+}

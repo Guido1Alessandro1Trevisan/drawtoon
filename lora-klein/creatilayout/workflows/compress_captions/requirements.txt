@@ -1,4 +1,0 @@
-boto3>=1.43.6
-botocore>=1.43.6
-Pillow>=10.0.0
-google-genai>=1.0.0

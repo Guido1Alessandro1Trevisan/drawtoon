@@ -675,7 +675,7 @@ def build_drawtoon_panel_cache(argv: list[str] | None = None) -> None:
     parser.add_argument("--caption-field", default=None)
     parser.add_argument("--caption-format", default=None, choices=["text", "compact_json"])
     parser.add_argument("--shard-count", type=int, default=0)
-    parser.add_argument("--workers", type=int, default=96)
+    parser.add_argument("--workers", type=int, default=192)
     parser.add_argument("--cache-root", default=DEFAULT_DATASET_CACHE_ROOT)
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args(argv)

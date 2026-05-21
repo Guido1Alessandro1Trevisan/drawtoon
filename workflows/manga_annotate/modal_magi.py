@@ -50,6 +50,7 @@ DEFAULT_MAX_CONTAINERS = int(os.environ.get("MAGI_V3_MAX_CONTAINERS", "40"))
 DEFAULT_GPU_BATCH_SIZE = int(os.environ.get("MAGI_V3_BATCH_SIZE", "8"))
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 GEMINI_API_KEY_SECRET_NAME = os.environ.get("GEMINI_API_KEY_SECRET_NAME", "drawtoon/gemini-api-key")
+GEMINI_MODAL_SECRET_NAME = os.environ.get("GEMINI_MODAL_SECRET_NAME", "gemini-api-key")
 GEMINI_API_KEY_ENV = "GOOGLE_GENERATIVE_AI_API_KEY"
 DEFAULT_GEMINI_VERIFIER_MODEL = os.environ.get("GEMINI_VERIFIER_MODEL", "gemini-3-flash-preview")
 DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL = os.environ.get("GEMINI_VERIFIER_THINKING_LEVEL", "HIGH")
@@ -129,6 +130,8 @@ image = (
 app = modal.App("drawtoon-manga-annotate", image=image)
 hf_volume = modal.Volume.from_name("magi-hf-cache", create_if_missing=True)
 aws_secret = modal.Secret.from_name(AWS_SECRET_NAME)
+gemini_secret = modal.Secret.from_name(GEMINI_MODAL_SECRET_NAME)
+worker_secrets = [aws_secret, gemini_secret]
 
 
 # ---------------------------------------------------------------------------
@@ -699,7 +702,7 @@ def _annotation_payload(
     startup_timeout=1500,
     cpu=8.0,
     memory=32768,
-    secrets=[aws_secret],
+    secrets=worker_secrets,
     volumes={HF_HOME: hf_volume},
     max_containers=DEFAULT_MAX_CONTAINERS,
     scaledown_window=300,
@@ -746,16 +749,10 @@ class MagiAnnotator:
 
     @modal.method()
     def annotate_batch(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """Annotate one shard of items.
+        """Annotate one shard of page items.
 
-        Items can mix:
-          - manga page rows: ``{page_key, output_key, sample_id, ...}``
-          - unified rows with a polymorphic ``source`` block: ``{output_key,
-            sample_id, source: {"type": "page"|"manwa_sheet", ...}}``
-
-        Image acquisition routes through :func:`load_asset_image`; the rest
-        of the pipeline (magi-v3 + Gemini verifier + S3 persist) is unaware
-        of the source type.
+        Each item is ``{page_key, output_key, sample_id, ...}`` or
+        ``{output_key, sample_id, source: {"type": "page", "page_key": ...}}``.
         """
         return _annotate_batch_impl(payload, model=self.model, processor=self.processor)
 
@@ -888,8 +885,8 @@ def _annotate_batch_impl(
     output_keys: list[str] = []
 
     def _download(page: dict[str, Any]) -> tuple[Any, dict[str, Any], str, str]:
-        # Items can be either manga page rows (flat ``page_key``) or unified
-        # rows that already carry a ``source`` block (page or manwa_sheet).
+        # Items can be either flat rows (``page_key``) or wrapped rows with a
+        # ``source`` block ({"type": "page", "page_key": ...}).
         output_key = str(page["output_key"])
         source_block = page.get("source")
         if not isinstance(source_block, dict):
@@ -899,11 +896,7 @@ def _annotate_batch_impl(
             source_block = {"type": "page", "page_key": page_key}
         image_obj, source_meta = load_asset_image(source_block, bucket)
         chapter = str(page.get("chapter") or "")
-        derived_id = ""
-        if source_meta.get("type") == "page":
-            derived_id = Path(str(source_meta.get("key") or source_meta.get("page_key") or "")).stem
-        elif source_meta.get("type") == "manwa_sheet":
-            derived_id = str(source_meta.get("sheet_id") or "")
+        derived_id = Path(str(source_meta.get("key") or source_meta.get("page_key") or "")).stem
         page_id = str(page.get("page_id") or derived_id)
         sample_id = str(page.get("sample_id") or (f"{chapter}__{page_id}" if chapter else page_id))
         return image_obj, source_meta, sample_id, output_key
@@ -980,80 +973,8 @@ def _annotate_batch_impl(
 
 
 # ---------------------------------------------------------------------------
-# Manwa: in-memory sheet annotation
-#
-# A manwa "sheet" is a vertical stitch of one or more raw manhwa pages,
-# pre-computed locally in start.py via Gemini-driven cut detection. The
-# manifest row for one chapter carries the slice plan for every sheet
-# (no sheet JPEGs are written to S3). This worker downloads the source
-# pages, stitches each sheet in memory, runs magi-v3, runs Gemini
-# character verification, and writes one annotation JSONL per sheet —
-# exactly like a manga page annotation, except the ``source`` block holds
-# the slice plan instead of a single ``page_key``.
+# Asset loading
 # ---------------------------------------------------------------------------
-
-
-def _stitch_sheet_from_slices(slices: list[dict[str, Any]], bucket: str) -> Any:
-    """Reconstruct one sheet image from its slice plan in memory.
-
-    ``slices`` is a list of ``{source_page_key, source_y_start, source_y_end,
-    sheet_y_start, sheet_y_end}`` entries. Each source page is downloaded once
-    (parallel), cropped per slice, and pasted at its declared ``sheet_y_start``
-    in the final canvas. The function asserts slice contiguity (no gaps, no
-    overlaps) so any future drift in the slice plan surfaces immediately
-    rather than producing a silently shifted sheet.
-    """
-    from PIL import Image
-
-    if not slices:
-        raise ValueError("manwa sheet has no slices")
-
-    unique_keys = sorted({str(s["source_page_key"]) for s in slices})
-    page_images: dict[str, Any] = {}
-
-    def _dl(key: str) -> tuple[str, Any]:
-        return key, _download_rgb_image(bucket, key)[0]
-
-    with ThreadPoolExecutor(max_workers=min(8, max(1, len(unique_keys)))) as pool:
-        for key, img in pool.map(_dl, unique_keys):
-            page_images[key] = img
-
-    sorted_slices = sorted(slices, key=lambda s: int(s["sheet_y_start"]))
-    # Contract: sheet_y_starts cover [0, total_h) contiguously. Anything else
-    # means the manifest is out of sync with the slice builder.
-    expected = 0
-    for s in sorted_slices:
-        sy0 = int(s["sheet_y_start"])
-        sy1 = int(s["sheet_y_end"])
-        if sy0 != expected:
-            raise ValueError(
-                f"slice plan is not contiguous: expected sheet_y_start={expected}, got {sy0} ({s})"
-            )
-        if sy1 <= sy0:
-            raise ValueError(f"slice has non-positive sheet height: {s}")
-        expected = sy1
-    total_h = expected
-    target_width = max(int(im.width) for im in page_images.values())
-
-    sheet_image = Image.new("RGB", (int(target_width), int(total_h)), "white")
-    try:
-        for s in sorted_slices:
-            src = page_images[str(s["source_page_key"])]
-            crop = src.crop((0, int(s["source_y_start"]), src.width, int(s["source_y_end"])))
-            try:
-                if crop.width != target_width:
-                    new_h = int(round(crop.height * target_width / crop.width))
-                    crop = crop.resize((target_width, new_h), Image.Resampling.LANCZOS)
-                sheet_image.paste(crop, (0, int(s["sheet_y_start"])))
-            finally:
-                crop.close()
-    finally:
-        for img in page_images.values():
-            try:
-                img.close()
-            except Exception:
-                pass
-    return sheet_image
 
 
 def load_asset_image(source: dict[str, Any], bucket: str) -> tuple[Any, dict[str, Any]]:
@@ -1062,39 +983,14 @@ def load_asset_image(source: dict[str, Any], bucket: str) -> tuple[Any, dict[str
     Returns ``(image, source_meta)``. ``source_meta`` is the dict written to
     ``annotation['source']`` — it captures provenance the trainer needs to
     reload the same bytes later.
-
-    - ``source.type == "page"``: download ``source.page_key`` from S3.
-    - ``source.type == "manwa_sheet"``: stitch ``source.slices`` in memory.
     """
-    src_type = str(source.get("type") or "").strip()
-    if not src_type:
-        # Legacy callers may pass a page_key directly without a wrapping
-        # ``source`` dict; treat that as the manga page case.
-        src_type = "manwa_sheet" if source.get("slices") else "page"
-
-    if src_type == "page":
-        page_key = str(source.get("page_key") or "").strip()
-        if not page_key:
-            raise ValueError("page source missing page_key")
-        image_obj, meta = _download_rgb_image(bucket, page_key)
-        meta["type"] = "page"
-        meta["page_key"] = page_key
-        return image_obj, meta
-
-    if src_type == "manwa_sheet":
-        slices = list(source.get("slices") or [])
-        image = _stitch_sheet_from_slices(slices, bucket)
-        return image, {
-            "type": "manwa_sheet",
-            "sheet_id": str(source.get("sheet_id") or ""),
-            "page_key": None,
-            "s3_uri": None,
-            "slices": slices,
-            "width": int(image.width),
-            "height": int(image.height),
-        }
-
-    raise ValueError(f"unsupported source type {src_type!r}")
+    page_key = str(source.get("page_key") or "").strip()
+    if not page_key:
+        raise ValueError("page source missing page_key")
+    image_obj, meta = _download_rgb_image(bucket, page_key)
+    meta["type"] = "page"
+    meta["page_key"] = page_key
+    return image_obj, meta
 
 
 # ---------------------------------------------------------------------------
@@ -1109,7 +1005,7 @@ def load_asset_image(source: dict[str, Any], bucket: str) -> tuple[Any, dict[str
     startup_timeout=1500,
     cpu=8.0,
     memory=65536,
-    secrets=[aws_secret],
+    secrets=worker_secrets,
     volumes={HF_HOME: hf_volume},
     max_containers=1,
 )
@@ -1290,6 +1186,48 @@ def smoke_test(
     print(json.dumps(result, indent=2, default=str))
 
 
+def _build_manifest_shards(
+    manifest_path: str,
+    bucket: str = S3_BUCKET_DEFAULT,
+    run_id: str = "",
+    git_sha: str = "",
+    overwrite: bool = False,
+    gpu_batch_size: int = DEFAULT_GPU_BATCH_SIZE,
+    pages_per_shard: int = 16,
+    gemini_verifier_model: str = DEFAULT_GEMINI_VERIFIER_MODEL,
+    gemini_verifier_thinking_level: str = DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL,
+) -> tuple[str, list[dict[str, Any]], int, int]:
+    manifest = Path(manifest_path)
+    if not manifest.exists():
+        raise FileNotFoundError(f"manifest not found: {manifest}")
+
+    rows: list[dict[str, Any]] = []
+    for line in manifest.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        rows.append(json.loads(line))
+    effective_run_id = run_id.strip() or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    shard_size = max(1, int(pages_per_shard))
+    if not rows:
+        return effective_run_id, [], 0, shard_size
+
+    shards = [
+        {
+            "bucket": bucket,
+            "run_id": effective_run_id,
+            "git_sha": git_sha,
+            "overwrite": overwrite,
+            "gpu_batch_size": gpu_batch_size,
+            "gemini_verifier_model": gemini_verifier_model,
+            "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
+            "pages": rows[start : start + shard_size],
+        }
+        for start in range(0, len(rows), shard_size)
+    ]
+    return effective_run_id, shards, len(rows), shard_size
+
+
 @app.local_entrypoint()
 def annotate_manifest_local(
     manifest_path: str,
@@ -1307,42 +1245,24 @@ def annotate_manifest_local(
     Gemini character verification is a mandatory second stage. A Gemini failure
     on a page fails that page; it is recorded in the per-run ``_failed/`` prefix.
     """
-    manifest = Path(manifest_path)
-    if not manifest.exists():
-        raise FileNotFoundError(f"manifest not found: {manifest}")
-
-    rows: list[dict[str, Any]] = []
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        rows.append(json.loads(line))
-    if not rows:
-        print("manifest is empty; nothing to do")
-        return
-
-    effective_run_id = run_id.strip() or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    shard_size = max(1, int(pages_per_shard))
-    shards = [
-        {
-            "bucket": bucket,
-            "run_id": effective_run_id,
-            "git_sha": git_sha,
-            "overwrite": overwrite,
-            "gpu_batch_size": gpu_batch_size,
-            "gemini_verifier_model": gemini_verifier_model,
-            "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
-            "pages": rows[start : start + shard_size],
-        }
-        for start in range(0, len(rows), shard_size)
-    ]
+    effective_run_id, shards, row_count, shard_size = _build_manifest_shards(
+        manifest_path=manifest_path,
+        bucket=bucket,
+        run_id=run_id,
+        git_sha=git_sha,
+        overwrite=overwrite,
+        gpu_batch_size=gpu_batch_size,
+        pages_per_shard=pages_per_shard,
+        gemini_verifier_model=gemini_verifier_model,
+        gemini_verifier_thinking_level=gemini_verifier_thinking_level,
+    )
 
     print(
         json.dumps(
             {
                 "event": "start",
                 "run_id": effective_run_id,
-                "pages": len(rows),
+                "pages": row_count,
                 "shards": len(shards),
                 "shard_size": shard_size,
                 "gpu_batch_size": gpu_batch_size,
@@ -1353,6 +1273,10 @@ def annotate_manifest_local(
         ),
         flush=True,
     )
+
+    if not shards:
+        print("manifest is empty; nothing to do")
+        return
 
     annotated_total = 0
     skipped_total = 0
@@ -1398,91 +1322,42 @@ def annotate_manifest_local(
 
 
 @app.local_entrypoint()
-def annotate_manwa_manifest_local(
+def annotate_manifest_spawn(
     manifest_path: str,
     bucket: str = S3_BUCKET_DEFAULT,
     run_id: str = "",
     git_sha: str = "",
     overwrite: bool = False,
     gpu_batch_size: int = DEFAULT_GPU_BATCH_SIZE,
-    pages_per_shard: int = 16,  # ignored; kept for CLI parity with the manga path
+    pages_per_shard: int = 16,
     gemini_verifier_model: str = DEFAULT_GEMINI_VERIFIER_MODEL,
     gemini_verifier_thinking_level: str = DEFAULT_GEMINI_VERIFIER_THINKING_LEVEL,
 ):
-    """Manwa entry point: read a chapter-level JSONL manifest and fan one
-    chapter at a time across the H200 pool.
+    """Detach-safe variant: submit every shard with .spawn() and exit."""
+    effective_run_id, shards, row_count, shard_size = _build_manifest_shards(
+        manifest_path=manifest_path,
+        bucket=bucket,
+        run_id=run_id,
+        git_sha=git_sha,
+        overwrite=overwrite,
+        gpu_batch_size=gpu_batch_size,
+        pages_per_shard=pages_per_shard,
+        gemini_verifier_model=gemini_verifier_model,
+        gemini_verifier_thinking_level=gemini_verifier_thinking_level,
+    )
 
-    Each manifest row is a chapter row produced by ``start.py --manwa``. Each
-    row holds the full sheet list for that chapter (one entry per sheet with
-    its slice plan). The Modal worker stitches and annotates the chapter's
-    sheets atomically, then writes one annotation JSONL per sheet to
-    ``datasets/annotations/magi_v3/<chapter>/<chapter>__sheet-NNNN.jsonl`` —
-    same prefix as the manga page annotations.
-
-    Output JSONLs are shape-compatible with manga page annotations; only the
-    ``source`` block differs (``slices[]`` instead of ``page_key``).
-    """
-    _ = pages_per_shard  # accepted for CLI compatibility; not used in manwa
-    manifest = Path(manifest_path)
-    if not manifest.exists():
-        raise FileNotFoundError(f"manifest not found: {manifest}")
-
-    rows: list[dict[str, Any]] = []
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        rows.append(json.loads(line))
-    if not rows:
+    if not shards:
         print("manifest is empty; nothing to do")
         return
-
-    effective_run_id = run_id.strip() or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-
-    # Flatten chapter rows into a flat list of per-sheet annotation items
-    # carrying the polymorphic ``source`` block the unified worker expects.
-    flat_items: list[dict[str, Any]] = []
-    for row in rows:
-        chapter = str(row.get("chapter") or "")
-        output_chapter = str(row.get("output_chapter") or chapter)
-        for sheet in row.get("sheets") or []:
-            flat_items.append(
-                {
-                    "output_key": str(sheet.get("output_key") or ""),
-                    "sample_id": str(sheet.get("sample_id") or ""),
-                    "chapter": chapter,
-                    "output_chapter": output_chapter,
-                    "source": {
-                        "type": "manwa_sheet",
-                        "sheet_id": str(sheet.get("sheet_id") or ""),
-                        "slices": list(sheet.get("slices") or []),
-                    },
-                }
-            )
-    shard_size = max(1, int(pages_per_shard))
-    shards = [
-        {
-            "bucket": bucket,
-            "run_id": effective_run_id,
-            "git_sha": git_sha,
-            "overwrite": overwrite,
-            "gpu_batch_size": gpu_batch_size,
-            "gemini_verifier_model": gemini_verifier_model,
-            "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
-            "pages": flat_items[start : start + shard_size],
-        }
-        for start in range(0, len(flat_items), shard_size)
-    ]
 
     print(
         json.dumps(
             {
-                "event": "manwa_start",
+                "event": "spawn_start",
                 "run_id": effective_run_id,
-                "chapter_count": len(rows),
-                "sheet_count": len(flat_items),
-                "shard_size": shard_size,
+                "pages": row_count,
                 "shards": len(shards),
+                "shard_size": shard_size,
                 "gpu_batch_size": gpu_batch_size,
                 "gemini_verifier_model": gemini_verifier_model,
                 "gemini_verifier_thinking_level": gemini_verifier_thinking_level,
@@ -1492,43 +1367,32 @@ def annotate_manwa_manifest_local(
         flush=True,
     )
 
-    annotated_total = 0
-    skipped_total = 0
-    error_total = 0
-    wall_start = time.perf_counter()
     annotator = MagiAnnotator()
-    for idx, result in enumerate(annotator.annotate_batch.map(shards, order_outputs=False)):
-        annotated_total += len(result.get("annotated", []))
-        skipped_total += len(result.get("skipped", []))
-        error_total += len(result.get("errors", []))
-        elapsed = time.perf_counter() - wall_start
-        rate = annotated_total / elapsed if elapsed > 0 else 0.0
-        print(
-            json.dumps(
-                {
-                    "event": "shard_done",
-                    "completed_shards": idx + 1,
-                    "annotated_total": annotated_total,
-                    "skipped_total": skipped_total,
-                    "error_total": error_total,
-                    "elapsed_sec": round(elapsed, 1),
-                    "sheets_per_sec_cluster": round(rate, 2),
-                    "stats": result.get("stats"),
-                }
-            ),
-            flush=True,
-        )
-    wall_sec = time.perf_counter() - wall_start
+    call_ids: list[str] = []
+    for idx, shard in enumerate(shards):
+        call = annotator.annotate_batch.spawn(shard)
+        call_ids.append(call.object_id)
+        if idx == 0 or (idx + 1) % 100 == 0 or idx == len(shards) - 1:
+            print(
+                json.dumps(
+                    {
+                        "event": "shard_spawned",
+                        "shard_index": idx,
+                        "call_id": call.object_id,
+                    }
+                ),
+                flush=True,
+            )
+
     print(
         json.dumps(
             {
-                "event": "manwa_done",
+                "event": "spawn_done",
                 "run_id": effective_run_id,
-                "annotated_total": annotated_total,
-                "skipped_total": skipped_total,
-                "error_total": error_total,
-                "wall_sec": round(wall_sec, 1),
-                "sheets_per_sec_cluster": round(annotated_total / wall_sec, 2) if wall_sec > 0 else None,
+                "spawned": len(call_ids),
+                "first_call_id": call_ids[0] if call_ids else None,
+                "last_call_id": call_ids[-1] if call_ids else None,
+                "note": "shards run remotely; track via Modal dashboard. Local exit is safe.",
             }
         ),
         flush=True,

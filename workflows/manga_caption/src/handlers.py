@@ -28,6 +28,10 @@ DEFAULT_MANGA_METADATA_REF = os.environ.get(
     "MANGA_METADATA_JSON",
     "metadata/mangazero_manga_credits_20260511.json",
 )
+DEFAULT_COMIC_METADATA_REF = os.environ.get(
+    "COMIC_METADATA_JSON",
+    "metadata/comic_credits_v1.json",
+)
 DEFAULT_MAX_CONCURRENCY = int(os.environ.get("DEFAULT_MANGA_CAPTION_MAX_CONCURRENCY", "200"))
 MAX_CHARACTERS_PER_PANEL = 5
 MAX_TEXT_REGIONS_PER_PANEL = 7
@@ -39,6 +43,7 @@ ALLOWED_TEXT_BUBBLE_TYPES = ("Speech Bubble", "Narration Bubble", "Shout Bubble"
 
 _S3_CLIENT = None
 _MANGA_METADATA_CACHE: dict[str, dict[str, Any]] = {}
+_COMIC_METADATA_CACHE: dict[str, dict[str, Any]] = {}
 
 PAGE_CAPTION_SCHEMA_GEMINI = {
     "type": "object",
@@ -373,6 +378,40 @@ def _infer_manga_rendering_label(image_bytes: bytes) -> str:
     except Exception:
         pass
     return "Black and White Manga"
+
+
+def _load_comic_metadata_index(metadata_ref: object) -> dict[str, dict[str, Any]]:
+    ref = str(metadata_ref or "").strip()
+    if not ref:
+        return {}
+    cached = _COMIC_METADATA_CACHE.get(ref)
+    if cached is not None:
+        return cached
+    try:
+        payload = _load_json_ref(ref)
+    except Exception:
+        _COMIC_METADATA_CACHE[ref] = {}
+        return {}
+    index: dict[str, dict[str, Any]] = payload if isinstance(payload, dict) else {}
+    _COMIC_METADATA_CACHE[ref] = index
+    return index
+
+
+def _lookup_comic_caption_prefix(chapter: str, metadata_ref: str) -> str:
+    """Return the prebuilt comic caption_prefix for the chapter slug, or a safe
+    fallback if the credits file is missing/incomplete."""
+    index = _load_comic_metadata_index(metadata_ref)
+    record = index.get(chapter)
+    if isinstance(record, dict):
+        prefix = str(record.get("caption_prefix") or "").strip()
+        if prefix:
+            return prefix
+    # Fallback: derive publisher from slug, leave title generic.
+    publisher = "Marvel" if chapter.startswith("marvel_") else "DC" if chapter.startswith("dc_") else ""
+    title = _title_from_chapter(chapter)
+    if publisher and title:
+        return f"Colored Comic. {title} by {publisher}."
+    return "Colored Comic."
 
 
 def _caption_prefix(rendering_label: str, manga_credit: dict[str, Any]) -> str:
@@ -730,21 +769,31 @@ def _encode_page_for_gemini(page_image: Image.Image) -> tuple[bytes, str, dict[s
     return encoded, mime, meta
 
 
-def _build_gemini_user_text(panels: list[dict[str, Any]]) -> str:
+def _build_gemini_user_text(panels: list[dict[str, Any]], *, media_kind: str = "manga") -> str:
     """Compose the per-page user prompt — verbatim from the prompt eval, plus
-    per-panel/text-region metadata blocks and the classification rule."""
+    per-panel/text-region metadata blocks and the classification rule.
+
+    media_kind="manga" (default) uses the manga header. media_kind="comic"
+    swaps to the Western comic header defined in prompts/prompt_comic.py.
+    """
     n = len(panels)
-    # Verbatim from the eval prompt (the verbose variant that won the A/B):
-    lines: list[str] = [
-        f"This is one full manga page containing {n} panels.",
-        "For EACH panel: dense ~80-word caption that is descriptive not interpretive.",
-        "For each character cover position, pose, facing direction, gaze target, mouth shape, visible action.",
-        "Include shot size (close-up/medium/wide), camera angle (eye-level/high/low/three-quarter), "
-        "and panel composition language (speed lines, screen tone, dark fill, tilted framing, overlapping figures, silhouettes).",
-        "Do not mention speech/shout/narration bubbles.",
-        "Do not mention characters by name.",
-        "Do not mention that it is a black-and-white manga panel.",
-        "Return panels in manga reading order (right-to-left, top-to-bottom).",
+    if media_kind == "comic":
+        from .prompts.prompt_comic import build_comic_header_lines
+        lines: list[str] = list(build_comic_header_lines(n))
+    else:
+        # Verbatim from the eval prompt (the verbose variant that won the A/B):
+        lines = [
+            f"This is one full manga page containing {n} panels.",
+            "For EACH panel: dense ~80-word caption that is descriptive not interpretive.",
+            "For each character cover position, pose, facing direction, gaze target, mouth shape, visible action.",
+            "Include shot size (close-up/medium/wide), camera angle (eye-level/high/low/three-quarter), "
+            "and panel composition language (speed lines, screen tone, dark fill, tilted framing, overlapping figures, silhouettes).",
+            "Do not mention speech/shout/narration bubbles.",
+            "Do not mention characters by name.",
+            "Do not mention that it is a black-and-white manga panel.",
+            "Return panels in manga reading order (right-to-left, top-to-bottom).",
+        ]
+    lines.extend([
         "",
         # Addition for text classification:
         "In ADDITION to the caption, classify every listed text region by bubble shape only — "
@@ -755,7 +804,7 @@ def _build_gemini_user_text(panels: list[dict[str, Any]]) -> str:
         "Panel and text-region metadata (bbox_norm_in_panel coords are normalized to each panel's own bounding box; "
         "use them only to identify which panel/region is which — do not mention positions in the caption):",
         "",
-    ]
+    ])
     for panel in panels:
         panel_index = int(panel.get("panel_index") or 0)
         characters = panel.get("characters") or []
@@ -781,6 +830,7 @@ def _caption_one_page_gemini(
     model: str,
     page_image: Image.Image,
     panels: list[dict[str, Any]],
+    media_kind: str = "manga",
 ) -> tuple[dict[int, dict[str, Any]], dict[str, Any], dict[str, int]]:
     """One Gemini call per page. Returns {panel_index: {caption, text_bubble_types}}.
     The SDK handles retries (configured on the client); we trust it and don't wrap."""
@@ -788,11 +838,12 @@ def _caption_one_page_gemini(
 
     client = _genai_client()
     page_bytes, mime, image_meta = _encode_page_for_gemini(page_image)
-    user_text = _build_gemini_user_text(panels)
+    user_text = _build_gemini_user_text(panels, media_kind=media_kind)
     config = types.GenerateContentConfig(
         response_mime_type="application/json",
         response_schema=PAGE_CAPTION_SCHEMA_GEMINI,
         media_resolution=types.MediaResolution.MEDIA_RESOLUTION_MEDIUM,
+        thinking_config=types.ThinkingConfig(thinking_level="HIGH"),
     )
 
     resp = client.models.generate_content(
@@ -932,6 +983,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
     require_annotations = bool(event.get("require_annotations", True))
     model = str(event.get("model") or DEFAULT_GEMINI_MODEL).strip()
     manga_metadata_json = str(event.get("manga_metadata_json") or DEFAULT_MANGA_METADATA_REF).strip()
+    comic_metadata_json = str(event.get("comic_metadata_json") or DEFAULT_COMIC_METADATA_REF).strip()
 
     rows, page_stats = _list_page_rows(
         bucket=bucket,
@@ -962,6 +1014,7 @@ def prepare_manga_caption_config(event: dict[str, Any], _context: Any) -> dict[s
         "run_id": run_id,
         "model": model,
         "manga_metadata_json": manga_metadata_json,
+        "comic_metadata_json": comic_metadata_json,
         "overwrite": overwrite,
         "created_at": _now_utc_iso(),
         "git_sha": str(event.get("git_sha") or ""),
@@ -994,9 +1047,21 @@ def caption_manga_page(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     width, height = _page_image_dimensions(page_bytes)
     annotation = _get_s3_json_or_jsonl(bucket, str(page["annotation_key"]))
     panels = _annotation_panels(annotation, width=width, height=height)
-    rendering_label = _infer_manga_rendering_label(page_bytes)
-    manga_credit = _lookup_manga_credit(str(page["chapter"]), annotation, str(config.get("manga_metadata_json") or ""))
-    caption_prefix = _caption_prefix(rendering_label, manga_credit)
+    chapter_slug = str(page["chapter"])
+    is_comic = chapter_slug.endswith("_comic")
+    if is_comic:
+        media_kind = "comic"
+        caption_prefix = _lookup_comic_caption_prefix(
+            chapter_slug,
+            str(config.get("comic_metadata_json") or DEFAULT_COMIC_METADATA_REF),
+        )
+        manga_credit = {}
+        rendering_label = "Colored Comic"
+    else:
+        media_kind = "manga"
+        rendering_label = _infer_manga_rendering_label(page_bytes)
+        manga_credit = _lookup_manga_credit(chapter_slug, annotation, str(config.get("manga_metadata_json") or ""))
+        caption_prefix = _caption_prefix(rendering_label, manga_credit)
 
     with Image.open(io.BytesIO(page_bytes)) as image:
         page_image = image.convert("RGB")
@@ -1004,6 +1069,7 @@ def caption_manga_page(event: dict[str, Any], _context: Any) -> dict[str, Any]:
             model=str(config["model"]),
             page_image=page_image,
             panels=panels,
+            media_kind=media_kind,
         )
 
     captioned_panels: list[dict[str, Any]] = []

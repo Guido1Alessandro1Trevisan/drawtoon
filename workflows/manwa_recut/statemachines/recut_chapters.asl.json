@@ -1,0 +1,81 @@
+{
+  "Comment": "Stitch + gutter-slice every manwa chapter listed in the input manifest.",
+  "StartAt": "RecutChapters",
+  "States": {
+    "RecutChapters": {
+      "Type": "Map",
+      "Label": "RecutChapters",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "Parameters": {
+          "Bucket.$": "$.source.bucket",
+          "Key.$": "$.source.manifest_key"
+        },
+        "ReaderConfig": {
+          "InputType": "JSONL"
+        }
+      },
+      "ItemSelector": {
+        "row_index.$": "$$.Map.Item.Index",
+        "item.$": "$$.Map.Item.Value",
+        "config": {
+          "bucket.$": "$.source.bucket",
+          "input_prefix.$": "$.input_prefix",
+          "output_prefix.$": "$.output_prefix",
+          "jpeg_quality.$": "$.jpeg_quality"
+        }
+      },
+      "ItemBatcher": {
+        "MaxItemsPerBatchPath": "$.batch.max_items_per_batch"
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "RecutChapterBatch",
+        "States": {
+          "RecutChapterBatch": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${RecutChapterBatchArn}",
+              "Payload.$": "$"
+            },
+            "TimeoutSeconds": 900,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "OutputPath": "$.Payload",
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrencyPath": "$.batch.max_concurrency",
+      "ToleratedFailureCountPath": "$.failure.tolerated_failure_count",
+      "ResultWriter": {
+        "Resource": "arn:aws:states:::s3:putObject",
+        "Parameters": {
+          "Bucket.$": "$.audit.bucket",
+          "Prefix.$": "$.audit.prefix"
+        },
+        "WriterConfig": {
+          "OutputType": "JSONL",
+          "Transformation": "COMPACT"
+        }
+      },
+      "ResultPath": "$.map_result",
+      "End": true
+    }
+  }
+}

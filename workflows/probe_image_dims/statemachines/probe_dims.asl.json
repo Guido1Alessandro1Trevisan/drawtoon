@@ -1,0 +1,75 @@
+{
+  "Comment": "Probe image dimensions for every key listed in the input manifest via S3 range-bytes + PIL.",
+  "StartAt": "ProbeImages",
+  "States": {
+    "ProbeImages": {
+      "Type": "Map",
+      "Label": "ProbeImages",
+      "ItemReader": {
+        "Resource": "arn:aws:states:::s3:getObject",
+        "Parameters": {
+          "Bucket.$": "$.source.bucket",
+          "Key.$": "$.source.manifest_key"
+        },
+        "ReaderConfig": {
+          "InputType": "JSONL"
+        }
+      },
+      "ItemSelector": {
+        "row_index.$": "$$.Map.Item.Index",
+        "item.$": "$$.Map.Item.Value",
+        "config": {
+          "bucket.$": "$.source.bucket"
+        }
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "ProbeOne",
+        "States": {
+          "ProbeOne": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${ProbeImageDimsArn}",
+              "Payload.$": "$"
+            },
+            "TimeoutSeconds": 60,
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.TooManyRequestsException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "OutputPath": "$.Payload",
+            "End": true
+          }
+        }
+      },
+      "MaxConcurrencyPath": "$.batch.max_concurrency",
+      "ToleratedFailureCountPath": "$.failure.tolerated_failure_count",
+      "ResultWriter": {
+        "Resource": "arn:aws:states:::s3:putObject",
+        "Parameters": {
+          "Bucket.$": "$.audit.bucket",
+          "Prefix.$": "$.audit.prefix"
+        },
+        "WriterConfig": {
+          "OutputType": "JSONL",
+          "Transformation": "COMPACT"
+        }
+      },
+      "ResultPath": "$.map_result",
+      "End": true
+    }
+  }
+}

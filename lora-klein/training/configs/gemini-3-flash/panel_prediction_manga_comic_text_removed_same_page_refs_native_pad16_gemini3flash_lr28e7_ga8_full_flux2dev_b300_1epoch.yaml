@@ -1,0 +1,58 @@
+job: extension
+config:
+  name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr28e7_ga8_full_b300_1epoch
+  process:
+  - type: sd_trainer
+    name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr28e7_ga8_full_b300_1epoch
+    save:
+      dtype: bf16
+      save_every: 500
+      max_step_saves_to_keep: 3
+      save_format: diffusers
+    logging:
+      use_ui_logger: true
+      log_step_timing: true
+    datasets:
+    - type: manifest
+      local_cache_dir: /root/training/datasets_cache/drawtoon_panel_sample_cache
+      resolution: 768
+      buckets: false
+      num_workers: 4
+      max_character_refs: 5
+    train:
+      batch_size: 1
+      gradient_accumulation_steps: 8
+      attention_backend: flash
+      noise_scheduler: flowmatch
+      timestep_type: shift
+      optimizer: adafactor
+      lr: 2.8e-06
+      lr_scheduler: constant_with_warmup
+      dtype: bf16
+    model:
+      name_or_path: black-forest-labs/FLUX.2-dev
+      arch: flux2
+      quantize_te: true
+      qtype: qfloat8
+      only_if_contains:
+      - transformer.double_blocks.
+      - transformer.single_blocks.
+    sample:
+      sample_every: 1000
+      guidance_scale: 4.0
+      sample_steps: 50
+      seed: 42
+      walk_seed: true
+meta:
+  name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr28e7_ga8_full_b300_1epoch
+  version: '1.0'
+  description: Full FLUX.2-dev (32B transformer + Mistral-Small-3.1-24B TE qfloat8-quantized) fine-tune on text-removed page PNGs across MangaZero + Manga109 + Marvel/DC comics (Gemini 3 Flash captions, same-page character references, character-outline + text-region + silver speech-bubble-tail control encoding). MAGI v3 annotations include inferred tails. Only transformer double_blocks + single_blocks are trainable (~25B params). GA 8, LR 2.8e-6, 1 epoch on 8xB300 DDP. Save every 500 steps, keep 3 checkpoints (each ~64 GB). Background S3 sync sidecar mirrors output dir every 30 s. Fresh start from FLUX.2-dev.
+drawtoon:
+  bucket: drawtoon
+  pages_prefix: datasets/pages/text_removed
+  annotations_prefix: datasets/annotations/magi_v3
+  captions_prefix: captions
+  caption_run: gemini3_flash_page_panel_v1
+  caption_field: caption
+  caption_format: text
+  include_chapter_regex: _(manga|comic)$

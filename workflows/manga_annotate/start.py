@@ -57,7 +57,7 @@ def infer_git_sha() -> str:
 
 
 def _list_existing_annotations(s3, bucket: str, output_prefix: str, chapter: str) -> set[str]:
-    """Set of page_id stems that already have an annotation for the given chapter."""
+    """Set of relative page IDs that already have an annotation for the chapter."""
     prefix = f"{output_prefix.rstrip('/')}/{chapter}/"
     paginator = s3.get_paginator("list_objects_v2")
     seen: set[str] = set()
@@ -65,8 +65,17 @@ def _list_existing_annotations(s3, bucket: str, output_prefix: str, chapter: str
         for obj in page.get("Contents", []) or []:
             key = str(obj.get("Key") or "")
             if key.endswith(".jsonl"):
-                seen.add(Path(key).stem)
+                rel = key[len(prefix) :] if key.startswith(prefix) else Path(key).name
+                seen.add(_page_id_from_relative(rel))
     return seen
+
+
+def _page_id_from_relative(relative_path: str) -> str:
+    return Path(relative_path).with_suffix("").as_posix().replace("/", "__")
+
+
+def _jsonl_relative_path(relative_path: str) -> str:
+    return Path(relative_path).with_suffix(".jsonl").as_posix()
 
 
 def normalize_manga_chapter_name(chapter: str) -> str:
@@ -120,7 +129,8 @@ def list_pages(
                 if Path(key).suffix.lower() not in SUPPORTED_SUFFIXES:
                     continue
                 stats["source_image_count"] += 1
-                page_id = Path(key).stem
+                rel_path = key[len(chapter_prefix) :] if key.startswith(chapter_prefix) else Path(key).name
+                page_id = _page_id_from_relative(rel_path)
                 if not overwrite and page_id in existing:
                     stats["skipped_existing_count"] += 1
                     continue
@@ -131,159 +141,11 @@ def list_pages(
                         "page_id": page_id,
                         "sample_id": f"{output_chapter}__{page_id}",
                         "page_key": key,
-                        "output_key": f"{output_prefix.rstrip('/')}/{output_chapter}/{page_id}.jsonl",
+                        "output_key": f"{output_prefix.rstrip('/')}/{output_chapter}/{_jsonl_relative_path(rel_path)}",
                     }
                 )
                 if max_pages > 0 and len(rows) >= max_pages:
                     return rows, stats
-    return rows, stats
-
-
-def list_manwa_pages_by_chapter(
-    *,
-    session: boto3.Session,
-    bucket: str,
-    source_prefix: str,
-    chapters: list[str],
-    chapter_regex: str,
-) -> dict[str, list[str]]:
-    """Discover raw manhwa page S3 keys per chapter under ``source_prefix``.
-
-    Each chapter contributes a sorted list of S3 keys for its raw single pages
-    (the inputs the manwa filter has not yet stitched). When ``chapters`` is
-    empty, every immediate sub-prefix of ``source_prefix`` is treated as a
-    chapter; ``chapter_regex`` filters that list.
-    """
-    s3 = session.client("s3")
-    include_re = re.compile(chapter_regex) if chapter_regex else None
-
-    if not chapters:
-        chapters = []
-        paginator = s3.get_paginator("list_objects_v2")
-        for page in paginator.paginate(Bucket=bucket, Prefix=source_prefix.rstrip("/") + "/", Delimiter="/"):
-            for prefix in page.get("CommonPrefixes", []) or []:
-                chapter = str(prefix.get("Prefix") or "").rstrip("/").split("/")[-1]
-                if chapter and (not include_re or include_re.search(chapter)):
-                    chapters.append(chapter)
-    chapters = sorted(set(chapters))
-
-    by_chapter: dict[str, list[str]] = {}
-    for chapter in chapters:
-        chapter_prefix = f"{source_prefix.rstrip('/')}/{chapter}/"
-        keys: list[str] = []
-        paginator = s3.get_paginator("list_objects_v2")
-        for page in paginator.paginate(Bucket=bucket, Prefix=chapter_prefix):
-            for obj in page.get("Contents", []) or []:
-                key = str(obj.get("Key") or "")
-                if Path(key).suffix.lower() in SUPPORTED_SUFFIXES:
-                    keys.append(key)
-        keys.sort()
-        if keys:
-            by_chapter[chapter] = keys
-    return by_chapter
-
-
-def build_manwa_manifest_rows(
-    *,
-    session: boto3.Session,
-    bucket: str,
-    pages_by_chapter: dict[str, list[str]],
-    output_prefix: str,
-    pages_per_chunk: int,
-    max_parallel: int,
-    overwrite: bool,
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    """For each chapter, run the Gemini-driven sheet builder locally and emit
-    one manifest row per chapter. The row carries every sheet's slice plan
-    (which the modal worker stitches in memory + annotates).
-
-    The on-S3 annotation key for each sheet mirrors the manga layout:
-        ``<output_prefix>/<output_chapter>/<output_chapter>__sheet-NNNN.jsonl``
-    so downstream pipelines (captioner, trainer) discover them with no special
-    logic.
-    """
-    # Local import so non-manwa runs don't pay for the boto/PIL/genai warmup
-    # just to parse args. manwa_sheets.py lives next to this file.
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from manwa_sheets import build_chapter_sheets  # type: ignore  # noqa: E402
-
-    s3 = session.client("s3")
-    rows: list[dict[str, Any]] = []
-    stats = {
-        "chapter_count": 0,
-        "source_image_count": 0,
-        "sheet_count": 0,
-        "dropped_page_count": 0,
-        "skipped_existing_count": 0,
-    }
-    stats["chapter_count"] = len(pages_by_chapter)
-    for chapter, page_keys in pages_by_chapter.items():
-        stats["source_image_count"] += len(page_keys)
-        output_chapter = normalize_manga_chapter_name(chapter)
-        page_bytes_list: list[bytes] = []
-        page_etags: list[str] = []
-        for key in page_keys:
-            response = s3.get_object(Bucket=bucket, Key=key)
-            page_bytes_list.append(response["Body"].read())
-            page_etags.append(str(response.get("ETag") or "").strip('"'))
-        result = build_chapter_sheets(
-            page_bytes=page_bytes_list,
-            page_keys=page_keys,
-            page_etags=page_etags,
-            pages_per_chunk=pages_per_chunk,
-            max_parallel=max_parallel,
-        )
-        sheets = result.get("sheets") or []
-        stats["dropped_page_count"] += len(result.get("dropped_page_indices") or [])
-        if not sheets:
-            continue
-        existing_sheet_ids: set[str] = set()
-        if not overwrite:
-            existing_sheet_ids = _list_existing_annotations(s3, bucket, output_prefix, output_chapter)
-        sheet_rows: list[dict[str, Any]] = []
-        for sheet in sheets:
-            sheet_id = str(sheet["sheet_id"])  # sheet_NNNN
-            sample_id = f"{output_chapter}__{sheet_id}"
-            output_key = f"{output_prefix.rstrip('/')}/{output_chapter}/{sample_id}.jsonl"
-            if not overwrite and sample_id in existing_sheet_ids:
-                stats["skipped_existing_count"] += 1
-                continue
-            sheet_rows.append(
-                {
-                    "sheet_id": sheet_id,
-                    "sample_id": sample_id,
-                    "output_key": output_key,
-                    "width": int(sheet["width"]),
-                    "height": int(sheet["height"]),
-                    # Slice plan: each entry tells the worker which source page
-                    # contributes which y-band of the sheet image. The worker
-                    # downloads and stitches these into one PIL.Image per sheet.
-                    "slices": [
-                        {
-                            "source_page_key": str(s["source_page_key"]),
-                            "source_page_width": int(s.get("source_page_width") or 0),
-                            "source_page_height": int(s.get("source_page_height") or 0),
-                            "source_page_etag": str(s.get("source_page_etag") or ""),
-                            "source_y_start": int(s["source_y_start"]),
-                            "source_y_end": int(s["source_y_end"]),
-                            "sheet_y_start": int(s["sheet_y_start"]),
-                            "sheet_y_end": int(s["sheet_y_end"]),
-                        }
-                        for s in sheet.get("slices") or []
-                    ],
-                }
-            )
-        if not sheet_rows:
-            continue
-        stats["sheet_count"] += len(sheet_rows)
-        rows.append(
-            {
-                "row_type": "manwa_chapter",
-                "chapter": chapter,
-                "output_chapter": output_chapter,
-                "sheets": sheet_rows,
-            }
-        )
     return rows, stats
 
 
@@ -304,35 +166,6 @@ def main() -> int:
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--gpu-batch-size", type=int, default=8)
     parser.add_argument("--pages-per-shard", type=int, default=16)
-    parser.add_argument(
-        "--manwa",
-        action="store_true",
-        help=(
-            "Treat the source as raw manhwa/webtoon pages: for each chapter, "
-            "run Gemini-driven sheet construction locally and emit a chapter-"
-            "level manifest whose rows describe in-memory sheets (with slice "
-            "provenance). Each sheet becomes one magi-v3 annotation row that "
-            "is shape-compatible with manga page annotations (only the source "
-            "block differs)."
-        ),
-    )
-    parser.add_argument(
-        "--manwa-source-prefix",
-        default="datasets/pages/single",
-        help="S3 prefix for raw manhwa pages when --manwa is set. Defaults to datasets/pages/single.",
-    )
-    parser.add_argument(
-        "--manwa-pages-per-chunk",
-        type=int,
-        default=2,
-        help="Number of pages stitched per Gemini cut chunk (manwa mode only).",
-    )
-    parser.add_argument(
-        "--manwa-max-parallel",
-        type=int,
-        default=10,
-        help="Max parallel Gemini cut requests per chapter (manwa mode only).",
-    )
     # Gemini character verification is always on and mandatory: after Magi v3
     # detection, Gemini drops/corrects character boxes and stores audit reasons.
     # A Gemini failure on a page fails that page (it lands in _failed/).
@@ -355,55 +188,25 @@ def main() -> int:
     session = boto3_session(args.profile.strip())
     run_id = args.run_id.strip() or dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
 
-    if args.manwa:
-        pages_by_chapter = list_manwa_pages_by_chapter(
-            session=session,
-            bucket=args.bucket,
-            source_prefix=args.manwa_source_prefix,
-            chapters=args.chapters,
-            chapter_regex=args.chapter_regex,
-        )
-        if not pages_by_chapter:
-            print(json.dumps({"event": "noop", "reason": "no manwa chapters found"}, indent=2))
-            return 0
-        rows, stats = build_manwa_manifest_rows(
-            session=session,
-            bucket=args.bucket,
-            pages_by_chapter=pages_by_chapter,
-            output_prefix=args.output_prefix,
-            pages_per_chunk=args.manwa_pages_per_chunk,
-            max_parallel=args.manwa_max_parallel,
-            overwrite=args.overwrite,
-        )
-        if not rows:
-            print(json.dumps({"event": "noop", "stats": stats, "reason": "no manwa sheets to annotate"}, indent=2))
-            return 0
-        manifest_entrypoint = "annotate_manwa_manifest_local"
-        manifest_event = {
-            "event": "manwa_manifest_written",
-            "stats": stats,
-            "chapters": sorted(pages_by_chapter.keys()),
-        }
-    else:
-        rows, stats = list_pages(
-            session=session,
-            bucket=args.bucket,
-            source_prefix=args.source_prefix,
-            output_prefix=args.output_prefix,
-            chapters=args.chapters,
-            chapter_regex=args.chapter_regex,
-            overwrite=args.overwrite,
-            max_pages=args.max_pages,
-        )
-        if not rows:
-            print(json.dumps({"event": "noop", "stats": stats, "reason": "no pages to annotate"}, indent=2))
-            return 0
-        manifest_entrypoint = "annotate_manifest_local"
-        manifest_event = {
-            "event": "manifest_written",
-            "stats": stats,
-            "chapters": sorted({row["chapter"] for row in rows}),
-        }
+    rows, stats = list_pages(
+        session=session,
+        bucket=args.bucket,
+        source_prefix=args.source_prefix,
+        output_prefix=args.output_prefix,
+        chapters=args.chapters,
+        chapter_regex=args.chapter_regex,
+        overwrite=args.overwrite,
+        max_pages=args.max_pages,
+    )
+    if not rows:
+        print(json.dumps({"event": "noop", "stats": stats, "reason": "no pages to annotate"}, indent=2))
+        return 0
+    manifest_entrypoint = "annotate_manifest_spawn" if args.detach else "annotate_manifest_local"
+    manifest_event = {
+        "event": "manifest_written",
+        "stats": stats,
+        "chapters": sorted({row["chapter"] for row in rows}),
+    }
 
     manifest_path = Path(args.manifest_path) if args.manifest_path else Path(f"/tmp/manga_annotate_{run_id}.jsonl")
     manifest_path.parent.mkdir(parents=True, exist_ok=True)

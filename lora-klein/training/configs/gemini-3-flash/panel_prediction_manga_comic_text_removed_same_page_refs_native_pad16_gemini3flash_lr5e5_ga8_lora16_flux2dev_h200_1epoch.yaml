@@ -1,0 +1,79 @@
+job: extension
+config:
+  name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr5e5_ga8_lora16_h200_1epoch
+  process:
+  - type: sd_trainer
+    name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr5e5_ga8_lora16_h200_1epoch
+    network:
+      type: lora
+      linear: 16
+      linear_alpha: 16
+      transformer_only: false
+      network_kwargs:
+        only_if_contains:
+        - img_attn.qkv
+        - img_attn.proj
+        - txt_attn.qkv
+        - txt_attn.proj
+        - single_blocks
+        - time_in
+        - txt_in
+        - img_in
+        - guidance_in
+        - double_stream_modulation_img
+        - double_stream_modulation_txt
+        - single_stream_modulation
+        - final_layer.linear
+        ignore_if_contains:
+        - img_mlp
+        - txt_mlp
+    save:
+      dtype: bf16
+      save_every: 1000
+      max_step_saves_to_keep: 4
+      save_format: diffusers
+    logging:
+      use_ui_logger: true
+      log_step_timing: true
+    datasets:
+    - type: manifest
+      local_cache_dir: /root/training/datasets_cache/drawtoon_panel_sample_cache
+      resolution: 768
+      buckets: false
+      num_workers: 4
+      max_character_refs: 5
+    train:
+      batch_size: 1
+      gradient_accumulation_steps: 8
+      attention_backend: flash
+      noise_scheduler: flowmatch
+      timestep_type: shift
+      optimizer: adafactor
+      lr: 5.0e-05
+      lr_scheduler: constant_with_warmup
+      dtype: bf16
+    model:
+      name_or_path: black-forest-labs/FLUX.2-dev
+      arch: flux2
+      quantize: true
+      quantize_te: true
+      qtype: qfloat8
+    sample:
+      sample_every: 1000
+      guidance_scale: 4.0
+      sample_steps: 50
+      seed: 42
+      walk_seed: true
+meta:
+  name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr5e5_ga8_lora16_h200_1epoch
+  version: '1.0'
+  description: LoRA rank 16 (matches fal-ai/flux-2-trainer default) fine-tune of FLUX.2-dev (32B transformer + Mistral-Small-3.1-24B TE qfloat8-quantized) on text-removed page PNGs across MangaZero + Manga109 + Marvel/DC comics (Gemini 3 Flash captions, same-page character references, character-outline + text-region + silver speech-bubble-tail control encoding). MAGI v3 annotations include inferred tails. LoRA uses a fal-compatible FLUX.2 module filter for double-block attention, single-block linears, and conditioning paths when ai-toolkit traversal exposes them, while excluding double-block MLPs. GA 8, LR 5e-5, 1 epoch on 8xH200 DDP. Save every 1000 steps, keep 4 checkpoints. Memory telemetry is disabled by default for quiet production runs.
+drawtoon:
+  bucket: drawtoon
+  pages_prefix: datasets/pages/text_removed
+  annotations_prefix: datasets/annotations/magi_v3
+  captions_prefix: captions
+  caption_run: gemini3_flash_page_panel_v1
+  caption_field: caption
+  caption_format: text
+  include_chapter_regex: _(manga|comic)$

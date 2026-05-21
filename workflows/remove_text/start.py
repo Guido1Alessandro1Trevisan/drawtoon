@@ -51,8 +51,17 @@ def _list_existing(s3, bucket: str, output_prefix: str, chapter: str) -> set[str
         for obj in page.get("Contents", []) or []:
             key = str(obj.get("Key") or "")
             if key.endswith(".png"):
-                seen.add(Path(key).stem)
+                rel = key[len(prefix) :] if key.startswith(prefix) else Path(key).name
+                seen.add(_page_id_from_relative(rel))
     return seen
+
+
+def _page_id_from_relative(relative_path: str) -> str:
+    return Path(relative_path).with_suffix("").as_posix().replace("/", "__")
+
+
+def _png_relative_path(relative_path: str) -> str:
+    return Path(relative_path).with_suffix(".png").as_posix()
 
 
 def normalize_manga_chapter_name(chapter: str) -> str:
@@ -111,7 +120,8 @@ def list_pages(
                 if Path(key).suffix.lower() not in SUPPORTED_SUFFIXES:
                     continue
                 stats["source_image_count"] += 1
-                page_id = Path(key).stem
+                rel_path = key[len(chapter_prefix) :] if key.startswith(chapter_prefix) else Path(key).name
+                page_id = _page_id_from_relative(rel_path)
                 if not overwrite and page_id in existing:
                     stats["skipped_existing_count"] += 1
                     continue
@@ -121,7 +131,7 @@ def list_pages(
                     "page_id": page_id,
                     "sample_id": f"{output_chapter}__{page_id}",
                     "page_key": key,
-                    "output_key": f"{output_prefix.rstrip('/')}/{output_chapter}/{page_id}.png",
+                    "output_key": f"{output_prefix.rstrip('/')}/{output_chapter}/{_png_relative_path(rel_path)}",
                 })
                 if max_pages > 0 and len(rows) >= max_pages:
                     return rows, stats

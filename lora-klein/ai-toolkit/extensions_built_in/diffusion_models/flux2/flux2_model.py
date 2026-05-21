@@ -381,9 +381,7 @@ class Flux2Model(BaseModel):
                     # pack control
                     for control_img in control_tensor_list:
                         # control images are 0 - 1 scale, shape (1, ch, height, width)
-                        control_img = control_img.to(
-                            self.device_torch, dtype=self.torch_dtype
-                        )
+                        control_img = control_img.to(dtype=torch.float32)
                         # if it is only 3 dim, add batch dim
                         if len(control_img.shape) == 3:
                             control_img = control_img.unsqueeze(0)
@@ -422,6 +420,13 @@ class Flux2Model(BaseModel):
                         img_cond_seq_ids = torch.cat(
                             (img_cond_seq_ids, img_cond_seq_ids_item), dim=0
                         )
+
+                if (
+                    img_cond_seq is not None
+                    and torch.cuda.is_available()
+                    and os.environ.get("DRAWTOON_EMPTY_CACHE_AFTER_CONTROL", "0") == "1"
+                ):
+                    torch.cuda.empty_cache()
 
             img_input = packed_latents
             img_input_ids = img_ids

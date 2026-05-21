@@ -33,7 +33,6 @@ DEFAULT_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_S3_REGION")
 DEFAULT_BUCKET = os.environ.get("DATASET_BUCKET_NAME", "drawtoon")
 DEFAULT_INPUT_PREFIX = "datasets/pages/single"
 DEFAULT_OUTPUT_PREFIX = "datasets/pages/filtered"
-DEFAULT_FILTER_MODE = "manga"
 DEFAULT_CLASSIFICATION_MODEL = os.environ.get(
     "DEFAULT_CLASSIFICATION_MODEL",
     "global.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -109,49 +108,11 @@ def main() -> None:
     filter_cmd.add_argument("--input-prefix", default=DEFAULT_INPUT_PREFIX)
     filter_cmd.add_argument("--output-prefix", default=DEFAULT_OUTPUT_PREFIX)
     filter_cmd.add_argument("--artifact-prefix", default="")
-    filter_cmd.add_argument(
-        "--manwa",
-        action="store_true",
-        help=(
-            "Opt into raw manhwa mode: Gemini single-page keep/drop, then horizontal-gutter "
-            "segmentation and compact 2x2 sheets. Without this flag, behavior is unchanged."
-        ),
-    )
-    filter_cmd.add_argument(
-        "--mode",
-        choices=["manga", "manhwa", "manwa", "manha", "manhua", "webtoon"],
-        default=DEFAULT_FILTER_MODE,
-    )
     filter_cmd.add_argument("--model", default=DEFAULT_CLASSIFICATION_MODEL)
     filter_cmd.add_argument("--prompt-filename", default="")
     filter_cmd.add_argument("--timeout-seconds", type=float, default=60.0)
     filter_cmd.add_argument("--retries", type=int, default=5)
     filter_cmd.add_argument("--max-output-tokens", type=int, default=0)
-    filter_cmd.add_argument("--manhwa-diagnostic-width", type=int, default=896)
-    filter_cmd.add_argument("--manhwa-full-thumb-height", type=int, default=640)
-    filter_cmd.add_argument("--manhwa-edge-crop-source-px", type=int, default=1536)
-    filter_cmd.add_argument("--manhwa-jpeg-quality", type=int, default=82)
-    filter_cmd.add_argument("--manhwa-strip-jpeg-quality", type=int, default=92)
-    filter_cmd.add_argument(
-        "--manhwa-write-pair-artifacts",
-        action="store_true",
-        help="Write adjacent-pair diagnostic JPEGs under the run artifact prefix. Disabled by default.",
-    )
-    filter_cmd.add_argument(
-        "--no-manhwa-strips",
-        action="store_true",
-        help="Do not write stitched strip JPEGs and per-chapter strip manifests under the filtered chapter prefix.",
-    )
-    filter_cmd.add_argument(
-        "--manhwa-write-filtered-pages",
-        action="store_true",
-        help="Also copy individual accepted pages into the filtered chapter. By default manhwa mode writes only strips and manifests.",
-    )
-    filter_cmd.add_argument(
-        "--manhwa-keep-internal-artifacts",
-        action="store_true",
-        help="Keep _jobs and _status workflow internals after a successful manhwa finalization.",
-    )
     filter_cmd.add_argument("--include-relative-path-regex", default="")
     filter_cmd.add_argument("--run-id", default="")
     filter_cmd.add_argument("--overwrite", action="store_true")
@@ -177,28 +138,18 @@ def main() -> None:
         raise ValueError(f"Unsupported command={args.command!r}")
 
     arn = outputs["FilterMangaPagesStateMachineArn"]
-    mode = "manhwa_raw" if bool(args.manwa) else str(args.mode).strip()
     payload = {
         **common,
         "bucket": str(args.bucket).strip(),
         "input_prefix": str(args.input_prefix).strip().strip("/"),
         "output_prefix": str(args.output_prefix).strip().strip("/"),
         "artifact_prefix": str(args.artifact_prefix).strip().strip("/"),
-        "mode": mode,
+        "mode": "manga",
         "model": str(args.model).strip(),
         "prompt_filename": str(args.prompt_filename).strip(),
         "timeout_seconds": float(args.timeout_seconds),
         "retries": int(args.retries),
         "max_output_tokens": int(args.max_output_tokens),
-        "manhwa_diagnostic_width": int(args.manhwa_diagnostic_width),
-        "manhwa_full_thumb_height": int(args.manhwa_full_thumb_height),
-        "manhwa_edge_crop_source_px": int(args.manhwa_edge_crop_source_px),
-        "manhwa_jpeg_quality": int(args.manhwa_jpeg_quality),
-        "manhwa_strip_jpeg_quality": int(args.manhwa_strip_jpeg_quality),
-        "manhwa_write_pair_artifacts": bool(args.manhwa_write_pair_artifacts),
-        "manhwa_write_strips": not bool(args.no_manhwa_strips),
-        "manhwa_write_filtered_pages": bool(args.manhwa_write_filtered_pages),
-        "manhwa_cleanup_internal_artifacts": not bool(args.manhwa_keep_internal_artifacts),
         "include_relative_path_regex": str(args.include_relative_path_regex or "").strip(),
         "bedrock_preflight": not bool(args.no_bedrock_preflight),
         "run_id": str(args.run_id or "").strip(),

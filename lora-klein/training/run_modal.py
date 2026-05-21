@@ -15,6 +15,7 @@ import math
 import sys
 import time
 import threading
+import struct
 from types import MethodType
 from pathlib import Path
 from typing import Any, Literal
@@ -72,6 +73,9 @@ LAYOUT_CHARACTER_COLORS = [
 LAYOUT_CHARACTER_COLOR_NAMES = ["red", "green", "yellow", "magenta", "cyan"]
 LAYOUT_CHARACTER_OUTLINE_WIDTHS = [12, 10, 8, 6, 4]
 CHARACTER_REF_BORDER_WIDTH = 3
+FAL_LORA_OLD_PREFIX = "diffusion_model."
+FAL_LORA_NEW_PREFIX = "base_model.model."
+FAL_LORA_SUFFIX = "_fal.safetensors"
 
 
 class LaunchArgs(BaseModel):
@@ -118,6 +122,107 @@ def find_raw_lora_path(job_name: str) -> Path:
         if candidate.exists():
             return candidate
     raise FileNotFoundError(f"Could not find trained LoRA weights for {job_name}")
+
+
+def is_fal_lora_checkpoint_artifact(path: Path | str) -> bool:
+    return Path(path).name.endswith(FAL_LORA_SUFFIX)
+
+
+def is_ai_toolkit_lora_checkpoint_artifact(path: Path, *, job_name: str) -> bool:
+    return (
+        path.is_file()
+        and path.name.startswith(job_name)
+        and path.name.endswith(".safetensors")
+        and not is_fal_lora_checkpoint_artifact(path)
+    )
+
+
+def fal_lora_sibling_path(path: Path) -> Path:
+    if is_fal_lora_checkpoint_artifact(path):
+        return path
+    return path.with_name(f"{path.stem}_fal{path.suffix}")
+
+
+def read_safetensors_metadata(path: Path) -> dict[str, str]:
+    with path.open("rb") as handle:
+        header_length = struct.unpack("<Q", handle.read(8))[0]
+        header = json.loads(handle.read(header_length))
+    metadata = header.get("__metadata__", {})
+    return metadata if isinstance(metadata, dict) else {}
+
+
+def remap_lora_to_fal(source_path: Path, destination_path: Path) -> int:
+    from safetensors.torch import load_file, save_file
+
+    metadata = read_safetensors_metadata(source_path)
+    tensors = {}
+    converted = 0
+    unexpected_source_keys: list[str] = []
+    source_tensors = load_file(str(source_path), device="cpu")
+    for key, tensor in source_tensors.items():
+        if key.startswith(FAL_LORA_OLD_PREFIX):
+            new_key = FAL_LORA_NEW_PREFIX + key[len(FAL_LORA_OLD_PREFIX) :]
+            converted += 1
+        else:
+            unexpected_source_keys.append(key)
+            new_key = key
+        tensors[new_key] = tensor
+
+    if converted == 0:
+        raise RuntimeError(f"No {FAL_LORA_OLD_PREFIX!r} tensor keys found in {source_path}")
+    if unexpected_source_keys:
+        examples = ", ".join(unexpected_source_keys[:5])
+        raise RuntimeError(
+            f"Cannot remap {source_path} for fal: tensor keys without "
+            f"{FAL_LORA_OLD_PREFIX!r} prefix: {examples}"
+        )
+    bad_output_keys = [key for key in tensors if not key.startswith(FAL_LORA_NEW_PREFIX)]
+    if bad_output_keys:
+        examples = ", ".join(bad_output_keys[:5])
+        raise RuntimeError(
+            f"Cannot remap {source_path} for fal: output keys without "
+            f"{FAL_LORA_NEW_PREFIX!r} prefix: {examples}"
+        )
+
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = destination_path.with_name(f".{destination_path.name}.tmp")
+    if temp_path.exists():
+        temp_path.unlink()
+    save_file(tensors, str(temp_path), metadata=metadata or None)
+    os.replace(temp_path, destination_path)
+    return converted
+
+
+def ensure_fal_lora_sibling(source_path: Path, *, job_name: str, force: bool = False) -> Path | None:
+    if not is_ai_toolkit_lora_checkpoint_artifact(source_path, job_name=job_name):
+        return None
+    destination_path = fal_lora_sibling_path(source_path)
+    if (
+        not force
+        and destination_path.exists()
+        and destination_path.stat().st_size > 0
+        and destination_path.stat().st_mtime_ns >= source_path.stat().st_mtime_ns
+    ):
+        return destination_path
+
+    converted = remap_lora_to_fal(source_path, destination_path)
+    print(
+        "✅ Prepared fal-compatible LoRA checkpoint: "
+        f"{destination_path} ({converted} prefix-remapped tensors)",
+        flush=True,
+    )
+    return destination_path
+
+
+def ensure_fal_lora_siblings(save_root: Path, job_name: str) -> list[Path]:
+    if not save_root.exists():
+        return []
+    fal_paths: list[Path] = []
+    for path in sorted(save_root.glob(f"{job_name}*.safetensors")):
+        fal_path = ensure_fal_lora_sibling(path, job_name=job_name)
+        if fal_path is not None:
+            fal_paths.append(fal_path)
+    return fal_paths
 
 
 def resolve_training_config_path(
@@ -1027,6 +1132,7 @@ def latest_local_checkpoint_artifact(save_root: Path, job_name: str) -> Path | N
         path
         for path in iter_checkpoint_upload_candidates(save_root, job_name)
         if is_prunable_checkpoint_artifact(path, job_name=job_name)
+        and not is_fal_lora_checkpoint_artifact(path)
     ]
     if not candidates:
         return None
@@ -1044,6 +1150,8 @@ def newest_s3_checkpoint_object(*, s3_client, model_prefix: str, job_name: str) 
                 continue
             name = key.rsplit("/", 1)[-1]
             if not name.startswith(job_name):
+                continue
+            if name.endswith(FAL_LORA_SUFFIX):
                 continue
             if newest is None or checkpoint_name_sort_key(name, obj.get("LastModified")) > checkpoint_name_sort_key(
                 newest["Key"].rsplit("/", 1)[-1],
@@ -1172,7 +1280,12 @@ def upload_ready_checkpoints_once(
                 include_metadata=delete_metadata_after_upload,
             )
         ]
-        if prunable:
+        resume_prunable = [
+            candidate for candidate in prunable if not is_fal_lora_checkpoint_artifact(candidate)
+        ]
+        if resume_prunable:
+            keep_local_paths.add(str(max(resume_prunable, key=checkpoint_artifact_sort_key)))
+        elif prunable:
             keep_local_paths.add(str(max(prunable, key=checkpoint_artifact_sort_key)))
 
     for path in candidates:
@@ -1209,6 +1322,35 @@ def upload_ready_checkpoints_once(
         uploaded_snapshots[path_key] = snapshot
         uploaded_count += 1
         print(f"✅ Uploaded checkpoint artifact to S3: {destination_uri}", flush=True)
+
+        fal_path = ensure_fal_lora_sibling(path, job_name=job_name)
+        if fal_path is not None:
+            fal_path_key = str(fal_path)
+            try:
+                fal_snapshot = path_snapshot(fal_path)
+            except FileNotFoundError:
+                fal_snapshot = (0, 0, 0)
+            if fal_snapshot[0] > 0 and uploaded_snapshots.get(fal_path_key) != fal_snapshot:
+                fal_destination_uri = checkpoint_destination_uri(
+                    fal_path,
+                    job_name=job_name,
+                    model_prefix=model_prefix,
+                )
+                print(
+                    "☁️  Uploading fal-compatible LoRA checkpoint to S3: "
+                    f"{fal_path} -> {fal_destination_uri}",
+                    flush=True,
+                )
+                upload_path_to_s3(
+                    fal_path,
+                    fal_destination_uri,
+                    s3_client=s3_client,
+                    transfer_config=transfer_config,
+                )
+                uploaded_snapshots[fal_path_key] = fal_snapshot
+                uploaded_count += 1
+                print(f"✅ Uploaded fal-compatible LoRA checkpoint to S3: {fal_destination_uri}", flush=True)
+
         if (
             delete_local_after_upload
             and path_key not in keep_local_paths
@@ -3043,6 +3185,11 @@ class FluxTrainer:
         self._sync_file_to_s3(save_root / "optimizer.pt", s3_uri(model_prefix, "optimizer.pt"))
 
         if save_path is not None and save_path.exists():
+            fal_save_path = (
+                ensure_fal_lora_sibling(save_path, job_name=job_name)
+                if save_path.is_file()
+                else None
+            )
             if save_path.is_dir():
                 self._sync_dir_to_s3(
                     save_path,
@@ -3053,8 +3200,14 @@ class FluxTrainer:
                     save_path,
                     s3_uri(model_prefix, "checkpoints", save_path.name),
                 )
+            if fal_save_path is not None:
+                self._sync_file_to_s3(
+                    fal_save_path,
+                    s3_uri(model_prefix, "checkpoints", fal_save_path.name),
+                )
 
         if include_all_checkpoints:
+            ensure_fal_lora_siblings(save_root, job_name)
             for path in sorted(save_root.glob(f"{job_name}*")):
                 if path.name in {"samples", "peft_adapter", "config.yaml", "optimizer.pt"}:
                     continue
@@ -3583,6 +3736,20 @@ def train_flux_lora_ddp8(
     # `InitProcessGroupKwargs` in lora-klein/ai-toolkit/toolkit/accelerator.py.
     env.setdefault("AITK_NCCL_TIMEOUT_SECONDS", "1800")
     env["S3_VALIDATION_UPLOAD_ROOT"] = s3_uri(model_prefix, "validate")
+    # Keep production launches quiet. The optional memory instrumentation in
+    # ai-toolkit is still available for debugging, but this launcher should not
+    # inherit stale DRAWTOON_MEM_* flags from the local shell.
+    for mem_env_key in (
+        "DRAWTOON_MEM_PROFILE",
+        "DRAWTOON_MEM_PROFILE_ALL_RANKS",
+        "DRAWTOON_MEM_DUMP_EVERY",
+        "DRAWTOON_MEM_LOG_BATCH",
+        "DRAWTOON_MEM_LOG_BATCH_EVERY",
+        "DRAWTOON_MEM_LOG_BATCH_MAX_STEP",
+    ):
+        env.pop(mem_env_key, None)
+    env["DRAWTOON_EMPTY_CACHE_AFTER_CONTROL"] = "1"
+    env["DRAWTOON_EMPTY_CACHE_THRESHOLD_GB"] = "16"
     if ddp_smoke:
         env["AITK_DDP_SMOKE"] = "1"
     resolve_gradient_accumulation_steps(process_config)
@@ -3639,6 +3806,7 @@ def train_flux_lora_ddp8(
 
     if network_config:
         raw_lora_path = find_raw_lora_path(job_name)
+        ensure_fal_lora_sibling(raw_lora_path, job_name=job_name)
         adapter_dir = raw_lora_path.parent / "peft_adapter"
         build_peft_adapter(
             source_path=raw_lora_path,
@@ -3648,6 +3816,7 @@ def train_flux_lora_ddp8(
             alpha=network_config.get("linear_alpha"),
         )
         validate_peft_adapter_dir(adapter_dir)
+        ensure_fal_lora_siblings(save_root, job_name)
 
     if save_root.exists():
         config_yaml = save_root / "config.yaml"

@@ -479,6 +479,7 @@ class DataLoaderBatchDTO:
         del self.latents
         del self.tensor
         del self.control_tensor
+        del self.control_tensor_list
         del self.audio_tensor
         del self.audio_data
         del self.audio_target

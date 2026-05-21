@@ -1,0 +1,80 @@
+job: extension
+config:
+  name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr5e5_ga8_lora16_h200_fal_smoke_1step
+  process:
+  - type: sd_trainer
+    name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr5e5_ga8_lora16_h200_fal_smoke_1step
+    network:
+      type: lora
+      linear: 16
+      linear_alpha: 16
+      transformer_only: false
+      network_kwargs:
+        only_if_contains:
+        - img_attn.qkv
+        - img_attn.proj
+        - txt_attn.qkv
+        - txt_attn.proj
+        - single_blocks
+        - time_in
+        - txt_in
+        - img_in
+        - guidance_in
+        - double_stream_modulation_img
+        - double_stream_modulation_txt
+        - single_stream_modulation
+        - final_layer.linear
+        ignore_if_contains:
+        - img_mlp
+        - txt_mlp
+    save:
+      dtype: bf16
+      save_every: 1
+      max_step_saves_to_keep: 1
+      save_format: diffusers
+    logging:
+      use_ui_logger: true
+      log_step_timing: true
+    datasets:
+    - type: manifest
+      local_cache_dir: /root/training/datasets_cache/drawtoon_panel_sample_cache
+      resolution: 768
+      buckets: false
+      num_workers: 4
+      max_character_refs: 5
+    train:
+      batch_size: 1
+      gradient_accumulation_steps: 8
+      disable_sampling: true
+      attention_backend: flash
+      noise_scheduler: flowmatch
+      timestep_type: shift
+      optimizer: adafactor
+      lr: 5.0e-05
+      lr_scheduler: constant_with_warmup
+      dtype: bf16
+    model:
+      name_or_path: black-forest-labs/FLUX.2-dev
+      arch: flux2
+      quantize: true
+      quantize_te: true
+      qtype: qfloat8
+    sample:
+      sample_every: 1000
+      guidance_scale: 4.0
+      sample_steps: 50
+      seed: 42
+      walk_seed: true
+meta:
+  name: drawtoon_flux2_dev_manga_comic_text_removed_panel_prediction_native_pad16_gemini3flash_lr5e5_ga8_lora16_h200_fal_smoke_1step
+  version: '1.0'
+  description: One-step save smoke for fal-ai/flux-2/lora compatibility. Same FLUX.2-dev LoRA module filter as the full H200 config, with save_every set to 1 so the first optimizer step writes an inspectable checkpoint and fal-remapped sibling.
+drawtoon:
+  bucket: drawtoon
+  pages_prefix: datasets/pages/text_removed
+  annotations_prefix: datasets/annotations/magi_v3
+  captions_prefix: captions
+  caption_run: gemini3_flash_page_panel_v1
+  caption_field: caption
+  caption_format: text
+  include_chapter_regex: _(manga|comic)$

@@ -117,6 +117,13 @@ class BaseSDTrainProcess(BaseTrainProcess):
         self.start_step = 0
         self.epoch_num = 0
         self.last_save_step = 0
+        # External on-demand checkpoint trigger. Touch this file from outside the
+        # process (e.g. `modal container exec ... -- touch <path>`) and the next
+        # training step will fire a normal self.save(step_num) on the main rank
+        # while every DDP rank synchronises at the same barrier. Lets you grab a
+        # checkpoint mid-flight without restarting the run.
+        env_trigger = os.environ.get("AITK_CHECKPOINT_TRIGGER_FILE", "").strip()
+        self.external_ckpt_trigger_path = env_trigger or os.path.join(self.save_root, ".request_checkpoint")
         # if true, then we do not do an optimizer step.
         self.is_grad_accumulation_step = False
         self.device = str(self.accelerator.device)
@@ -548,6 +555,45 @@ class BaseSDTrainProcess(BaseTrainProcess):
 
     def _is_ddp_smoke_enabled(self) -> bool:
         return os.environ.get("AITK_DDP_SMOKE", "").strip() in {"1", "true", "TRUE", "yes", "YES"}
+
+    def _external_checkpoint_requested(self) -> bool:
+        """Rank-safe check for the external checkpoint trigger file.
+
+        Only rank 0 reads the filesystem; the decision is broadcast to all
+        ranks via the existing process group so the regular is_save_step
+        branches (waitfor_everyone barriers, save, sample) stay coherent
+        across DDP. Returns False if the file is missing or any error occurs.
+        """
+        path = getattr(self, "external_ckpt_trigger_path", "") or ""
+        if not path:
+            return False
+        decision = torch.zeros(1, dtype=torch.int32, device=self.accelerator.device)
+        if self.accelerator.is_main_process:
+            try:
+                if os.path.exists(path):
+                    decision[0] = 1
+            except Exception:
+                decision[0] = 0
+        if self.accelerator.num_processes > 1:
+            import torch.distributed as dist
+            dist.broadcast(decision, src=0)
+        return bool(int(decision.item()))
+
+    def _consume_external_checkpoint_trigger(self) -> None:
+        """Main-process-only: remove the trigger file after a successful save
+        so the same trigger doesn't re-fire on the next step. Safe no-op if
+        the file vanished, never existed, or path is empty."""
+        if not self.accelerator.is_main_process:
+            return
+        path = getattr(self, "external_ckpt_trigger_path", "") or ""
+        if not path:
+            return
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+        except Exception as exc:
+            print_acc(f"warning: could not remove external checkpoint trigger {path}: {exc}")
 
     def _collect_ddp_smoke_sample_ids(self, batch_list, limit: int = 20) -> list[str]:
         sample_ids: list[str] = []
@@ -1652,6 +1698,7 @@ class BaseSDTrainProcess(BaseTrainProcess):
             # Filter out non-existent paths and sort by creation time
             if paths:
                 paths = [p for p in paths if os.path.exists(p)]
+                paths = [p for p in paths if not p.endswith('_fal.safetensors')]
                 # remove false positives
                 if '_LoRA' not in name:
                     paths = [p for p in paths if '_LoRA' not in p]
@@ -3009,6 +3056,68 @@ class BaseSDTrainProcess(BaseTrainProcess):
         # TRAIN LOOP
         ###################################################################
 
+        # --- Memory leak profiling (opt-in via DRAWTOON_MEM_PROFILE=1) ---
+        # Records every CUDA alloc/free with stack traces; dumps a pickle
+        # every N steps that can be visualized at https://pytorch.org/memory_viz
+        # to find which call sites leak. Rank 0 only.
+        _mem_profile_enabled = os.environ.get("DRAWTOON_MEM_PROFILE", "0") == "1"
+        _mem_profile_all_ranks = os.environ.get("DRAWTOON_MEM_PROFILE_ALL_RANKS", "0") == "1"
+        _mem_dump_every = int(os.environ.get("DRAWTOON_MEM_DUMP_EVERY", "50"))
+        _mem_log_batch = os.environ.get("DRAWTOON_MEM_LOG_BATCH", "0") == "1"
+        _mem_log_batch_every = max(1, int(os.environ.get("DRAWTOON_MEM_LOG_BATCH_EVERY", "1")))
+        _mem_log_batch_max_step = int(os.environ.get("DRAWTOON_MEM_LOG_BATCH_MAX_STEP", "200"))
+        _mem_empty_cache_threshold_gb = float(os.environ.get("DRAWTOON_EMPTY_CACHE_THRESHOLD_GB", "0") or "0")
+        _mem_accelerator = getattr(self, "accelerator", None)
+        _mem_is_main = bool(getattr(_mem_accelerator, "is_main_process", True))
+        _mem_rank = int(getattr(_mem_accelerator, "process_index", 0))
+        _mem_should_log = _mem_is_main or _mem_profile_all_ranks
+        _mem_dump_dir = os.path.join(self.save_root, "mem_snapshots") if hasattr(self, "save_root") and self.save_root else "/tmp/mem_snapshots"
+        if _mem_profile_enabled and _mem_is_main and torch.cuda.is_available():
+            try:
+                os.makedirs(_mem_dump_dir, exist_ok=True)
+                torch.cuda.memory._record_memory_history(max_entries=200000)
+                print_acc(f"[mem-profile] enabled — dump every {_mem_dump_every} steps to {_mem_dump_dir}")
+            except Exception as _e:
+                print_acc(f"[mem-profile] failed to enable: {_e}")
+                _mem_profile_enabled = False
+        elif _mem_profile_enabled and _mem_should_log and torch.cuda.is_available():
+            print(f"[mem-profile rank={_mem_rank}] summary logging enabled", flush=True)
+
+        def _mem_batch_summary(batch_items):
+            summary = []
+            for micro_idx, microbatch in enumerate(batch_items or []):
+                if not isinstance(microbatch, DataLoaderBatchDTO):
+                    continue
+                sample_ids = getattr(microbatch, "sample_id_list", None) or []
+                control_groups = []
+                if getattr(microbatch, "control_tensor_list", None) is not None:
+                    control_groups = microbatch.control_tensor_list
+                elif getattr(microbatch, "control_tensor", None) is not None:
+                    control_tensor = microbatch.control_tensor
+                    if control_tensor.ndim == 5:
+                        control_groups = [
+                            [control_tensor[b, c] for c in range(control_tensor.shape[1])]
+                            for b in range(control_tensor.shape[0])
+                        ]
+                    elif control_tensor.ndim == 4:
+                        control_groups = [[control_tensor[b]] for b in range(control_tensor.shape[0])]
+                for item_idx, controls in enumerate(control_groups):
+                    shapes = []
+                    total_pixels = 0
+                    for tensor in controls:
+                        try:
+                            height = int(tensor.shape[-2])
+                            width = int(tensor.shape[-1])
+                        except Exception:
+                            continue
+                        shapes.append(f"{height}x{width}")
+                        total_pixels += height * width
+                    sample_id = sample_ids[item_idx] if item_idx < len(sample_ids) else ""
+                    summary.append(
+                        f"mb={micro_idx} item={item_idx} controls={len(shapes)} "
+                        f"pixels={total_pixels} shapes={','.join(shapes)} sample={sample_id}"
+                    )
+            return " | ".join(summary)
 
         start_step_num = self.step_num
         did_first_flush = False
@@ -3036,6 +3145,13 @@ class BaseSDTrainProcess(BaseTrainProcess):
                 # todo improve this logic to send one of each through if we can buckets and batch size might be an issue
                 is_reg_step = False
                 is_save_step = self.save_config.save_every and self.step_num % self.save_config.save_every == 0
+                external_save_request = False
+                if not is_save_step:
+                    external_save_request = self._external_checkpoint_requested()
+                    if external_save_request:
+                        is_save_step = True
+                        if self.accelerator.is_main_process:
+                            print_acc(f"External checkpoint trigger detected at step {self.step_num}")
                 is_sample_step = self.sample_config.sample_every and self.step_num % self.sample_config.sample_every == 0
                 if self.train_config.disable_sampling:
                     is_sample_step = False
@@ -3134,6 +3250,36 @@ class BaseSDTrainProcess(BaseTrainProcess):
                 print("\n==== Profile Results ====")
                 print(self.torch_profiler.key_averages().table(sort_by="cpu_time_total", row_limit=1000))
             self.timer.stop('train_loop')
+            # --- Memory profile per-step log + periodic snapshot dump ---
+            if _mem_profile_enabled and _mem_should_log and torch.cuda.is_available():
+                try:
+                    _alloc_gb = torch.cuda.memory_allocated() / 1e9
+                    _reserved_gb = torch.cuda.memory_reserved() / 1e9
+                    _peak_gb = torch.cuda.max_memory_allocated() / 1e9
+                    _peak_reserved_gb = torch.cuda.max_memory_reserved() / 1e9
+                    print(
+                        f"[mem-step {self.step_num} rank={_mem_rank}] "
+                        f"alloc={_alloc_gb:.2f}GB reserved={_reserved_gb:.2f}GB "
+                        f"peak={_peak_gb:.2f}GB peak_reserved={_peak_reserved_gb:.2f}GB",
+                        flush=True,
+                    )
+                    if (
+                        _mem_log_batch
+                        and self.step_num <= _mem_log_batch_max_step
+                        and self.step_num % _mem_log_batch_every == 0
+                    ):
+                        _summary = _mem_batch_summary(batch_list)
+                        if _summary:
+                            print(
+                                f"[mem-batch {self.step_num} rank={_mem_rank}] {_summary}",
+                                flush=True,
+                            )
+                    if _mem_is_main and self.step_num > 0 and self.step_num % _mem_dump_every == 0:
+                        _snap_path = os.path.join(_mem_dump_dir, f"snapshot_step_{self.step_num:06d}.pickle")
+                        torch.cuda.memory._dump_snapshot(_snap_path)
+                        print_acc(f"[mem-profile] dumped {_snap_path}")
+                except Exception as _e:
+                    print_acc(f"[mem-profile] step-log failed: {_e}")
             if not did_first_flush:
                 flush()
                 did_first_flush = True
@@ -3199,6 +3345,19 @@ class BaseSDTrainProcess(BaseTrainProcess):
                         with self.timer('batch_cleanup'):
                             microbatch.cleanup()
 
+                if _mem_empty_cache_threshold_gb > 0 and torch.cuda.is_available():
+                    _alloc_after_cleanup = torch.cuda.memory_allocated()
+                    _reserved_after_cleanup = torch.cuda.memory_reserved()
+                    _cached_free_gb = (_reserved_after_cleanup - _alloc_after_cleanup) / 1e9
+                    if _cached_free_gb >= _mem_empty_cache_threshold_gb:
+                        torch.cuda.empty_cache()
+                        if _mem_profile_enabled and _mem_should_log:
+                            print(
+                                f"[mem-empty-cache {self.step_num} rank={_mem_rank}] "
+                                f"released_cached_free={_cached_free_gb:.2f}GB",
+                                flush=True,
+                            )
+
                 # don't do on first step
                 if self.step_num != self.start_step:
                     if is_sample_step or is_save_step:
@@ -3211,6 +3370,8 @@ class BaseSDTrainProcess(BaseTrainProcess):
                             self.progress_bar.pause()
                         print_acc(f"\nSaving at step {self.step_num}")
                         self.save(self.step_num)
+                        if external_save_request:
+                            self._consume_external_checkpoint_trigger()
                         self.ensure_params_requires_grad()
                         # clear any grads
                         optimizer.zero_grad()

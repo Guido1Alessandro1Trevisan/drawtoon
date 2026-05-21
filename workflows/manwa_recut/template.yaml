@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon manwa chapter recut (stitch + gutter-slice) via Step Functions Distributed Map.
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.11
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Timeout: 900
+    MemorySize: 3008
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+
+Resources:
+  RecutChapterBatchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handler.recut_chapter_batch
+      MemorySize: 10240
+      Timeout: 900
+      EphemeralStorage:
+        Size: 4096
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+                - s3:DeleteObject
+                - s3:DeleteObjectVersion
+                - s3:ListBucketVersions
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+  RecutManwaStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/recut_chapters.asl.json
+      DefinitionSubstitutions:
+        RecutChapterBatchArn: !GetAtt RecutChapterBatchFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref RecutChapterBatchFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}
+
+Outputs:
+  RecutManwaStateMachineArn:
+    Value: !Ref RecutManwaStateMachine

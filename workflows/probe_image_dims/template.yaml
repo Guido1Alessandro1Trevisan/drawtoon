@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon image-dimension probe via Step Functions Distributed Map (range-bytes + PIL header parse).
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.11
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Timeout: 60
+    MemorySize: 512
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+
+Resources:
+  ProbeImageDimsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handler.probe_image_dims
+      MemorySize: 512
+      Timeout: 60
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+  ProbeImageDimsStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/probe_dims.asl.json
+      DefinitionSubstitutions:
+        ProbeImageDimsArn: !GetAtt ProbeImageDimsFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProbeImageDimsFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}
+
+Outputs:
+  ProbeImageDimsStateMachineArn:
+    Value: !Ref ProbeImageDimsStateMachine
+  ProbeImageDimsFunctionName:
+    Value: !Ref ProbeImageDimsFunction

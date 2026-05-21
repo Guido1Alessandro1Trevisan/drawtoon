@@ -189,23 +189,6 @@ def _put_json_to_s3(bucket: str, key: str, payload: dict[str, Any]) -> None:
     )
 
 
-def _round_to_multiple(value: int, multiple: int) -> int:
-    return max(multiple, ((value + multiple // 2) // multiple) * multiple)
-
-
-def _normalize_size(image_obj: Any, *, target_long: int = 1024, multiple: int = 16) -> Any:
-    """Resize to longest side == target_long and snap to multiple-of-16 dims."""
-    w, h = image_obj.size
-    if max(w, h) == target_long and w % multiple == 0 and h % multiple == 0:
-        return image_obj
-    scale = target_long / float(max(w, h))
-    new_w = _round_to_multiple(int(round(w * scale)), multiple)
-    new_h = _round_to_multiple(int(round(h * scale)), multiple)
-    from PIL import Image
-
-    return image_obj.resize((new_w, new_h), Image.Resampling.LANCZOS)
-
-
 def _enable_cuda_fast_math(torch_mod: Any) -> None:
     try:
         torch_mod.backends.cuda.matmul.allow_tf32 = True
@@ -281,7 +264,6 @@ def _edit_batch_klein_impl(
     *,
     pipe: Any,
     variant: str = "klein_local_9b_4step",
-    target_long_side: int = 1024,
 ) -> dict[str, Any]:
     pages = list(payload.get("pages") or [])
     if not pages:
@@ -324,7 +306,7 @@ def _edit_batch_klein_impl(
         image_obj, source = _download_rgb_image(bucket, page_key)
         return {
             "index": index,
-            "image": _normalize_size(image_obj, target_long=target_long_side),
+            "image": image_obj,
             "orig_size": image_obj.size,
             "source": source,
             "sample_id": sample_id,

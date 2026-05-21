@@ -10,68 +10,13 @@ Current workflow code:
 
 - `workflows/manga_filter/` filters `datasets/pages/single/` with Claude Haiku and writes accepted pages to `datasets/pages/filtered/`.
 
-## Manwa / manhwa / manhua: how they were re-cut
-
-Raw manhwa-family pages (`<series>_manwa`, `_manhwa`, `_manha`, `_manhua`)
-arrive on S3 in wildly inconsistent shapes — most are 800×1280 but some
-publishers export an entire chapter as one 5,000-to-16,000-pixel-tall jpeg.
-Long-strip pages don't fit FLUX's 1024² training pixel budget and Gemini's
-gutter detector becomes unreliable past ~5,000 px height.
-
-To normalise the corpus we did a one-shot **stitch-by-episode + row-RGB-uniform
-recut** instead of relying on Gemini for these:
-
-1. Group every raw page under `datasets/pages/single/<series>/` by episode
-   (subdirectory like `chapter-000001/`, or `<episode-id>__page-` filename
-   prefix, or flat-series fallback).
-2. Stitch all pages in an episode into one tall PIL strip (widths
-   normalised to the max page width).
-3. Run the same baseline row-uniform-gutter detector that lives in
-   `workflows/manga_filter/src/manhwa_raw_sheets.py:_row_is_uniform_gutter`
-   over the strip: per row, sample 96 columns; flag the row as gutter if
-   horizontal RGB range ≤ 10 **and** luma ≥ 238 or luma ≤ 35 or
-   saturation-proxy ≤ 18; require runs of ≥ 18 such rows to count as a
-   gutter band; cut at each band's midpoint with a 320 px minimum between
-   consecutive cuts.
-4. Slice the stitched strip at every gutter midpoint. Drop any segment
-   whose `width × height > 1024 × 1024 = 1,048,576` pixels (FLUX budget).
-5. Write the surviving segments back to
-   `s3://drawtoon/datasets/pages/single/<series>/<episode>__page-NNNN.jpg`
-   in-place, then delete every original key that wasn't overwritten.
-
-The whole job ran as a throwaway distributed Step-Functions workflow
-under `artifacts/recut_stepfunctions/` (one Lambda per episode, ≤3,000
-concurrency, ~3 min wall clock for 3,150 episodes). Naming, mime type,
-and bucket layout match the original `single/` keys exactly so every
-downstream workflow (`manga_filter`, `manga_annotate`/magi v3, captioner,
-trainer) consumes the recut output without code changes.
-
-**Resulting state of `datasets/pages/single/` for the manwa+manhua slice:**
-
-- ~65,734 recut singles across 3,146 episodes / 34 series.
-- Every surviving file fits the 1024² pixel budget; the dataset shrinks
-  ~47% vs the original raw scrape (long-strip exports were not viable
-  training samples).
-- 4 episodes are empty due to corrupt source jpegs that PIL couldn't
-  decode at recut time (37 pages, all already unreadable pre-recut).
-- magi v3 annotation works on the recut output without modification —
-  smoke-test on 200 pages returned 200 successful annotations
-  (see `artifacts/recut_smoke_magi/` for sample layout overlays).
-
-The implementation files (intentionally co-located in `artifacts/` since
-this is a one-time normalisation, not an ongoing pipeline):
-
-```
-artifacts/recut_stepfunctions/
-├── template.yaml                      # SAM stack
-├── statemachines/recut_episodes.asl.json   # Distributed Map
-├── src/handlers.py                    # row-RGB cutter + 1024² drop
-├── start.py                           # local CLI: list → manifest → start
-└── README.md                          # usage notes
-```
-
-If a downstream workflow needs the *original* long-strip pages back,
-they were not preserved — re-scrape via `workflows/download_scraper/`.
+Manwa / manhwa / manhua singles (`<series>_manwa`, `_manhwa`, `_manha`,
+`_manhua`) sit under `datasets/pages/single/` and were normalised to the
+FLUX 1024² training pixel budget in a one-shot stitch-by-episode +
+row-RGB-uniform recut. That recut tooling has been retired; the recut
+output remains in place and is consumed by every downstream workflow
+(`manga_filter`, `manga_annotate`/magi v3, captioner, trainer) without a
+special path.
 
 ## Free DC / Marvel Reading Shortlist
 

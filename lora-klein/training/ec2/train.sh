@@ -26,6 +26,7 @@
 #   VALIDATION_SAMPLES 16
 #   AUTO_SHUTDOWN_ON_EXIT  1                    (set to 0 to keep the box alive)
 #   INSTALL_SYSTEM_DEPS    1                    (set to 0 if DLAMI already has them)
+#   SYNC_INTERVAL_SEC      30                   (background S3 sync daemon poll interval; 0 disables)
 #
 # See README.md in this directory for a recommended user-data bootstrap.
 
@@ -53,6 +54,8 @@ MAX_TRAIN_STEPS="${MAX_TRAIN_STEPS:-0}"
 VALIDATION_SAMPLES="${VALIDATION_SAMPLES:-16}"
 AUTO_SHUTDOWN_ON_EXIT="${AUTO_SHUTDOWN_ON_EXIT:-1}"
 INSTALL_SYSTEM_DEPS="${INSTALL_SYSTEM_DEPS:-1}"
+SYNC_INTERVAL_SEC="${SYNC_INTERVAL_SEC:-30}"
+SYNC_DAEMON_PID=""
 
 REPO_ROOT="$WORK_ROOT/repo"
 VENV_DIR="$WORK_ROOT/venv"
@@ -71,8 +74,43 @@ upload_logs() {
     --region "$AWS_REGION" --only-show-errors --no-progress || true
 }
 
+# Background daemon that mirrors $save_root -> S3 every $SYNC_INTERVAL_SEC.
+# Started right before torchrun, stopped from finish(). Ensures checkpoints
+# land on S3 within ~30s of being written, so the box dying never costs more
+# than that.
+start_output_sync_daemon() {
+  if [ "$SYNC_INTERVAL_SEC" = "0" ]; then
+    echo "[$(date -Is)] S3 sync daemon disabled (SYNC_INTERVAL_SEC=0)"
+    return
+  fi
+  local save_root="$1"
+  local s3_prefix="$2"
+  mkdir -p "$save_root"
+  (
+    while true; do
+      aws s3 sync "$save_root" "s3://$S3_BUCKET/$s3_prefix" \
+        --region "$AWS_REGION" \
+        --exclude "*.tmp" --exclude "*.partial" --exclude "*.lock" \
+        --only-show-errors --no-progress \
+        >>"$LOG_DIR/sync_daemon.log" 2>&1 || true
+      sleep "$SYNC_INTERVAL_SEC"
+    done
+  ) &
+  SYNC_DAEMON_PID=$!
+  echo "[$(date -Is)] Started S3 sync daemon pid=$SYNC_DAEMON_PID interval=${SYNC_INTERVAL_SEC}s target=s3://$S3_BUCKET/$s3_prefix"
+}
+
+stop_output_sync_daemon() {
+  if [ -n "$SYNC_DAEMON_PID" ] && kill -0 "$SYNC_DAEMON_PID" 2>/dev/null; then
+    kill "$SYNC_DAEMON_PID" 2>/dev/null || true
+    wait "$SYNC_DAEMON_PID" 2>/dev/null || true
+    echo "[$(date -Is)] Stopped S3 sync daemon pid=$SYNC_DAEMON_PID"
+  fi
+}
+
 finish() {
   local exit_code="$?"
+  stop_output_sync_daemon
   python - "$STATUS_FILE" "$exit_code" <<'PY' || true
 import json, sys, time
 path, exit_code = sys.argv[1], int(sys.argv[2])
@@ -106,8 +144,24 @@ if command -v nvidia-smi >/dev/null 2>&1; then
   nvidia-smi || true
 fi
 
+# NVIDIA fabric-manager — REQUIRED on Blackwell SXM (B100/B200/B300) for CUDA to init.
+# DLAMI ships the package but doesn't enable the service. Skip silently inside a
+# Docker container (no systemd / no privilege to start host services).
+if command -v systemctl >/dev/null 2>&1 && [ ! -f /.dockerenv ]; then
+  if systemctl list-unit-files 2>/dev/null | grep -q nvidia-fabricmanager; then
+    if ! systemctl is-active nvidia-fabricmanager >/dev/null 2>&1; then
+      echo "[$(date -Is)] enabling + starting nvidia-fabricmanager (required on Blackwell SXM)"
+      systemctl enable --now nvidia-fabricmanager || echo "[WARN] could not start fabric-manager"
+      sleep 5
+    fi
+    echo "[$(date -Is)] fabric-manager: $(systemctl is-active nvidia-fabricmanager 2>&1)"
+  fi
+fi
+
 if [ "$INSTALL_SYSTEM_DEPS" = "1" ]; then
   apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    git rsync python3-venv python3-pip libgl1 libglib2.0-0 nvidia-fabricmanager-580 || \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     git rsync python3-venv python3-pip libgl1 libglib2.0-0
 fi
@@ -209,7 +263,7 @@ echo "[$(date -Is)] Building Drawtoon panel cache for $label"
 python "$REPO_ROOT/lora-klein/training/utils.py" build-ec2-cache \
   --config "$config_path" \
   --cache-root "$CACHE_ROOT" \
-  --workers 96 \
+  --workers "${CACHE_WORKERS:-192}" \
   --overwrite | tee "$cache_log"
 
 cache_json="$(parse_final_json "$cache_log")"
@@ -246,12 +300,14 @@ echo "[$(date -Is)] Starting torchrun for $job_name (world_size=$WORLD_SIZE)"
 echo "[$(date -Is)] S3 model prefix: s3://$S3_BUCKET/$model_prefix"
 export LINEART2_TRAINING_OUTPUT_ROOT="$output_root"
 export S3_VALIDATION_UPLOAD_ROOT="s3://$S3_BUCKET/$model_prefix/validate"
+start_output_sync_daemon "$save_root" "$model_prefix"
 cd "$REPO_ROOT/lora-klein/ai-toolkit"
 torchrun --standalone --nnodes=1 --nproc-per-node="$WORLD_SIZE" run.py "$prepared_config"
+stop_output_sync_daemon  # final flush handled by the post-torchrun sync below
 
 echo "[$(date -Is)] Converting LoRA checkpoint to PEFT adapter (if applicable) for $job_name"
 export REPO_ROOT CACHE_ROOT
-python - "$job_name" "$prepared_config" <<'PY' || true
+python - "$job_name" "$prepared_config" <<'PY'
 import os, sys, yaml
 sys.path.insert(0, os.path.join(os.environ["REPO_ROOT"], "lora-klein", "training"))
 from utils import _load_training_module_for_ec2
@@ -276,6 +332,9 @@ mod.build_peft_adapter(
 )
 mod.validate_peft_adapter_dir(adapter_dir)
 print(f"PEFT adapter ready: {adapter_dir}")
+fal_paths = mod.ensure_fal_lora_siblings(raw_lora_path.parent, job_name)
+for fal_path in fal_paths:
+    print(f"fal-compatible LoRA ready: {fal_path}")
 PY
 
 echo "[$(date -Is)] Syncing artifacts for $job_name"

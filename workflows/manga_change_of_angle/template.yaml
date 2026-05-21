@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Drawtoon manga change-of-angle / change-of-shot-size pair detector using Kimi K2.6 via SFN Distributed Map.
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.12
+  DefaultKimiModel:
+    Type: String
+    Default: kimi-k2.6
+  KimiApiKeySecretName:
+    Type: String
+    Default: drawtoon/kimi-api-key
+  KimiBaseUrl:
+    Type: String
+    Default: https://api.moonshot.ai/v1
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Architectures:
+      - arm64
+    Timeout: 900
+    MemorySize: 2048
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+        DEFAULT_KIMI_MODEL: !Ref DefaultKimiModel
+        KIMI_API_KEY_SECRET_NAME: !Ref KimiApiKeySecretName
+        KIMI_BASE_URL: !Ref KimiBaseUrl
+
+Resources:
+  PrepareDetectChangeOfAngleConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.prepare_detect_change_of_angle_config
+      MemorySize: 1536
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+  DetectChangeOfAnglePageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.detect_change_of_angle_page
+      MemorySize: 2048
+      Timeout: 900
+      EphemeralStorage:
+        Size: 1024
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${KimiApiKeySecretName}-*
+
+  MangaChangeOfAngleStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: statemachines/detect_change_of_angle_pages.asl.json
+      DefinitionSubstitutions:
+        PrepareDetectChangeOfAngleConfigArn: !GetAtt PrepareDetectChangeOfAngleConfigFunction.Arn
+        DetectChangeOfAnglePageArn: !GetAtt DetectChangeOfAnglePageFunction.Arn
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PrepareDetectChangeOfAngleConfigFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DetectChangeOfAnglePageFunction
+        - Statement:
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:*
+            - Effect: Allow
+              Action:
+                - states:DescribeExecution
+                - states:StopExecution
+                - states:RedriveExecution
+              Resource: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:*:*
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:AbortMultipartUpload
+                - s3:ListMultipartUploadParts
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:aws:s3:::${DatasetBucketName}
+
+Outputs:
+  MangaChangeOfAngleStateMachineArn:
+    Value: !Ref MangaChangeOfAngleStateMachine

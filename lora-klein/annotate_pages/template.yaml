@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Manga page annotation via Bedrock Haiku 4.5 (Distributed Map).
+
+Parameters:
+  DatasetBucketName:
+    Type: String
+    Default: drawtoon
+  PythonRuntime:
+    Type: String
+    Default: python3.12
+  DefaultAnnotationModel:
+    Type: String
+    Default: global.anthropic.claude-haiku-4-5-20251001-v1:0
+
+Globals:
+  Function:
+    Runtime: !Ref PythonRuntime
+    Timeout: 900
+    MemorySize: 2048
+    Tracing: Active
+    CodeUri: ./
+    Environment:
+      Variables:
+        DATASET_BUCKET_NAME: !Ref DatasetBucketName
+        DEFAULT_ANNOTATION_MODEL: !Ref DefaultAnnotationModel
+
+Resources:
+  PrepareAnnotateConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.prepare_annotate_config
+      MemorySize: 1024
+      Timeout: 600
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+  AnnotatePageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers.annotate_page
+      MemorySize: 2048
+      Timeout: 300
+      EphemeralStorage:
+        Size: 1024
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:Converse
+              Resource: "*"
+
+  AnnotatePagesStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Type: STANDARD
+      DefinitionUri: ./statemachines/annotate_pages.asl.json
+      DefinitionSubstitutions:
+        PrepareAnnotateConfigFunctionArn: !GetAtt PrepareAnnotateConfigFunction.Arn
+        AnnotatePageFunctionArn: !GetAtt AnnotatePageFunction.Arn
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource:
+                - !GetAtt PrepareAnnotateConfigFunction.Arn
+                - !GetAtt AnnotatePageFunction.Arn
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+                - states:DescribeExecution
+                - states:StopExecution
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:ListBucket
+              Resource:
+                - !Sub arn:aws:s3:::${DatasetBucketName}
+                - !Sub arn:aws:s3:::${DatasetBucketName}/*
+
+Outputs:
+  AnnotatePagesStateMachineArn:
+    Description: ARN of the AnnotatePages Step Functions state machine
+    Value: !GetAtt AnnotatePagesStateMachine.Arn
